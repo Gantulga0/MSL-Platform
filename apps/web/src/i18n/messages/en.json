@@ -1,0 +1,13 @@
+{
+  "app.title": "Mongolian Sign Language Interactive Platform",
+  "app.tagline": "Verified sign-language dictionary and gamified learning",
+  "nav.dictionary": "Dictionary",
+  "nav.games": "Games",
+  "nav.login": "Log in",
+  "nav.register": "Register",
+  "home.searchPlaceholder": "Search a word...",
+  "home.featuredTopics": "Featured topics",
+  "home.accessibilityStatement": "Accessibility statement",
+  "common.skipToContent": "Skip to main content",
+  "status.healthy": "System is operating normally"
+}

@@ -1,0 +1,46 @@
+{
+  "name": "msl-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mongolian Sign Language Interactive Platform",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev --workspace @msl/api",
+    "dev:web": "npm run dev --workspace @msl/web",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "db:seed": "prisma db seed",
+    "db:generate": "prisma generate --schema prisma/schema.prisma"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "prisma": "^6.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0"
+  }
+}

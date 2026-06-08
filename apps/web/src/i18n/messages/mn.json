@@ -1,0 +1,13 @@
+{
+  "app.title": "Монгол дохионы хэлний интерактив платформ",
+  "app.tagline": "Дохионы хэлний баталгаажсан толь бичиг ба тоглоомт сургалт",
+  "nav.dictionary": "Толь бичиг",
+  "nav.games": "Тоглоом",
+  "nav.login": "Нэвтрэх",
+  "nav.register": "Бүртгүүлэх",
+  "home.searchPlaceholder": "Үг хайх...",
+  "home.featuredTopics": "Онцлох сэдвүүд",
+  "home.accessibilityStatement": "Хүртээмжийн мэдэгдэл",
+  "common.skipToContent": "Үндсэн агуулга руу шилжих",
+  "status.healthy": "Систем хэвийн ажиллаж байна"
+}

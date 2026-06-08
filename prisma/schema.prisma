@@ -1,0 +1,26 @@
+// Prisma schema — MSL Platform
+// Step 1 establishes the generator + datasource only. The full §7 data model
+// (identity, dictionary, contribution/review, learning/gamification, ops) lands
+// in Step 2 along with the initial migration and seed.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm]
+}
+
+// --- Placeholder (replaced by the full schema in Step 2) ---
+// Lets `prisma generate` succeed before the real models exist.
+model SchemaMeta {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("schema_meta")
+}
