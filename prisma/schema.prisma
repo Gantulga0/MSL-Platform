@@ -1,7 +1,7 @@
-// Prisma schema — MSL Platform
-// Step 1 establishes the generator + datasource only. The full §7 data model
-// (identity, dictionary, contribution/review, learning/gamification, ops) lands
-// in Step 2 along with the initial migration and seed.
+// Prisma schema — MSL Platform (SPEC §7)
+// Conventions: UUID PKs; created_at/updated_at on most tables; soft-delete via
+// deleted_at where noted; FK fields end in _id (camelCase in client, snake_case
+// columns). school_id is nullable everywhere for future multi-school (G-12).
 
 generator client {
   provider        = "prisma-client-js"
@@ -14,13 +14,642 @@ datasource db {
   extensions = [pg_trgm]
 }
 
-// --- Placeholder (replaced by the full schema in Step 2) ---
-// Lets `prisma generate` succeed before the real models exist.
-model SchemaMeta {
+// ────────────────────────────────────────────────────────────────────────────
+// Enums
+// ────────────────────────────────────────────────────────────────────────────
+
+// Stored user roles. `guest` is unauthenticated (never persisted) so it is not
+// part of this enum — see @msl/types ROLES for the full RBAC ladder.
+enum Role {
+  learner
+  contributor
+  teacher
+  admin
+}
+
+enum UserStatus {
+  active
+  suspended
+  deleted
+}
+
+enum ConsentScope {
+  media_publish
+  data_processing
+}
+
+enum WordStatus {
+  draft
+  pending
+  approved
+  rejected
+  archived
+}
+
+enum MediaOwnerType {
+  word
+  word_variant
+  submission
+}
+
+enum MediaType {
+  video
+  image
+  thumbnail
+}
+
+enum SubmissionStatus {
+  pending
+  approved
+  rejected
+  needs_clarification
+  duplicate
+}
+
+enum ReviewAction {
+  approve
+  reject
+  edit
+  request_clarification
+}
+
+enum DuplicateMethod {
+  exact
+  trigram
+  topic
+}
+
+enum DuplicateDecision {
+  matched
+  distinct
+}
+
+enum GameMode {
+  quiz
+  matching
+  memory
+}
+
+enum PromptType {
+  sign_to_word
+  word_to_sign
+  pair
+}
+
+enum NotificationType {
+  review_pending
+  clarification
+  approved
+  rejected
+  system
+}
+
+enum ImportStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Identity & access
+// ────────────────────────────────────────────────────────────────────────────
+
+model School {
   id        String   @id @default(uuid())
-  key       String   @unique
-  value     String
+  name      String
+  type      String?
+  contact   String?
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@map("schema_meta")
+  users       User[]
+  classCodes  ClassCode[]
+  words       Word[]
+  submissions Submission[]
+
+  @@map("schools")
+}
+
+model User {
+  id              String     @id @default(uuid())
+  schoolId        String?    @map("school_id")
+  role            Role
+  displayName     String     @map("display_name")
+  username        String?    @unique
+  email           String?    @unique
+  emailVerifiedAt DateTime?  @map("email_verified_at")
+  passwordHash    String?    @map("password_hash")
+  pinHash         String?    @map("pin_hash")
+  isMinor         Boolean    @default(false) @map("is_minor")
+  status          UserStatus @default(active)
+  locale          String     @default("mn")
+  failedLogins    Int        @default(0) @map("failed_logins")
+  lockedUntil     DateTime?  @map("locked_until")
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  deletedAt       DateTime?  @map("deleted_at")
+
+  school             School?            @relation(fields: [schoolId], references: [id])
+  refreshTokens      RefreshToken[]
+  classCodesCreated  ClassCode[]        @relation("ClassCodeCreatedBy")
+  consentsAsSubject  Consent[]          @relation("ConsentSubject")
+  consentsAsGuardian Consent[]          @relation("ConsentGuardian")
+  wordsCreated       Word[]             @relation("WordCreatedBy")
+  wordsApproved      Word[]             @relation("WordApprovedBy")
+  submissions        Submission[]       @relation("SubmissionBy")
+  reviews            Review[]
+  gameSessions       GameSession[]
+  wordProgress       UserWordProgress[]
+  streak             UserStreak?
+  badges             UserBadge[]
+  notifications      Notification[]
+  feedback           Feedback[]
+  emailTokens        EmailToken[]
+  importJobs         ImportJob[]
+
+  @@index([schoolId])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model ClassCode {
+  id        String    @id @default(uuid())
+  schoolId  String    @map("school_id")
+  code      String    @unique
+  label     String
+  createdBy String    @map("created_by")
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  school  School @relation(fields: [schoolId], references: [id])
+  creator User   @relation("ClassCodeCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([schoolId])
+  @@map("class_codes")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  userAgent String?   @map("user_agent")
+  ip        String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// Email verification + password reset tokens (AUTH-02, G-14).
+model EmailToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  purpose   String // "verify_email" | "reset_password"
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("email_tokens")
+}
+
+model Consent {
+  id             String       @id @default(uuid())
+  subjectUserId  String?      @map("subject_user_id")
+  guardianUserId String?      @map("guardian_user_id")
+  scope          ConsentScope
+  documentRef    String?      @map("document_ref")
+  signedAt       DateTime     @default(now()) @map("signed_at")
+  revokedAt      DateTime?    @map("revoked_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  subject  User?        @relation("ConsentSubject", fields: [subjectUserId], references: [id])
+  guardian User?        @relation("ConsentGuardian", fields: [guardianUserId], references: [id])
+  media    MediaAsset[]
+
+  @@index([subjectUserId])
+  @@map("consents")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Dictionary content
+// ────────────────────────────────────────────────────────────────────────────
+
+model Topic {
+  id          String   @id @default(uuid())
+  parentId    String?  @map("parent_id")
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  parent      Topic?       @relation("TopicHierarchy", fields: [parentId], references: [id])
+  children    Topic[]      @relation("TopicHierarchy")
+  words       Word[]
+  submissions Submission[]
+
+  @@index([parentId])
+  @@map("topics")
+}
+
+model Level {
+  id        String @id @default(uuid())
+  code      String @unique
+  label     String
+  sortOrder Int    @default(0) @map("sort_order")
+
+  words       Word[]
+  submissions Submission[]
+
+  @@map("levels")
+}
+
+model AgeGroup {
+  id     String @id @default(uuid())
+  code   String @unique
+  label  String
+  minAge Int?   @map("min_age")
+  maxAge Int?   @map("max_age")
+
+  words       Word[]
+  submissions Submission[]
+
+  @@map("age_groups")
+}
+
+model Word {
+  id              String     @id @default(uuid())
+  schoolId        String?    @map("school_id")
+  lemma           String
+  normalizedLemma String     @map("normalized_lemma")
+  definition      String
+  exampleSentence String?    @map("example_sentence")
+  topicId         String     @map("topic_id")
+  levelId         String?    @map("level_id")
+  ageGroupId      String?    @map("age_group_id")
+  status          WordStatus @default(pending)
+  source          String?
+  viewCount       Int        @default(0) @map("view_count")
+  createdBy       String     @map("created_by")
+  approvedBy      String?    @map("approved_by")
+  approvedAt      DateTime?  @map("approved_at")
+  currentVersion  Int        @default(1) @map("current_version")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  deletedAt       DateTime?  @map("deleted_at")
+
+  school   School?   @relation(fields: [schoolId], references: [id])
+  topic    Topic     @relation(fields: [topicId], references: [id])
+  level    Level?    @relation(fields: [levelId], references: [id])
+  ageGroup AgeGroup? @relation(fields: [ageGroupId], references: [id])
+  creator  User      @relation("WordCreatedBy", fields: [createdBy], references: [id])
+  approver User?     @relation("WordApprovedBy", fields: [approvedBy], references: [id])
+
+  variants        WordVariant[]
+  versions        WordVersion[]
+  progress        UserWordProgress[]
+  gameItems       GameItem[]
+  duplicateChecks DuplicateCheck[]
+  submissionsDup  Submission[]       @relation("SubmissionDuplicateOf")
+  submissionsRes  Submission[]       @relation("SubmissionResultingWord")
+
+  // pg_trgm GIN index powers fuzzy dedup + search on the normalized lemma (G-4).
+  @@index([normalizedLemma(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([normalizedLemma, topicId])
+  @@index([status])
+  @@index([topicId])
+  @@map("words")
+}
+
+model WordVariant {
+  id          String   @id @default(uuid())
+  wordId      String   @map("word_id")
+  label       String
+  description String?
+  region      String?
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([wordId])
+  @@map("word_variants")
+}
+
+model WordVersion {
+  id         String   @id @default(uuid())
+  wordId     String   @map("word_id")
+  versionNo  Int      @map("version_no")
+  snapshot   Json
+  changedBy  String   @map("changed_by")
+  changeNote String?  @map("change_note")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, versionNo])
+  @@index([wordId])
+  @@map("word_versions")
+}
+
+// Polymorphic media owner via (ownerType, ownerId) — see SubmissionMedia note in
+// SPEC §7; we use the owner_type/owner_id pattern rather than a join table.
+model MediaAsset {
+  id              String         @id @default(uuid())
+  ownerType       MediaOwnerType @map("owner_type")
+  ownerId         String         @map("owner_id")
+  type            MediaType
+  storageProvider String         @map("storage_provider")
+  storageKey      String         @map("storage_key")
+  publicUrl       String?        @map("public_url")
+  mime            String
+  sizeBytes       Int            @map("size_bytes")
+  durationMs      Int?           @map("duration_ms")
+  width           Int?
+  height          Int?
+  checksum        String?
+  consentId       String?        @map("consent_id")
+  uploadedBy      String         @map("uploaded_by")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  consent Consent? @relation(fields: [consentId], references: [id])
+
+  @@index([ownerType, ownerId])
+  @@index([consentId])
+  @@map("media_assets")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Contribution & review
+// ────────────────────────────────────────────────────────────────────────────
+
+model Submission {
+  id                 String           @id @default(uuid())
+  schoolId           String?          @map("school_id")
+  submittedBy        String           @map("submitted_by")
+  proposedLemma      String           @map("proposed_lemma")
+  normalizedLemma    String           @map("normalized_lemma")
+  proposedDefinition String           @map("proposed_definition")
+  exampleSentence    String?          @map("example_sentence")
+  topicId            String?          @map("topic_id")
+  levelId            String?          @map("level_id")
+  ageGroupId         String?          @map("age_group_id")
+  status             SubmissionStatus @default(pending)
+  duplicateOfWordId  String?          @map("duplicate_of_word_id")
+  resultingWordId    String?          @map("resulting_word_id")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  school          School?          @relation(fields: [schoolId], references: [id])
+  submitter       User             @relation("SubmissionBy", fields: [submittedBy], references: [id])
+  topic           Topic?           @relation(fields: [topicId], references: [id])
+  level           Level?           @relation(fields: [levelId], references: [id])
+  ageGroup        AgeGroup?        @relation(fields: [ageGroupId], references: [id])
+  duplicateOf     Word?            @relation("SubmissionDuplicateOf", fields: [duplicateOfWordId], references: [id])
+  resultingWord   Word?            @relation("SubmissionResultingWord", fields: [resultingWordId], references: [id])
+  reviews         Review[]
+  duplicateChecks DuplicateCheck[]
+
+  @@index([status])
+  @@index([submittedBy])
+  @@index([normalizedLemma])
+  @@map("submissions")
+}
+
+model Review {
+  id             String       @id @default(uuid())
+  submissionId   String       @map("submission_id")
+  reviewerId     String       @map("reviewer_id")
+  action         ReviewAction
+  comment        String?
+  beforeSnapshot Json?        @map("before_snapshot")
+  afterSnapshot  Json?        @map("after_snapshot")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer   User       @relation(fields: [reviewerId], references: [id])
+
+  @@index([submissionId])
+  @@index([reviewerId])
+  @@map("reviews")
+}
+
+model DuplicateCheck {
+  id              String            @id @default(uuid())
+  submissionId    String            @map("submission_id")
+  candidateWordId String            @map("candidate_word_id")
+  method          DuplicateMethod
+  similarityScore Float             @map("similarity_score")
+  decision        DuplicateDecision
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  candidate  Word       @relation(fields: [candidateWordId], references: [id])
+
+  @@index([submissionId])
+  @@map("duplicate_checks")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Learning & gamification
+// ────────────────────────────────────────────────────────────────────────────
+
+model GameSession {
+  id           String    @id @default(uuid())
+  userId       String?   @map("user_id")
+  guestToken   String?   @map("guest_token")
+  mode         GameMode
+  topicId      String?   @map("topic_id")
+  levelId      String?   @map("level_id")
+  score        Int       @default(0)
+  correctCount Int       @default(0) @map("correct_count")
+  totalCount   Int       @default(0) @map("total_count")
+  durationMs   Int?      @map("duration_ms")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  endedAt      DateTime? @map("ended_at")
+
+  user  User?      @relation(fields: [userId], references: [id])
+  items GameItem[]
+
+  @@index([userId])
+  @@map("game_sessions")
+}
+
+model GameItem {
+  id             String     @id @default(uuid())
+  sessionId      String     @map("session_id")
+  wordId         String     @map("word_id")
+  promptType     PromptType @map("prompt_type")
+  userAnswer     String?    @map("user_answer")
+  isCorrect      Boolean    @default(false) @map("is_correct")
+  responseTimeMs Int?       @map("response_time_ms")
+
+  session GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  word    Word        @relation(fields: [wordId], references: [id])
+
+  @@index([sessionId])
+  @@map("game_items")
+}
+
+model UserWordProgress {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  wordId         String    @map("word_id")
+  timesSeen      Int       @default(0) @map("times_seen")
+  timesCorrect   Int       @default(0) @map("times_correct")
+  timesIncorrect Int       @default(0) @map("times_incorrect")
+  masteryLevel   Int       @default(0) @map("mastery_level")
+  easeFactor     Float     @default(2.5) @map("ease_factor")
+  intervalDays   Int       @default(0) @map("interval_days")
+  lastReviewedAt DateTime? @map("last_reviewed_at")
+  nextReviewAt   DateTime? @map("next_review_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([userId])
+  @@index([nextReviewAt])
+  @@map("user_word_progress")
+}
+
+model DailyChallenge {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  topicId   String?  @map("topic_id")
+  wordIds   Json     @map("word_ids")
+  config    Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([date])
+  @@map("daily_challenges")
+}
+
+model UserStreak {
+  id             String    @id @default(uuid())
+  userId         String    @unique @map("user_id")
+  currentStreak  Int       @default(0) @map("current_streak")
+  longestStreak  Int       @default(0) @map("longest_streak")
+  lastActiveDate DateTime? @map("last_active_date") @db.Date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_streaks")
+}
+
+model Badge {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  description String
+  icon        String?
+  criteria    Json
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id       String   @id @default(uuid())
+  userId   String   @map("user_id")
+  badgeId  String   @map("badge_id")
+  earnedAt DateTime @default(now()) @map("earned_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Platform / ops
+// ────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  payload   Json
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  action     String
+  before     Json?
+  after      Json?
+  ip         String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@map("audit_logs")
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  category  String
+  rating    Int?
+  comment   String?
+  context   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("feedback")
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model ImportJob {
+  id             String       @id @default(uuid())
+  createdBy      String       @map("created_by")
+  sourceFilename String       @map("source_filename")
+  totalRows      Int          @default(0) @map("total_rows")
+  successRows    Int          @default(0) @map("success_rows")
+  errorRows      Int          @default(0) @map("error_rows")
+  errors         Json?
+  status         ImportStatus @default(pending)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@map("import_jobs")
 }
