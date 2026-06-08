@@ -11,6 +11,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
+import { WordsModule } from './words/words.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { TaxonomyModule } from './taxonomy/taxonomy.module';
     HealthModule,
     AuthModule,
     TaxonomyModule,
+    WordsModule,
   ],
   providers: [
     // Order matters — APP_GUARDs run in registration order:

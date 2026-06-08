@@ -170,7 +170,12 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
       manager screen (tree + create/delete, levels/age-group create). Reusable server API
       helper (`lib/api/server.ts`) added. **Verify:** 27 api tests (tree builder), web
       typecheck/lint/build green.
-- [ ] 3 Dictionary read (S-06,07,08) + `GET /words`, `/words/:id`, variants (pg_trgm + FTS)
+- [x] **3 Dictionary read (S-06,07,08)** — `GET /words` (search over lemma/definition +
+      normalized_lemma via pg_trgm GIN, topic/level/age filters, pagination), `/words/:id`
+      (detail + variants + media, view-count increment), `/words/:id/variants`; approved-only
+      (FR-13); no creator PII (AUTH-11). Screens: browse w/ topic tiles + filters + search,
+      results grid + pager, word detail (deaf-first VideoPlayer + mandatory text). **Verify:**
+      API smoke-tested live (list/detail/search/no-match); web typecheck/lint/build green.
 - [ ] 4 Media upload — signed-URL flow + transcode worker + consent linkage
 - [ ] 5 Submissions + dedup (S-09,10, CRITICAL PATH) + `POST /submissions`, check-duplicate
 - [ ] 6 Review workflow (S-20–23) + approve/reject/edit/clarify + batch + notifications
