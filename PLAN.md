@@ -118,3 +118,38 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [ ] Audit logging on auth + content actions (NFR-12)
 - [ ] Soft-delete + purge policy honored (G-8)
 - [ ] Tests + CI green at every step (NFR-09)
+
+---
+
+## Full-platform build (Phases A–C) — every §6 screen + §8 endpoint
+
+Overlay on the step plan above: deliver the whole platform UI+API. Phase A is
+frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) first.**
+
+### Phase A — Design system ✅ (frontend, no DB)
+- [x] `packages/ui`: tokens (AA palette, type scale, radius, elevation, ≥44px touch) +
+      Tailwind preset
+- [x] A11y primitives: Button, IconButton, Field/Input, Textarea, Select, Dialog, Tabs,
+      Toast, Card, Badge/StatusBadge, VideoPlayer (captions toggle, muted, no autoplay
+      sound), Table, Pagination, EmptyState, Skeleton, VisuallyHidden — keyboard-operable,
+      visible focus, ARIA
+- [x] RBAC route-group shells: (public)/(learner)/(teacher)/(admin), each with nav +
+      server-side role guard + mobile-first responsive nav
+- [x] Deaf-first rules baked in (visual/text-first, video-centric, color never sole signal)
+- [x] All strings via i18n (mn default + en parity)
+- [x] `/design-system` preview route (tokens + every primitive) + RoleSwitcher
+- **Verify:** ✅ typecheck/lint clean; ui 7 + web 5 + api 2 tests pass; `next build` green
+  (8 routes). Tokens confirmed in built CSS. ⏸️ **Awaiting design approval before Phase B.**
+
+### Phase B — API foundation (needs Step 2 schema)
+- [ ] Error envelope, validation, pagination helper, RBAC RolesGuard on every endpoint,
+      audit-log interceptor; OpenAPI/Swagger at `/api/docs`
+- [ ] Auth module: /auth/* incl. email register/verify/reset + learner class-code login;
+      JWT access + rotating refresh cookie; rate limiting + lockout
+
+### Phase C — Vertical slices (API + screens together)
+- [ ] 1 Auth & onboarding (S-02,03,04) · 2 Topics/taxonomy (S-27) · 3 Dictionary read
+      (S-06,07,08) · 4 Media upload · 5 Submissions+dedup (S-09,10, CRITICAL PATH) ·
+      6 Review workflow (S-20–23) · 7 Admin (S-25,26,28–34) · 8 Games (S-11–17) ·
+      9 Notifications/feedback/a11y settings (S-19,24) · 10 Hardening (axe/Lighthouse,
+      security, seed, README)

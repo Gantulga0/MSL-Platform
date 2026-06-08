@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@msl/types'],
+  transpilePackages: ['@msl/types', '@msl/ui'],
   typedRoutes: true,
 };
 

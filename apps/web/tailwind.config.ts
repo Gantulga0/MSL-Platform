@@ -1,28 +1,19 @@
 import type { Config } from 'tailwindcss';
+import mslPreset from '@msl/ui/tailwind-preset';
 
 /**
- * Tailwind config. Accessibility-first defaults (NFR-01):
- * - `minHeight`/`minWidth` touch tokens for ≥44px targets.
- * - High-contrast-friendly palette anchored on accessible primaries.
+ * Web Tailwind config. Draws all tokens from the shared MSL design-system preset
+ * so every screen uses one design language. Content globs include @msl/ui so its
+ * utility classes are not purged.
  */
 const config: Config = {
-  content: ['./src/**/*.{ts,tsx,mdx}'],
+  presets: [mslPreset as Partial<Config>],
+  content: [
+    './src/**/*.{ts,tsx,mdx}',
+    '../../packages/ui/src/**/*.{ts,tsx}',
+  ],
   theme: {
-    extend: {
-      minHeight: {
-        touch: '44px',
-      },
-      minWidth: {
-        touch: '44px',
-      },
-      colors: {
-        // WCAG AA-contrast brand primary on white.
-        primary: {
-          DEFAULT: '#1d4ed8',
-          dark: '#1e3a8a',
-        },
-      },
-    },
+    extend: {},
   },
   plugins: [],
 };

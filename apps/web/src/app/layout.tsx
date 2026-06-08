@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ToastProvider } from '@msl/ui';
 import { DEFAULT_LOCALE, translate } from '@/i18n';
 
 export const metadata: Metadata = {
@@ -16,7 +17,7 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           {translate('common.skipToContent')}
         </a>
-        {children}
+        <ToastProvider closeLabel={translate('common.close')}>{children}</ToastProvider>
       </body>
     </html>
   );

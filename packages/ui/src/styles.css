@@ -1,0 +1,39 @@
+/* MSL design-system base layer — imported once by the web app after Tailwind. */
+
+/* Visible focus on every focusable element (FR-27, NFR-01). */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--msl-focus, #1d4ed8);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respect reduced-motion (NFR-01, S-19). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Radix overlay/content animation hooks (disabled under reduced-motion above). */
+.msl-overlay[data-state='open'] {
+  animation: msl-fade-in 150ms ease-out;
+}
+.msl-dialog[data-state='open'] {
+  animation: msl-zoom-in 150ms ease-out;
+}
+@keyframes msl-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes msl-zoom-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.97);
+  }
+}

@@ -79,6 +79,23 @@ Legend: ⚠️ = needs stakeholder confirmation before pilot.
 - **NFR-11 — Browser matrix.** ⚠️ Latest 2 versions of Chrome, Edge, Safari, Firefox;
   iOS Safari + Android Chrome.
 
+## Implementation decisions (design system — Phase A)
+
+- **UI primitive library.** Adopted **Radix UI** (`@radix-ui/react-{dialog,select,tabs,toast}`)
+  under the hood for the hardest-to-make-accessible primitives, and **lucide-react**
+  for iconography. Rationale: WCAG 2.2 AA + keyboard operability are hard requirements
+  (NFR-01); Radix gives focus traps, roving tabindex, ARIA roles and Esc handling for
+  free (the shadcn pattern). Simple primitives (Button, Input, Badge, Card, Table,
+  Pagination, VideoPlayer, etc.) are hand-rolled. Not a stack deviation — §9 fixes the
+  framework, not the component lib. ⚠️ Flag if you'd prefer zero third-party UI deps.
+- **Design tokens** live in `packages/ui/src/tokens.ts` and feed a Tailwind preset; all
+  text/bg pairs meet ≥ 4.5:1 (normal) / ≥ 3:1 (large/UI). Status is never color-only —
+  badges/toasts pair color + icon + text (NFR-01).
+- **Demo-role session stub.** Phase A ships `getSession()` reading a `msl_demo_role`
+  cookie so the RBAC route-group shells/guards are real and reviewable before auth
+  exists. **Replaced wholesale in Phase C** by JWT/refresh-cookie validation — call
+  sites (layouts) stay unchanged. A `RoleSwitcher` on `/design-system` sets the cookie.
+
 ## Out of MVP (explicitly excluded, per C-2)
 
 Elasticsearch, mobile app, offline mode, push notifications, OAuth/SSO, public comments,

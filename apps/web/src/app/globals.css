@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design-system base layer (focus, reduced-motion, dialog/toast animation). */
+@import '@msl/ui/styles.css';
+
 :root {
-  --foreground: #111827;
-  --background: #ffffff;
+  --msl-focus: #1d4ed8;
 }
 
 html {
@@ -12,36 +14,18 @@ html {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: theme('colors.fg');
+  background: theme('colors.bg');
 }
 
-/* Visible focus states everywhere (FR-27, NFR-01). */
-:focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
-}
-
-/* Respect reduced-motion preference (NFR-01, S-19). */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Skip link: visually hidden until focused. */
+/* Skip link: visually hidden until focused (FR-27). */
 .skip-link {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 100;
   padding: 0.75rem 1rem;
-  background: #1d4ed8;
+  background: theme('colors.primary.DEFAULT');
   color: #fff;
 }
 .skip-link:focus {

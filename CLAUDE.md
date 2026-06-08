@@ -65,6 +65,7 @@ msl-platform/
     worker/     # BullMQ transcode/import/email worker (may live under api/)
   packages/
     types/      # shared TS types / DTOs / Zod schemas
+    ui/         # design system: tokens + Tailwind preset + a11y primitives
     config/     # shared eslint/tsconfig/prettier
   prisma/       # schema.prisma, migrations, seed
   docker-compose.yml
@@ -111,6 +112,8 @@ npm run test:e2e --workspace @msl/api
 ```
 
 Health check: `GET http://localhost:4000/api/v1/health`.
+Design-system preview: `http://localhost:3000/design-system` (all primitives + tokens +
+RBAC role-switcher). `@msl/ui` is consumed as source (Next `transpilePackages`), no build.
 Note: build `@msl/types` (and `db:generate`) before typechecking api/web from a cold
 checkout — they consume its compiled output / the generated Prisma client.
 
