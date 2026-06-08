@@ -183,7 +183,15 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
       Pluggable StorageService (local driver; S3 in prod). **Verify:** live smoke — upload,
       signed URL, blob 403-without-token / 200-with-token; 35 api tests. ⚠️ ffmpeg transcode
       worker deferred (sandbox has no ffmpeg/Redis) — documented in ASSUMPTIONS.
-- [ ] 5 Submissions + dedup (S-09,10, CRITICAL PATH) + `POST /submissions`, check-duplicate
+- [x] **5 Submissions + dedup (S-09,10, CRITICAL PATH)** — `POST /submissions` (creates
+      pending, runs dedup), `GET /submissions/check-duplicate` (live hint), `GET
+      /submissions/mine` (FR-30). Dedup = normalized exact + pg_trgm trigram, topic-scoped,
+      configurable threshold (settings/S-34); every comparison recorded in `duplicate_checks`;
+      strong match → `duplicate` + `duplicate_of_word_id` + **suppressed** reviewer
+      notification (FR-03/FR-21). Screens: submit form w/ live dup hint + optional media+consent,
+      my-submissions w/ status + teacher comment. **Verify:** live E2E — exact/fuzzy → duplicate,
+      distinct → pending; **2 duplicates + 1 distinct ⇒ exactly 1 reviewer notification**
+      (suppression proven); 41 api tests (decideDuplicate). FR-02/03/30.
 - [ ] 6 Review workflow (S-20–23) + approve/reject/edit/clarify + batch + notifications
 - [ ] 7 Admin (S-25,26,28–34) + `/admin/*` (KPIs, reports, bulk import, users, consent, settings)
 - [ ] 8 Games (S-11–17) + `/games/*` + SM-2 progress + points/levels/badges + daily challenge

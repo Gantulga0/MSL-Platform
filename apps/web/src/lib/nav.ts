@@ -19,6 +19,14 @@ export const LEARNER_NAV: NavItem[] = [
   { href: '/settings', labelKey: 'nav.settings' },
 ];
 
+export const CONTRIBUTOR_NAV: NavItem[] = [
+  { href: '/dictionary', labelKey: 'nav.dictionary' },
+  { href: '/submit', labelKey: 'nav.submit' },
+  { href: '/my-submissions', labelKey: 'nav.mySubmissions' },
+  { href: '/games', labelKey: 'nav.games' },
+  { href: '/notifications', labelKey: 'nav.notifications' },
+];
+
 export const TEACHER_NAV: NavItem[] = [
   { href: '/review', labelKey: 'nav.review' },
   { href: '/teacher', labelKey: 'nav.teacherDashboard' },

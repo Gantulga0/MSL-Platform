@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
 import { WordsModule } from './words/words.module';
 import { MediaModule } from './media/media.module';
+import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { MediaModule } from './media/media.module';
     TaxonomyModule,
     WordsModule,
     MediaModule,
+    SubmissionsModule,
   ],
   providers: [
     // Order matters — APP_GUARDs run in registration order:
