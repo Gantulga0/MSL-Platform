@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Menu, X } from 'lucide-react';
-import { IconButton } from '@msl/ui';
+import { LogOut, Menu, X } from 'lucide-react';
+import { Button, IconButton } from '@msl/ui';
 import { translate } from '@/i18n';
+import { logoutAction } from '@/lib/auth/actions';
 
 export interface NavItem {
   href: string;
@@ -16,6 +17,8 @@ export interface AppShellProps {
   /** Localized label announced for the area (e.g. "Teacher area"). */
   areaLabelKey: string;
   navItems: NavItem[];
+  /** Authenticated user, if any — shows the name + a logout control. */
+  user?: { displayName: string } | null;
   children: React.ReactNode;
 }
 
@@ -23,10 +26,20 @@ export interface AppShellProps {
  * Responsive, mobile-first app shell with a labelled primary nav. Keyboard-
  * operable: the mobile menu toggle uses aria-expanded/controls; all links are
  * standard anchors. The role guard runs server-side in the route-group layout
- * before this renders (RBAC is not UI-only).
+ * before this renders (RBAC is not UI-only). When `user` is set, a logout button
+ * (server action) and the display name are shown.
  */
-export function AppShell({ areaLabelKey, navItems, children }: AppShellProps): React.ReactElement {
+export function AppShell({ areaLabelKey, navItems, user, children }: AppShellProps): React.ReactElement {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const logout = (
+    <form action={logoutAction}>
+      <Button type="submit" variant="secondary" size="sm">
+        <LogOut aria-hidden className="h-4 w-4" />
+        {translate('nav.logout')}
+      </Button>
+    </form>
+  );
 
   return (
     <div className="min-h-screen bg-bg">
@@ -39,21 +52,29 @@ export function AppShell({ areaLabelKey, navItems, children }: AppShellProps): R
             <span>{translate('app.shortTitle')}</span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav aria-label={translate(areaLabelKey)} className="hidden md:block">
-            <ul className="flex items-center gap-1">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href as Route}
-                    className="inline-flex min-h-touch items-center rounded-md px-3 text-base font-medium text-fg-muted hover:bg-surface-muted hover:text-fg"
-                  >
-                    {translate(item.labelKey)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <div className="hidden items-center gap-4 md:flex">
+            {/* Desktop nav */}
+            <nav aria-label={translate(areaLabelKey)}>
+              <ul className="flex items-center gap-1">
+                {navItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href as Route}
+                      className="inline-flex min-h-touch items-center rounded-md px-3 text-base font-medium text-fg-muted hover:bg-surface-muted hover:text-fg"
+                    >
+                      {translate(item.labelKey)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {user && (
+              <div className="flex items-center gap-3 border-l border-border pl-4">
+                <span className="text-sm font-medium text-fg">{user.displayName}</span>
+                {logout}
+              </div>
+            )}
+          </div>
 
           {/* Mobile toggle */}
           <div className="md:hidden">
@@ -83,6 +104,14 @@ export function AppShell({ areaLabelKey, navItems, children }: AppShellProps): R
                   </Link>
                 </li>
               ))}
+              {user && (
+                <li className="mt-2 border-t border-border pt-2">
+                  <span className="block px-3 py-1 text-sm font-medium text-fg-muted">
+                    {user.displayName}
+                  </span>
+                  {logout}
+                </li>
+              )}
             </ul>
           </nav>
         )}

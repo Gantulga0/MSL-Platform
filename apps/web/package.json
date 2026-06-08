@@ -4,9 +4,9 @@
   "private": true,
   "description": "MSL Platform web frontend (Next.js)",
   "scripts": {
-    "dev": "next dev -p ${WEB_PORT:-3000}",
+    "dev": "npx next dev -p 3000",
     "build": "next build",
-    "start": "next start -p ${WEB_PORT:-3000}",
+    "start": "next start -p ${WEB_PORT=3000}",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "jest"

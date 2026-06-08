@@ -158,8 +158,19 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
   Postgres (run locally). **Commit.**
 
 ### Phase C — Vertical slices (API + screens together)
-- [ ] 1 Auth & onboarding (S-02,03,04) · 2 Topics/taxonomy (S-27) · 3 Dictionary read
-      (S-06,07,08) · 4 Media upload · 5 Submissions+dedup (S-09,10, CRITICAL PATH) ·
-      6 Review workflow (S-20–23) · 7 Admin (S-25,26,28–34) · 8 Games (S-11–17) ·
-      9 Notifications/feedback/a11y settings (S-19,24) · 10 Hardening (axe/Lighthouse,
-      security, seed, README)
+- [x] **1 Auth & onboarding (S-02,03,04)** — login (email + learner class-code tabs),
+      register w/ consent, forgot/reset/verify screens wired to `/auth/*` via a Next BFF
+      (httpOnly cookies on the web domain + middleware silent refresh); real JWT session
+      replaces the Phase A `msl_demo_role` stub; logout in the app shell. **Verify:** ✅
+      web typecheck/lint clean, 15 web tests, `next build` green; **browser E2E (Playwright):
+      admin login → `/admin`, RBAC guard passes, session persists on reload, wrong password →
+      localized error.** FR-28/29, AUTH-02/03 covered.
+- [ ] 2 Topics/taxonomy (S-27) + `/topics`, `/levels`, `/age-groups`
+- [ ] 3 Dictionary read (S-06,07,08) + `GET /words`, `/words/:id`, variants (pg_trgm + FTS)
+- [ ] 4 Media upload — signed-URL flow + transcode worker + consent linkage
+- [ ] 5 Submissions + dedup (S-09,10, CRITICAL PATH) + `POST /submissions`, check-duplicate
+- [ ] 6 Review workflow (S-20–23) + approve/reject/edit/clarify + batch + notifications
+- [ ] 7 Admin (S-25,26,28–34) + `/admin/*` (KPIs, reports, bulk import, users, consent, settings)
+- [ ] 8 Games (S-11–17) + `/games/*` + SM-2 progress + points/levels/badges + daily challenge
+- [ ] 9 Notifications/feedback/a11y settings (S-19,24) + remaining endpoints
+- [ ] 10 Hardening — axe/Lighthouse, security review, seed, README

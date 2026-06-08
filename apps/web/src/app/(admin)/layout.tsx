@@ -11,7 +11,11 @@ export default async function AdminLayout({
   if (!roleAllows(session, 'admin')) return <Forbidden />;
 
   return (
-    <AppShell areaLabelKey="shell.admin" navItems={ADMIN_NAV}>
+    <AppShell
+      areaLabelKey="shell.admin"
+      navItems={ADMIN_NAV}
+      user={{ displayName: session.displayName ?? '' }}
+    >
       {children}
     </AppShell>
   );

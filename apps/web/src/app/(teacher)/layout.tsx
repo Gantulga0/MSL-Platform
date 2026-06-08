@@ -11,7 +11,11 @@ export default async function TeacherLayout({
   if (!roleAllows(session, 'teacher')) return <Forbidden />;
 
   return (
-    <AppShell areaLabelKey="shell.teacher" navItems={TEACHER_NAV}>
+    <AppShell
+      areaLabelKey="shell.teacher"
+      navItems={TEACHER_NAV}
+      user={{ displayName: session.displayName ?? '' }}
+    >
       {children}
     </AppShell>
   );

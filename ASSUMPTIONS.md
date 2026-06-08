@@ -119,6 +119,21 @@ Legend: ⚠️ = needs stakeholder confirmation before pilot.
   in the **Dictionary read slice (Phase C-3)**, where it is consumed; Step 2 ships the
   `pg_trgm` extension + trigram GIN index that power duplicate detection (G-4).
 
+## Implementation decisions (web auth — Phase C, Slice 1)
+
+- **BFF auth.** The web app is a backend-for-frontend: the browser only talks to Next
+  (:3000), which proxies to the API and stores tokens in **httpOnly cookies on its own
+  domain** (`msl_access`, `msl_refresh`). The access token never reaches client JS, and
+  there are no cross-origin cookie issues. Server actions (`lib/auth/actions.ts`) perform
+  login/register/reset/logout; `getSession()` validates `msl_access` against `/auth/me`.
+- **Silent refresh** runs in Next middleware: an expired access cookie with a live refresh
+  cookie is rotated transparently before the page renders.
+- **UI RBAC vs API RBAC.** Route-group layout guards (`roleAllows`) gate UI only; the API
+  enforces RBAC on every endpoint (AUTH-06). The Phase A `msl_demo_role` stub is removed.
+- **Auth error localization.** API error envelope messages stay English by contract; the
+  web maps known messages to `mn` strings (`lib/auth/errors.ts`), falling through to the
+  raw message for unmapped cases (NFR-10).
+
 ## Out of MVP (explicitly excluded, per C-2)
 
 Elasticsearch, mobile app, offline mode, push notifications, OAuth/SSO, public comments,

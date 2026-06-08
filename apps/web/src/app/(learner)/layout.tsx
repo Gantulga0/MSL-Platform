@@ -11,7 +11,11 @@ export default async function LearnerLayout({
   if (!roleAllows(session, 'learner')) return <Forbidden />;
 
   return (
-    <AppShell areaLabelKey="shell.learner" navItems={LEARNER_NAV}>
+    <AppShell
+      areaLabelKey="shell.learner"
+      navItems={LEARNER_NAV}
+      user={{ displayName: session.displayName ?? '' }}
+    >
       {children}
     </AppShell>
   );

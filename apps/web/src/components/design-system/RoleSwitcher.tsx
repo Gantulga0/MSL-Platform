@@ -2,31 +2,21 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ROLES, type Role } from '@msl/types';
 import { Button, Card, CardBody, CardTitle } from '@msl/ui';
 
 /**
- * Dev-only helper to exercise the route-group RBAC guards: sets the demo role
- * cookie read by `getSession()` (Phase A stub), then links to guarded areas.
- * Removed when Phase C wires real auth.
+ * Real auth is now wired (Phase C, Slice 1): RBAC is driven by the JWT session,
+ * not a demo cookie. This panel just links to the live login + the guarded areas
+ * so the route-group guards can be exercised after signing in.
  */
 export function RoleSwitcher(): React.ReactElement {
-  const setRole = (role: Role): void => {
-    document.cookie = `msl_demo_role=${role}; path=/; max-age=86400`;
-    window.location.reload();
-  };
-
   return (
     <Card>
       <CardBody className="space-y-4">
-        <CardTitle>RBAC демо (role switcher)</CardTitle>
-        <div className="flex flex-wrap gap-2">
-          {ROLES.map((role) => (
-            <Button key={role} size="sm" variant="secondary" onClick={() => setRole(role)}>
-              {role}
-            </Button>
-          ))}
-        </div>
+        <CardTitle>RBAC (нэвтрэлт)</CardTitle>
+        <Link href={'/login' as Route}>
+          <Button size="sm">Нэвтрэх</Button>
+        </Link>
         <div className="flex flex-wrap gap-4 text-base">
           <Link className="text-primary underline" href={'/profile' as Route}>
             /profile (learner+)
