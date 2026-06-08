@@ -12,6 +12,7 @@ import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
 import { WordsModule } from './words/words.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { WordsModule } from './words/words.module';
     AuthModule,
     TaxonomyModule,
     WordsModule,
+    MediaModule,
   ],
   providers: [
     // Order matters — APP_GUARDs run in registration order:

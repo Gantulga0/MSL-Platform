@@ -138,6 +138,19 @@ Legend: ⚠️ = needs stakeholder confirmation before pilot.
   web maps known messages to `mn` strings (`lib/auth/errors.ts`), falling through to the
   raw message for unmapped cases (NFR-10).
 
+## Implementation decisions (media — Phase C, Slice 4)
+
+- **Storage driver.** `StorageService` abstracts storage; ships a **local filesystem**
+  driver for dev (`STORAGE_LOCAL_DIR`), with an S3-compatible driver intended for
+  production (signed URLs, G-7). Local dev uploads via multipart `POST /media`; the
+  `POST /media/upload-url` descriptor models the production direct-to-bucket flow.
+- **Access control.** Media for an **approved** word/variant is public; everything else
+  (submission media, pending) requires a **short-lived signed token** (JWT, `SIGNED_URL_TTL_SECONDS`)
+  or teacher/admin/owner via `GET /media/:id` (AUTH-09). Verified: blob 403 without token.
+- **Transcode worker (NFR-03).** ⚠️ **Deferred** — the sandbox has no ffmpeg/Redis. The
+  pipeline (BullMQ + ffmpeg → web-MP4 + poster) is a documented follow-up; uploads are
+  stored as-is for now.
+
 ## Out of MVP (explicitly excluded, per C-2)
 
 Elasticsearch, mobile app, offline mode, push notifications, OAuth/SSO, public comments,

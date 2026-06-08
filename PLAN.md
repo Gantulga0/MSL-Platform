@@ -176,7 +176,13 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
       (FR-13); no creator PII (AUTH-11). Screens: browse w/ topic tiles + filters + search,
       results grid + pager, word detail (deaf-first VideoPlayer + mandatory text). **Verify:**
       API smoke-tested live (list/detail/search/no-match); web typecheck/lint/build green.
-- [ ] 4 Media upload — signed-URL flow + transcode worker + consent linkage
+- [x] **4 Media upload + consent** — `POST /media/upload-url` (validates type/size, G-7),
+      `POST /media` (multipart upload → local storage + register), `GET /media/:id`
+      (role-aware: public for approved content, short-lived signed token otherwise, AUTH-09),
+      `GET /media/:id/blob` (serve), `DELETE /media/:id` (admin), `POST /consents` (AUTH-10).
+      Pluggable StorageService (local driver; S3 in prod). **Verify:** live smoke — upload,
+      signed URL, blob 403-without-token / 200-with-token; 35 api tests. ⚠️ ffmpeg transcode
+      worker deferred (sandbox has no ffmpeg/Redis) — documented in ASSUMPTIONS.
 - [ ] 5 Submissions + dedup (S-09,10, CRITICAL PATH) + `POST /submissions`, check-duplicate
 - [ ] 6 Review workflow (S-20–23) + approve/reject/edit/clarify + batch + notifications
 - [ ] 7 Admin (S-25,26,28–34) + `/admin/*` (KPIs, reports, bulk import, users, consent, settings)
