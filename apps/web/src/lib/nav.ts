@@ -34,15 +34,11 @@ export const TEACHER_NAV: NavItem[] = [
   { href: '/notifications', labelKey: 'nav.notifications' },
 ];
 
+// Links shown in the admin nav. Pages exist for these; word/import/media/consents/
+// reports/audit have APIs (admin/*) with UIs to follow.
 export const ADMIN_NAV: NavItem[] = [
   { href: '/admin', labelKey: 'nav.adminDashboard' },
   { href: '/admin/users', labelKey: 'nav.users' },
   { href: '/admin/topics', labelKey: 'nav.topics' },
-  { href: '/admin/words', labelKey: 'nav.words' },
-  { href: '/admin/import', labelKey: 'nav.import' },
-  { href: '/admin/media', labelKey: 'nav.media' },
-  { href: '/admin/consents', labelKey: 'nav.consents' },
-  { href: '/admin/reports', labelKey: 'nav.reports' },
-  { href: '/admin/audit', labelKey: 'nav.audit' },
   { href: '/admin/settings', labelKey: 'nav.systemSettings' },
 ];

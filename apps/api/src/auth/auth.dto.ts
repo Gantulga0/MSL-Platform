@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 // Password policy (AUTH-04): ≥ 8 chars with letters + numbers (complexity).
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -22,7 +15,7 @@ export class RegisterDto {
   @Matches(PASSWORD_PATTERN, { message: PASSWORD_MESSAGE })
   password!: string;
 
-  @ApiProperty({ example: 'Бат-Эрдэнэ' })
+  @ApiProperty({ example: 'Гантулга' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)

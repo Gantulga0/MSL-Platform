@@ -201,7 +201,14 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
       approve→**published in dictionary**, contributor 403 on queue (RBAC), word_versions=1,
       approved notification. FR-04/11/12/21/22/23. ⚠️ S-22 standalone word editor deferred to
       admin word-CRUD (Slice 7).
-- [ ] 7 Admin (S-25,26,28–34) + `/admin/*` (KPIs, reports, bulk import, users, consent, settings)
+- [~] **7 Admin (S-25,26,34 done; APIs for 29/31/32/33)** — API: `/admin/dashboard` (KPIs,
+      FR-06), `/admin/reports/summary` (FR-25), `/admin/settings` GET/PATCH (S-34),
+      `/admin/consents` (FR-24), `/admin/audit-logs` (FR-23), `/admin/imports` (bulk, G-13);
+      users `GET/POST/PATCH/DELETE /users` (+ learner provisioning, G-1) and `/class-codes`.
+      Screens: admin dashboard KPIs+reports (S-25), user management + learner provisioning
+      (S-26), settings editor (S-34). **Verify:** live — dashboard/reports KPIs, contributor→403,
+      teacher created, setting updated. ⚠️ UIs for consents/audit/reports/import/word-mgmt/media
+      (S-28/29/30/31/32/33) deferred — endpoints ready.
 - [ ] 8 Games (S-11–17) + `/games/*` + SM-2 progress + points/levels/badges + daily challenge
 - [ ] 9 Notifications/feedback/a11y settings (S-19,24) + remaining endpoints
 - [ ] 10 Hardening — axe/Lighthouse, security review, seed, README
