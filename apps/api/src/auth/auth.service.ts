@@ -64,6 +64,9 @@ export class AuthService {
     }
 
     const passwordHash = await argon2.hash(dto.password);
+    // No mail worker yet (G-6): in development, auto-verify so accounts are usable
+    // without an email round-trip. Production keeps the real verify-email flow.
+    const autoVerify = this.config.get<string>('NODE_ENV') !== 'production';
     // Self-registered email users start as contributors (parents/community, G-2);
     // teacher/admin elevation is admin-only. Minors never self-register (G-1).
     const user = await this.prisma.user.create({
@@ -74,10 +77,11 @@ export class AuthService {
         displayName: dto.displayName,
         isMinor: false,
         locale: 'mn',
+        ...(autoVerify ? { emailVerifiedAt: new Date() } : {}),
       },
     });
 
-    await this.issueEmailToken(user.id, 'verify_email');
+    if (!autoVerify) await this.issueEmailToken(user.id, 'verify_email');
     await this.audit.record({
       actorId: user.id,
       entityType: 'user',
@@ -85,7 +89,11 @@ export class AuthService {
       action: 'auth.register',
       ip: meta.ip,
     });
-    return { message: 'Registration received. Check your email to verify your account.' };
+    return {
+      message: autoVerify
+        ? 'Registration complete — email auto-verified in development. You can sign in now.'
+        : 'Registration received. Check your email to verify your account.',
+    };
   }
 
   async verifyEmail(dto: VerifyEmailDto): Promise<{ message: string }> {

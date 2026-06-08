@@ -108,6 +108,10 @@ Legend: ⚠️ = needs stakeholder confirmation before pilot.
 - **Email verify/reset tokens.** Single-use, stored hashed (SHA-256), 24h TTL. Until the
   mail worker exists (G-6), the raw token is **logged in non-production only**; endpoints
   always return generic messages (no account enumeration).
+- **Dev auto-verify (G-6).** Because no mailer exists yet, email registrations in
+  **development** (`NODE_ENV !== 'production'`) are auto-verified on signup (no token
+  round-trip) so accounts are immediately usable. **Production keeps the real
+  verify-email flow.** ⚠️ Remove/disable once the mail worker ships.
 - **Brute-force.** Per-IP rate limiting via `@nestjs/throttler` (global 100/60s; auth
   routes 10/60s) + account lockout after `AUTH_MAX_FAILED_LOGINS` (default 5) for
   `AUTH_LOCKOUT_MINUTES` (default 15) (AUTH-05).

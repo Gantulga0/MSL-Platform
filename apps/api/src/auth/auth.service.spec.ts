@@ -46,7 +46,7 @@ interface Mocks {
   audit: { record: AnyMock };
 }
 
-function build(): { service: AuthService; m: Mocks } {
+function build(nodeEnv: string = 'test'): { service: AuthService; m: Mocks } {
   const m: Mocks = {
     prisma: {
       user: {
@@ -67,7 +67,7 @@ function build(): { service: AuthService; m: Mocks } {
         const map: Record<string, unknown> = {
           AUTH_MAX_FAILED_LOGINS: 5,
           AUTH_LOCKOUT_MINUTES: 15,
-          NODE_ENV: 'test',
+          NODE_ENV: nodeEnv,
         };
         return key in map ? map[key] : def;
       }),
@@ -177,18 +177,32 @@ describe('AuthService', () => {
       expect(m.prisma.user.create).not.toHaveBeenCalled();
     });
 
-    it('creates a contributor + verification token for a new email (G-2)', async () => {
-      const { service, m } = build();
+    it('in production, creates a contributor + verification token (G-2)', async () => {
+      const { service, m } = build('production');
       m.prisma.user.findUnique.mockResolvedValue(null);
       m.prisma.user.create.mockResolvedValue(makeUser({ id: 'new' }));
       await service.register(
         { email: 'new@example.mn', password: 'password1', displayName: 'Шинэ' },
         {},
       );
-      expect(m.prisma.user.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ role: 'contributor' }) }),
-      );
+      const data = m.prisma.user.create.mock.calls[0][0].data;
+      expect(data.role).toBe('contributor');
+      expect(data.emailVerifiedAt).toBeUndefined();
       expect(m.prisma.emailToken.create).toHaveBeenCalled();
+    });
+
+    it('in development, auto-verifies and skips the email token (G-6)', async () => {
+      const { service, m } = build('development');
+      m.prisma.user.findUnique.mockResolvedValue(null);
+      m.prisma.user.create.mockResolvedValue(makeUser({ id: 'new' }));
+      const res = await service.register(
+        { email: 'new@example.mn', password: 'password1', displayName: 'Шинэ' },
+        {},
+      );
+      const data = m.prisma.user.create.mock.calls[0][0].data;
+      expect(data.emailVerifiedAt).toBeInstanceOf(Date);
+      expect(m.prisma.emailToken.create).not.toHaveBeenCalled();
+      expect(res.message).toMatch(/auto-verified/i);
     });
   });
 
