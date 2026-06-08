@@ -192,7 +192,15 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
       my-submissions w/ status + teacher comment. **Verify:** live E2E — exact/fuzzy → duplicate,
       distinct → pending; **2 duplicates + 1 distinct ⇒ exactly 1 reviewer notification**
       (suppression proven); 41 api tests (decideDuplicate). FR-02/03/30.
-- [ ] 6 Review workflow (S-20–23) + approve/reject/edit/clarify + batch + notifications
+- [x] **6 Review workflow (S-20,21,23)** — `GET /submissions` (queue, priority sort, FR-22),
+      `GET /submissions/:id` (+ duplicate candidates), approve/reject/request-clarification/edit,
+      `POST /submissions/batch-approve`. Approve atomically publishes the word + writes
+      `word_version` (NFR-06) + re-parents media public + notifies contributor; audit on every
+      action (FR-23). Screens: queue (S-20, batch select), review detail side-by-side w/ dup
+      candidates (S-21), teacher dashboard KPIs (S-23). **Verify:** live E2E — submit→queue→
+      approve→**published in dictionary**, contributor 403 on queue (RBAC), word_versions=1,
+      approved notification. FR-04/11/12/21/22/23. ⚠️ S-22 standalone word editor deferred to
+      admin word-CRUD (Slice 7).
 - [ ] 7 Admin (S-25,26,28–34) + `/admin/*` (KPIs, reports, bulk import, users, consent, settings)
 - [ ] 8 Games (S-11–17) + `/games/*` + SM-2 progress + points/levels/badges + daily challenge
 - [ ] 9 Notifications/feedback/a11y settings (S-19,24) + remaining endpoints
