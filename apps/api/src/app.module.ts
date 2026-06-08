@@ -10,6 +10,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
+import { TaxonomyModule } from './taxonomy/taxonomy.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AuthModule } from './auth/auth.module';
     AuditModule,
     HealthModule,
     AuthModule,
+    TaxonomyModule,
   ],
   providers: [
     // Order matters — APP_GUARDs run in registration order:

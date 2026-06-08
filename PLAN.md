@@ -165,7 +165,11 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
       web typecheck/lint clean, 15 web tests, `next build` green; **browser E2E (Playwright):
       admin login → `/admin`, RBAC guard passes, session persists on reload, wrong password →
       localized error.** FR-28/29, AUTH-02/03 covered.
-- [ ] 2 Topics/taxonomy (S-27) + `/topics`, `/levels`, `/age-groups`
+- [x] **2 Topics/taxonomy (S-27)** — `GET /topics` (tree), `/levels`, `/age-groups`
+      (public); admin CRUD for all three (deny-by-default `@Roles('admin')`); admin S-27
+      manager screen (tree + create/delete, levels/age-group create). Reusable server API
+      helper (`lib/api/server.ts`) added. **Verify:** 27 api tests (tree builder), web
+      typecheck/lint/build green.
 - [ ] 3 Dictionary read (S-06,07,08) + `GET /words`, `/words/:id`, variants (pg_trgm + FTS)
 - [ ] 4 Media upload — signed-URL flow + transcode worker + consent linkage
 - [ ] 5 Submissions + dedup (S-09,10, CRITICAL PATH) + `POST /submissions`, check-duplicate
