@@ -96,6 +96,29 @@ Legend: ⚠️ = needs stakeholder confirmation before pilot.
   exists. **Replaced wholesale in Phase C** by JWT/refresh-cookie validation — call
   sites (layouts) stay unchanged. A `RoleSwitcher` on `/design-system` sets the cookie.
 
+## Implementation decisions (API foundation & auth — Phase B)
+
+- **Self-registered role.** Email self-registration creates a **`contributor`**
+  (parents/community, G-2); `teacher`/`admin` are admin-assigned only. Minors never
+  self-register (G-1). Email accounts must verify before first login (AUTH-02).
+- **Refresh tokens.** Opaque 48-byte random tokens, stored only as **SHA-256 hashes**
+  in `refresh_tokens`, carried in an **httpOnly, SameSite=Lax** cookie, `secure` in
+  production. **Rotated on every `/auth/refresh`** (old row revoked); reuse of a
+  revoked/expired token is rejected (AUTH-01). All sessions revoked on password reset.
+- **Email verify/reset tokens.** Single-use, stored hashed (SHA-256), 24h TTL. Until the
+  mail worker exists (G-6), the raw token is **logged in non-production only**; endpoints
+  always return generic messages (no account enumeration).
+- **Brute-force.** Per-IP rate limiting via `@nestjs/throttler` (global 100/60s; auth
+  routes 10/60s) + account lockout after `AUTH_MAX_FAILED_LOGINS` (default 5) for
+  `AUTH_LOCKOUT_MINUTES` (default 15) (AUTH-05).
+- **RBAC.** Enforced server-side by **global** `JwtAuthGuard` + `RolesGuard`
+  (deny-by-default); routes opt out with `@Public()` and raise the bar with
+  `@Roles(...)` using the rank ladder in `@msl/types` (AUTH-06). Every mutating request
+  is audited by a global interceptor (NFR-12).
+- **FTS.** Postgres full-text search (tsvector/query) for the dictionary is implemented
+  in the **Dictionary read slice (Phase C-3)**, where it is consumed; Step 2 ships the
+  `pg_trgm` extension + trigram GIN index that power duplicate detection (G-4).
+
 ## Out of MVP (explicitly excluded, per C-2)
 
 Elasticsearch, mobile app, offline mode, push notifications, OAuth/SSO, public comments,

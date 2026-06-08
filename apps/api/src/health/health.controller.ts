@@ -1,4 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Public } from '../common/decorators/public.decorator';
 
 export interface HealthStatus {
   status: 'ok';
@@ -6,8 +8,11 @@ export interface HealthStatus {
   timestamp: string;
 }
 
+@ApiTags('health')
 @Controller('health')
 export class HealthController {
+  // Liveness probe — unauthenticated by design (bypasses the global JwtAuthGuard).
+  @Public()
   @Get()
   check(): HealthStatus {
     return {

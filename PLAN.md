@@ -21,14 +21,18 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
   production builds succeed. ⚠️ `docker compose up` not runnable in this sandbox
   (Docker CLI absent) — compose file validated by inspection; run locally to confirm.
 
-## Step 2 — Schema, migrations & seed
-- [ ] Prisma schema for ALL §7 entities (identity, dictionary, contribution/review,
+## Step 2 — Schema, migrations & seed ✅
+- [x] Prisma schema for ALL §7 entities (identity, dictionary, contribution/review,
       learning/gamification, platform/ops); `school_id` nullable everywhere (G-12)
-- [ ] `pg_trgm` extension + index on `words.normalized_lemma`; FTS config
-- [ ] Initial migration checked in
-- [ ] Seed: School #29, taxonomy (Appendix A: levels, age groups, topic tree), one admin
-- **Verify:** migrate + seed run clean; NFR-06 (versioning/provenance fields present).
-  **Commit.**
+- [x] `pg_trgm` extension + GIN trigram index on `words.normalized_lemma` (powers dedup,
+      G-4). FTS (tsvector) query config lands with the Dictionary read slice (Phase C-3).
+- [x] Initial migration checked in (`prisma/migrations/0_init`)
+- [x] Seed: School #29, taxonomy (Appendix A: levels, age groups, topic tree), admin,
+      dup-threshold setting
+- **Verify:** ✅ `prisma validate` clean; client generates; migration has pg_trgm +
+  trigram GIN index; NFR-06 versioning/provenance fields present (`word_versions`,
+  `words.source/approved_by/approved_at/current_version`). ⚠️ live `migrate deploy`/`db:seed`
+  require Postgres (not runnable in this sandbox — run locally). **Commit.**
 
 ## Step 3 — Auth & RBAC
 - [ ] register / verify-email / login / refresh / logout (AUTH-01/02/04)
@@ -141,11 +145,17 @@ frontend-only (no DB). **Phases B & C require Step 2 (schema/migrations/seed) fi
 - **Verify:** ✅ typecheck/lint clean; ui 7 + web 5 + api 2 tests pass; `next build` green
   (8 routes). Tokens confirmed in built CSS. ⏸️ **Awaiting design approval before Phase B.**
 
-### Phase B — API foundation (needs Step 2 schema)
-- [ ] Error envelope, validation, pagination helper, RBAC RolesGuard on every endpoint,
-      audit-log interceptor; OpenAPI/Swagger at `/api/docs`
-- [ ] Auth module: /auth/* incl. email register/verify/reset + learner class-code login;
-      JWT access + rotating refresh cookie; rate limiting + lockout
+### Phase B — API foundation ✅ (needs Step 2 schema)
+- [x] Error envelope, validation pipe, pagination helper, **global** RBAC guards
+      (JwtAuthGuard + RolesGuard, deny-by-default) on every endpoint, audit-log
+      interceptor; OpenAPI/Swagger at `/api/docs`
+- [x] Auth module: `/auth/*` — register / verify-email / login / login/class-code /
+      refresh / logout / forgot-password / reset-password / me; JWT access + rotating
+      refresh cookie (SHA-256 hashed, rotated); throttler rate limiting + account lockout
+- **Verify:** ✅ typecheck/lint clean; api **23 unit + 1 e2e** pass (RolesGuard rank
+  ladder, login lockout/enumeration-safety, token duration parsing); `nest build` green.
+  AUTH-01/02/03/04/05/06/07/11, FR-28/29, NFR-04/12 covered. Live auth flows need
+  Postgres (run locally). **Commit.**
 
 ### Phase C — Vertical slices (API + screens together)
 - [ ] 1 Auth & onboarding (S-02,03,04) · 2 Topics/taxonomy (S-27) · 3 Dictionary read

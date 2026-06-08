@@ -1,0 +1,40 @@
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { DEFAULT_LIMIT, DEFAULT_PAGE, MAX_LIMIT, type Paginated } from '@msl/types';
+
+/** Standard `?page&limit` query DTO (SPEC §8). */
+export class PaginationQueryDto {
+  @ApiPropertyOptional({ minimum: 1, default: DEFAULT_PAGE })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page: number = DEFAULT_PAGE;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: MAX_LIMIT, default: DEFAULT_LIMIT })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(MAX_LIMIT)
+  limit: number = DEFAULT_LIMIT;
+}
+
+/** Build the standard paginated envelope. */
+export function paginate<T>(data: T[], total: number, page: number, limit: number): Paginated<T> {
+  return {
+    data,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    },
+  };
+}
+
+/** Prisma skip/take from page/limit. */
+export function toSkipTake(page: number, limit: number): { skip: number; take: number } {
+  return { skip: (page - 1) * limit, take: limit };
+}

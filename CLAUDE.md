@@ -112,6 +112,9 @@ npm run test:e2e --workspace @msl/api
 ```
 
 Health check: `GET http://localhost:4000/api/v1/health`.
+API docs (Swagger/OpenAPI, Phase B): `http://localhost:4000/api/docs`. Auth lives under
+`/api/v1/auth/*`; RBAC is enforced globally (deny-by-default) — routes opt out with
+`@Public()`. Build `@msl/types` + `db:generate` before typecheck from a cold checkout.
 Design-system preview: `http://localhost:3000/design-system` (all primitives + tokens +
 RBAC role-switcher). `@msl/ui` is consumed as source (Next `transpilePackages`), no build.
 Note: build `@msl/types` (and `db:generate`) before typechecking api/web from a cold
