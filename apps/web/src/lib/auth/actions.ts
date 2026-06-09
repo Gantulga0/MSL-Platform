@@ -72,27 +72,6 @@ export async function loginAction(formData: FormData): Promise<ActionState> {
   redirect(homeForRole(body.user.role) as Route);
 }
 
-// ── Learner login (username + class code/PIN) ─────────────────────────────────
-
-export async function classCodeLoginAction(formData: FormData): Promise<ActionState> {
-  const username = String(formData.get('username') ?? '').trim();
-  const classCode = String(formData.get('classCode') ?? '').trim();
-  const pin = String(formData.get('pin') ?? '').trim();
-  if (!username || !classCode) return { error: 'Please enter your username and class code.' };
-
-  const res = await fetch(`${API_BASE_URL}/auth/login/class-code`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, classCode, ...(pin ? { pin } : {}) }),
-    cache: 'no-store',
-  });
-  if (!res.ok) return { error: await readApiError(res) };
-
-  const body = (await res.json()) as LoginResult;
-  await persistSession(res, body.accessToken);
-  redirect(homeForRole(body.user.role) as Route);
-}
-
 // ── Register (email account) ──────────────────────────────────────────────────
 
 export async function registerAction(formData: FormData): Promise<ActionState> {

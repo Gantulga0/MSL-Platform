@@ -1,29 +1,13 @@
-// Prisma schema — MSL Platform (SPEC §7)
-// Conventions: UUID PKs; created_at/updated_at on most tables; soft-delete via
-// deleted_at where noted; FK fields end in _id (camelCase in client, snake_case
-// columns). school_id is nullable everywhere for future multi-school (G-12).
-
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [pg_trgm]
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Enums
-// ────────────────────────────────────────────────────────────────────────────
-
-// Stored user roles. `guest` is unauthenticated (never persisted) so it is not
-// part of this enum — see @msl/types ROLES for the full RBAC ladder.
 enum Role {
-  learner
-  contributor
-  teacher
+  user
   admin
 }
 
@@ -111,28 +95,8 @@ enum ImportStatus {
   failed
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Identity & access
-// ────────────────────────────────────────────────────────────────────────────
-
-model School {
-  id        String   @id @default(uuid())
-  name      String
-  type      String?
-  contact   String?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  users       User[]
-  classCodes  ClassCode[]
-  words       Word[]
-  submissions Submission[]
-
-  @@map("schools")
-}
-
 model User {
   id              String     @id @default(uuid())
-  schoolId        String?    @map("school_id")
   role            Role
   displayName     String     @map("display_name")
   username        String?    @unique
@@ -150,9 +114,7 @@ model User {
   updatedAt       DateTime   @updatedAt @map("updated_at")
   deletedAt       DateTime?  @map("deleted_at")
 
-  school             School?            @relation(fields: [schoolId], references: [id])
   refreshTokens      RefreshToken[]
-  classCodesCreated  ClassCode[]        @relation("ClassCodeCreatedBy")
   consentsAsSubject  Consent[]          @relation("ConsentSubject")
   consentsAsGuardian Consent[]          @relation("ConsentGuardian")
   wordsCreated       Word[]             @relation("WordCreatedBy")
@@ -168,26 +130,9 @@ model User {
   emailTokens        EmailToken[]
   importJobs         ImportJob[]
 
-  @@index([schoolId])
   @@index([role])
   @@index([status])
   @@map("users")
-}
-
-model ClassCode {
-  id        String    @id @default(uuid())
-  schoolId  String    @map("school_id")
-  code      String    @unique
-  label     String
-  createdBy String    @map("created_by")
-  expiresAt DateTime? @map("expires_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  school  School @relation(fields: [schoolId], references: [id])
-  creator User   @relation("ClassCodeCreatedBy", fields: [createdBy], references: [id])
-
-  @@index([schoolId])
-  @@map("class_codes")
 }
 
 model RefreshToken {
@@ -207,12 +152,11 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-// Email verification + password reset tokens (AUTH-02, G-14).
 model EmailToken {
   id        String    @id @default(uuid())
   userId    String    @map("user_id")
   tokenHash String    @map("token_hash")
-  purpose   String // "verify_email" | "reset_password"
+  purpose   String    @map("purpose")
   expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
@@ -241,10 +185,6 @@ model Consent {
   @@index([subjectUserId])
   @@map("consents")
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// Dictionary content
-// ────────────────────────────────────────────────────────────────────────────
 
 model Topic {
   id          String   @id @default(uuid())
@@ -293,7 +233,6 @@ model AgeGroup {
 
 model Word {
   id              String     @id @default(uuid())
-  schoolId        String?    @map("school_id")
   lemma           String
   normalizedLemma String     @map("normalized_lemma")
   definition      String
@@ -307,12 +246,10 @@ model Word {
   createdBy       String     @map("created_by")
   approvedBy      String?    @map("approved_by")
   approvedAt      DateTime?  @map("approved_at")
-  currentVersion  Int        @default(1) @map("current_version")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
   deletedAt       DateTime?  @map("deleted_at")
 
-  school   School?   @relation(fields: [schoolId], references: [id])
   topic    Topic     @relation(fields: [topicId], references: [id])
   level    Level?    @relation(fields: [levelId], references: [id])
   ageGroup AgeGroup? @relation(fields: [ageGroupId], references: [id])
@@ -320,14 +257,12 @@ model Word {
   approver User?     @relation("WordApprovedBy", fields: [approvedBy], references: [id])
 
   variants        WordVariant[]
-  versions        WordVersion[]
   progress        UserWordProgress[]
   gameItems       GameItem[]
   duplicateChecks DuplicateCheck[]
   submissionsDup  Submission[]       @relation("SubmissionDuplicateOf")
   submissionsRes  Submission[]       @relation("SubmissionResultingWord")
 
-  // pg_trgm GIN index powers fuzzy dedup + search on the normalized lemma (G-4).
   @@index([normalizedLemma(ops: raw("gin_trgm_ops"))], type: Gin)
   @@index([normalizedLemma, topicId])
   @@index([status])
@@ -351,24 +286,6 @@ model WordVariant {
   @@map("word_variants")
 }
 
-model WordVersion {
-  id         String   @id @default(uuid())
-  wordId     String   @map("word_id")
-  versionNo  Int      @map("version_no")
-  snapshot   Json
-  changedBy  String   @map("changed_by")
-  changeNote String?  @map("change_note")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
-
-  @@unique([wordId, versionNo])
-  @@index([wordId])
-  @@map("word_versions")
-}
-
-// Polymorphic media owner via (ownerType, ownerId) — see SubmissionMedia note in
-// SPEC §7; we use the owner_type/owner_id pattern rather than a join table.
 model MediaAsset {
   id              String         @id @default(uuid())
   ownerType       MediaOwnerType @map("owner_type")
@@ -394,13 +311,8 @@ model MediaAsset {
   @@map("media_assets")
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Contribution & review
-// ────────────────────────────────────────────────────────────────────────────
-
 model Submission {
   id                 String           @id @default(uuid())
-  schoolId           String?          @map("school_id")
   submittedBy        String           @map("submitted_by")
   proposedLemma      String           @map("proposed_lemma")
   normalizedLemma    String           @map("normalized_lemma")
@@ -415,7 +327,6 @@ model Submission {
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
 
-  school          School?          @relation(fields: [schoolId], references: [id])
   submitter       User             @relation("SubmissionBy", fields: [submittedBy], references: [id])
   topic           Topic?           @relation(fields: [topicId], references: [id])
   level           Level?           @relation(fields: [levelId], references: [id])
@@ -464,10 +375,6 @@ model DuplicateCheck {
   @@index([submissionId])
   @@map("duplicate_checks")
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// Learning & gamification
-// ────────────────────────────────────────────────────────────────────────────
 
 model GameSession {
   id           String    @id @default(uuid())
@@ -578,10 +485,6 @@ model UserBadge {
   @@index([userId])
   @@map("user_badges")
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// Platform / ops
-// ────────────────────────────────────────────────────────────────────────────
 
 model Notification {
   id        String           @id @default(uuid())

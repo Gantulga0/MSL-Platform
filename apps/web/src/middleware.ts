@@ -12,13 +12,19 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000/api/v1';
 const isProd = process.env.NODE_ENV === 'production';
 
-/**
- * Silent refresh (AUTH-01). When the short-lived access cookie has expired but a
- * refresh cookie remains, rotate it against the API and re-issue both cookies so
- * the downstream render sees a valid session. Failure clears the stale refresh
- * cookie (forces re-login) without blocking the request.
- */
+const LEGACY_REDIRECTS: Record<string, string> = {
+  '/submit': '/submit-word',
+  '/my-submissions': '/profile',
+  '/review': '/admin/submissions',
+  '/teacher': '/admin/submissions',
+};
+
 export async function middleware(req: NextRequest): Promise<NextResponse> {
+  const legacy = LEGACY_REDIRECTS[req.nextUrl.pathname];
+  if (legacy) {
+    return NextResponse.redirect(new URL(legacy, req.url));
+  }
+
   const hasAccess = Boolean(req.cookies.get(ACCESS_COOKIE)?.value);
   const refresh = req.cookies.get(REFRESH_COOKIE)?.value;
   if (hasAccess || !refresh) return NextResponse.next();
@@ -48,7 +54,6 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Run on pages only — skip Next internals and static assets.
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.[\\w]+$).*)'],
 };

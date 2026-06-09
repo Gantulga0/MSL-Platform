@@ -81,7 +81,7 @@ export function QueueTable({ items }: { items: QueueItem[] }): React.ReactElemen
               </p>
             </div>
             <div className="flex gap-2">
-              <Link href={`/review/${s.id}` as Route}>
+              <Link href={`/admin/submissions/${s.id}` as Route}>
                 <Button size="sm" variant="secondary">
                   {t('review.view')}
                 </Button>

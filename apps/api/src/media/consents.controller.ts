@@ -11,9 +11,9 @@ import { CreateConsentDto } from './dto';
 export class ConsentsController {
   constructor(private readonly media: MediaService) {}
 
-  @Roles('contributor')
+  @Roles('user')
   @Post()
-  @ApiOperation({ summary: 'Create a media-consent record (AUTH-10/FR-24)' })
+  @ApiOperation({ summary: 'Create a media-consent record' })
   create(
     @Body() dto: CreateConsentDto,
     @CurrentUser() user: AuthenticatedUser,

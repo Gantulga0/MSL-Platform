@@ -1,7 +1,19 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@msl/ui';
 import { DEFAULT_LOCALE, translate } from '@/i18n';
+
+/**
+ * Inter — geometric-humanist sans with verified full Mongolian Cyrillic coverage:
+ * the `cyrillic-ext` subset carries Өө (U+04E8/9) and Үү (U+04AE/AF), so every
+ * Mongolian glyph renders from one self-hosted family (no FOUT, no CDN at runtime).
+ */
+const inter = Inter({
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: translate('app.title'),
@@ -12,8 +24,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>): React.ReactElement {
   return (
-    <html lang={DEFAULT_LOCALE}>
-      <body className="min-h-screen antialiased">
+    <html lang={DEFAULT_LOCALE} className={inter.variable}>
+      <body className="min-h-screen font-sans antialiased">
         <a href="#main" className="skip-link">
           {translate('common.skipToContent')}
         </a>

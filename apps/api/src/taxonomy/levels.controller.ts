@@ -13,7 +13,7 @@ export class LevelsController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'List levels — FR-08' })
+  @ApiOperation({ summary: 'List levels' })
   list(): Promise<Level[]> {
     return this.taxonomy.listLevels();
   }

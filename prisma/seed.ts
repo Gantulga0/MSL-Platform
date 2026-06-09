@@ -1,30 +1,7 @@
-/**
- * Database seed (SPEC §16 step 2 / Appendix A). Idempotent — safe to re-run.
- * Seeds: School #29, the level/age-group/topic taxonomy, one admin user, and the
- * default duplicate-detection threshold setting.
- *
- * Run: `npm run db:seed` (requires DATABASE_URL + applied migrations).
- */
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
-
-// Fixed id so re-seeding updates the same pilot school (single-school MVP, G-12).
-const SCHOOL_29_ID = '00000000-0000-0000-0000-000000000029';
-
-async function seedSchool(): Promise<void> {
-  await prisma.school.upsert({
-    where: { id: SCHOOL_29_ID },
-    update: { name: 'Тусгай хэрэгцээт 29-р сургууль', type: 'special_needs' },
-    create: {
-      id: SCHOOL_29_ID,
-      name: 'Тусгай хэрэгцээт 29-р сургууль',
-      type: 'special_needs',
-      contact: null,
-    },
-  });
-}
 
 async function seedLevels(): Promise<void> {
   const levels = [
@@ -56,8 +33,18 @@ interface TopicSeed {
   children?: TopicSeed[];
 }
 
-// Appendix A topic tree.
 const TOPICS: TopicSeed[] = [
+  {
+    slug: 'conversational',
+    name: 'Харилцан ярианд өргөн хэрэглэгддэг дохио',
+    children: [
+      { slug: 'common-signs', name: 'Түгээмэл хэрэглэгдэх дохио' },
+      { slug: 'action-signs', name: 'Үйлдлийг илэрхийлсэн дохио' },
+      { slug: 'quality-signs', name: 'Шинж, чанар байдлыг илэрхийлсэн дохио' },
+      { slug: 'question-signs', name: 'Асуултыг илэрхийлсэн дохио' },
+      { slug: 'negation-signs', name: 'Үгүйсгэх үйлдлийг илэрхийлсэн дохио' },
+    ],
+  },
   {
     slug: 'daily',
     name: 'Өдөр тутам',
@@ -123,8 +110,8 @@ async function seedTopics(): Promise<void> {
 }
 
 async function seedAdmin(): Promise<void> {
-  const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@msl.example';
-  const password = process.env.SEED_ADMIN_PASSWORD ?? 'change_me_admin_password';
+  const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@gmail.com';
+  const password = process.env.SEED_ADMIN_PASSWORD ?? 'admin123';
   const passwordHash = await argon2.hash(password);
   await prisma.user.upsert({
     where: { email },
@@ -136,7 +123,6 @@ async function seedAdmin(): Promise<void> {
       displayName: 'Систем админ',
       isMinor: false,
       emailVerifiedAt: new Date(),
-      schoolId: SCHOOL_29_ID,
       locale: 'mn',
     },
   });
@@ -152,14 +138,13 @@ async function seedSettings(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  await seedSchool();
   await seedLevels();
   await seedAgeGroups();
   await seedTopics();
   await seedAdmin();
   await seedSettings();
   // eslint-disable-next-line no-console
-  console.log('[seed] School #29, taxonomy, admin user, and settings are ready.');
+  console.log('[seed] Taxonomy, admin user, and settings are ready.');
 }
 
 main()

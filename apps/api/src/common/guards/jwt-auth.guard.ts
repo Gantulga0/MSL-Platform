@@ -1,20 +1,10 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import type { JwtPayload, RequestWithUser } from '../auth.types';
 
-/**
- * Global authentication guard (AUTH-06). Verifies the Bearer access token and
- * attaches the principal to the request. Routes marked @Public are skipped.
- * Deny-by-default: any non-public route without a valid token is rejected.
- */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(

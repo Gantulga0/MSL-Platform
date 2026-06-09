@@ -26,7 +26,7 @@ export default async function WordDetailPage({
     <main id="main" className="mx-auto max-w-3xl px-4 py-8">
       <Link
         href={'/dictionary' as Route}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-primary underline"
+        className="mb-4 inline-flex min-h-touch items-center gap-1 rounded-full px-3 text-sm font-semibold text-accent-ink hover:bg-surface-muted"
       >
         <ArrowLeft aria-hidden className="h-4 w-4" />
         {translate('dict.back')}

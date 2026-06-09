@@ -3,17 +3,39 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../cn';
 
+/** Surface tone. Pastel tints + the one charcoal contrast card. */
+export type CardTone = 'white' | 'sage' | 'lavender' | 'butter' | 'dark';
+
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  /** Render as an interactive surface (adds hover affordance). */
+  /** Render as an interactive surface (adds hover lift). */
   interactive?: boolean;
+  /** Background tone. Tints always pair with dark ink; `dark` flips to white text. */
+  tone?: CardTone;
 }
 
-export function Card({ interactive, className, children, ...rest }: CardProps): React.ReactElement {
+// Tints carry no border (they read as soft fills); white keeps a hairline.
+const TONES: Record<CardTone, string> = {
+  white: 'bg-surface text-fg border-border',
+  sage: 'bg-tint-sage text-fg border-transparent',
+  lavender: 'bg-tint-lav text-fg border-transparent',
+  butter: 'bg-tint-butter text-fg border-transparent',
+  dark: 'bg-dark text-fg-on-primary border-transparent',
+};
+
+export function Card({
+  interactive,
+  tone = 'white',
+  className,
+  children,
+  ...rest
+}: CardProps): React.ReactElement {
   return (
     <div
       className={cn(
-        'rounded-lg border border-border bg-bg shadow-sm',
-        interactive && 'transition-shadow hover:shadow-md focus-within:shadow-md',
+        'rounded-xl border shadow-sm',
+        TONES[tone],
+        interactive &&
+          'transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-within:shadow-md motion-reduce:transform-none motion-reduce:transition-none',
         className,
       )}
       {...rest}

@@ -8,6 +8,10 @@ import { colors, control, elevation, fontSize, radius } from './src/tokens';
 const preset: Partial<Config> = {
   theme: {
     extend: {
+      fontFamily: {
+        // Wired to next/font (Inter w/ cyrillic + cyrillic-ext) via the CSS var.
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
         bg: colors.bg,
         surface: colors.surface,
@@ -25,6 +29,21 @@ const preset: Partial<Config> = {
           active: colors.primaryActive,
           subtle: colors.primarySubtle,
         },
+        // Sage accent — tint/icon/text roles (see tokens.ts contrast notes).
+        accent: {
+          DEFAULT: colors.accent,
+          ink: colors.accentInk,
+          strong: colors.accentStrong,
+          subtle: colors.accentSubtle,
+        },
+        // Pastel tint surfaces for Card variants.
+        tint: {
+          sage: colors.tintSage,
+          lav: colors.tintLav,
+          butter: colors.tintButter,
+        },
+        // The single charcoal contrast surface (CTAs / dark card).
+        dark: { DEFAULT: colors.primary, hover: colors.primaryHover },
         success: { DEFAULT: colors.success, subtle: colors.successSubtle },
         warning: { DEFAULT: colors.warning, subtle: colors.warningSubtle },
         danger: { DEFAULT: colors.danger, subtle: colors.dangerSubtle },
@@ -37,6 +56,7 @@ const preset: Partial<Config> = {
         md: radius.md,
         lg: radius.lg,
         xl: radius.xl,
+        '2xl': radius['2xl'],
         full: radius.full,
       },
       boxShadow: {

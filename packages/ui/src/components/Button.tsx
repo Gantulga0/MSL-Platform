@@ -17,6 +17,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {
+  // Primary = the charcoal pill CTA (white text ≈17:1).
   primary: 'bg-primary text-fg-on-primary hover:bg-primary-hover active:bg-primary-active',
   secondary: 'bg-surface text-fg border border-border-strong hover:bg-surface-muted',
   ghost: 'bg-transparent text-fg hover:bg-surface-muted',
@@ -42,7 +43,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+        'inline-flex items-center justify-center rounded-full font-semibold transition-colors',
         'disabled:cursor-not-allowed disabled:opacity-60',
         VARIANTS[variant],
         SIZES[size],

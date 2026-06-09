@@ -4,9 +4,7 @@ import { localizeAuthError } from './errors';
 describe('homeForRole', () => {
   it.each([
     ['admin', '/admin'],
-    ['teacher', '/review'],
-    ['learner', '/profile'],
-    ['contributor', '/dictionary'],
+    ['user', '/dictionary'],
     ['guest', '/dictionary'],
   ] as const)('routes %s to %s', (role, expected) => {
     expect(homeForRole(role)).toBe(expected);

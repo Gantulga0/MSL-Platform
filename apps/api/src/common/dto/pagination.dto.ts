@@ -3,7 +3,6 @@ import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DEFAULT_LIMIT, DEFAULT_PAGE, MAX_LIMIT, type Paginated } from '@msl/types';
 
-/** Standard `?page&limit` query DTO (SPEC §8). */
 export class PaginationQueryDto {
   @ApiPropertyOptional({ minimum: 1, default: DEFAULT_PAGE })
   @IsOptional()
@@ -21,7 +20,6 @@ export class PaginationQueryDto {
   limit: number = DEFAULT_LIMIT;
 }
 
-/** Build the standard paginated envelope. */
 export function paginate<T>(data: T[], total: number, page: number, limit: number): Paginated<T> {
   return {
     data,
@@ -34,7 +32,6 @@ export function paginate<T>(data: T[], total: number, page: number, limit: numbe
   };
 }
 
-/** Prisma skip/take from page/limit. */
 export function toSkipTake(page: number, limit: number): { skip: number; take: number } {
   return { skip: (page - 1) * limit, take: limit };
 }

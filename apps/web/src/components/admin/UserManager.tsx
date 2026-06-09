@@ -20,10 +20,10 @@ const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg
 
 export function UserManager({ users }: { users: UserRow[] }): React.ReactElement {
   const router = useRouter();
-  const [role, setRole] = useState('contributor');
+  const [role, setRole] = useState('user');
+  const [isMinor, setIsMinor] = useState(false);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
-  const isLearner = role === 'learner';
 
   return (
     <div className="space-y-6">
@@ -42,7 +42,8 @@ export function UserManager({ users }: { users: UserRow[] }): React.ReactElement
                 if (res.error) setError(res.error);
                 else {
                   form.reset();
-                  setRole('contributor');
+                  setRole('user');
+                  setIsMinor(false);
                   router.refresh();
                 }
               });
@@ -55,16 +56,25 @@ export function UserManager({ users }: { users: UserRow[] }): React.ReactElement
             )}
             <Field label={t('admin.users.role')} required>
               <select name="role" className={selectCls} value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="contributor">contributor</option>
-                <option value="teacher">teacher</option>
+                <option value="user">user</option>
                 <option value="admin">admin</option>
-                <option value="learner">learner</option>
               </select>
             </Field>
             <Field label={t('admin.users.name')} required>
               <Input name="displayName" required maxLength={120} />
             </Field>
-            {isLearner ? (
+            <Field label={t('admin.users.minorAccount')}>
+              <label className="flex min-h-touch items-center gap-2 text-base">
+                <input
+                  type="checkbox"
+                  name="isMinor"
+                  checked={isMinor}
+                  onChange={(e) => setIsMinor(e.target.checked)}
+                />
+                {t('admin.users.minorHint')}
+              </label>
+            </Field>
+            {isMinor ? (
               <>
                 <Field label={t('admin.users.username')} required>
                   <Input name="username" required />

@@ -13,28 +13,28 @@ export class TopicsController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'Topic tree (hierarchical) — FR-08' })
+  @ApiOperation({ summary: 'Topic tree (hierarchical)' })
   tree(): Promise<TopicNode[]> {
     return this.taxonomy.topicTree();
   }
 
   @Roles('admin')
   @Post()
-  @ApiOperation({ summary: 'Create topic (admin) — S-27' })
+  @ApiOperation({ summary: 'Create topic' })
   create(@Body() dto: CreateTopicDto): Promise<Topic> {
     return this.taxonomy.createTopic(dto);
   }
 
   @Roles('admin')
   @Patch(':id')
-  @ApiOperation({ summary: 'Update topic (admin) — S-27' })
+  @ApiOperation({ summary: 'Update topic' })
   update(@Param('id') id: string, @Body() dto: UpdateTopicDto): Promise<Topic> {
     return this.taxonomy.updateTopic(id, dto);
   }
 
   @Roles('admin')
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete topic (admin, if empty) — S-27' })
+  @ApiOperation({ summary: 'Delete topic' })
   remove(@Param('id') id: string): Promise<{ id: string }> {
     return this.taxonomy.deleteTopic(id);
   }

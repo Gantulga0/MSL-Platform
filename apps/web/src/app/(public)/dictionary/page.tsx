@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import type { Route } from 'next';
+import { Search } from 'lucide-react';
 import type { Paginated } from '@msl/types';
-import { Badge, Card, CardBody, EmptyState } from '@msl/ui';
+import { EmptyState } from '@msl/ui';
 import { translate } from '@/i18n';
 import { apiGetSafe } from '@/lib/api/server';
 import { SearchBar } from '@/components/dictionary/SearchBar';
-import { FilterBar } from '@/components/dictionary/FilterBar';
+import { FilterPanel } from '@/components/dictionary/FilterPanel';
+import { SignCard } from '@/components/dictionary/SignCard';
 import { Pager } from '@/components/dictionary/Pager';
 import type { TaxoRef, TopicNode, WordListItem } from '@/lib/dictionary/types';
 
@@ -42,72 +42,62 @@ export default async function DictionaryPage({
     apiGetSafe<Paginated<WordListItem>>(`/words?${qs.toString()}`),
   ]);
 
-  const showTiles = !sp.q && !sp.topic && !sp.level && !sp.age && (topics?.length ?? 0) > 0;
   const items = words?.data ?? [];
+  const meta = words?.meta;
+  const from = meta && meta.total > 0 ? (meta.page - 1) * meta.limit + 1 : 0;
+  const to = meta ? Math.min(meta.page * meta.limit, meta.total) : 0;
 
   return (
-    <main id="main" className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-4 text-2xl font-bold tracking-tight text-fg">{translate('dict.title')}</h1>
-
-      <div className="space-y-4">
-        <SearchBar initial={sp.q ?? ''} />
-        <FilterBar levels={levels ?? []} ageGroups={ageGroups ?? []} />
-      </div>
-
-      {showTiles && topics && (
-        <section aria-labelledby="tiles-h" className="mt-8">
-          <h2 id="tiles-h" className="mb-3 text-lg font-semibold text-fg">
-            {translate('dict.browseByTopic')}
-          </h2>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {topics.map((topic) => (
-              <li key={topic.id}>
-                <Link
-                  href={`/dictionary?topic=${topic.id}` as Route}
-                  className="flex min-h-touch items-center justify-center rounded-lg border border-border-strong bg-surface p-4 text-center font-medium text-fg hover:bg-surface-muted"
-                >
-                  {topic.icon ?? '📚'} {topic.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section aria-labelledby="results-h" className="mt-8">
-        <h2 id="results-h" className="mb-3 text-lg font-semibold text-fg">
-          {translate('dict.results')}
-        </h2>
-        {items.length === 0 ? (
-          <EmptyState title={translate('dict.noResults')} description={translate('dict.noResultsHint')} />
-        ) : (
-          <>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {items.map((w) => (
-                <li key={w.id}>
-                  <Link href={`/dictionary/${w.id}` as Route} className="block">
-                    <Card className="h-full transition-colors hover:bg-surface-muted">
-                      <CardBody>
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-lg font-semibold text-fg">{w.lemma}</h3>
-                          {w.level && <Badge tone="info">{w.level.label}</Badge>}
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-fg-muted">{w.definition}</p>
-                        {w.topic && <p className="mt-2 text-sm text-fg-subtle">{w.topic.name}</p>}
-                      </CardBody>
-                    </Card>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            {words && words.meta.totalPages > 1 && (
-              <div className="mt-6">
-                <Pager page={words.meta.page} totalPages={words.meta.totalPages} />
-              </div>
-            )}
-          </>
+    <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <header className="mb-8 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
+          {translate('dict.title')}
+        </h1>
+        {meta && meta.total > 0 && (
+          <p className="mt-2 text-base text-fg-muted">
+            {translate('dict.resultCount', undefined, { total: meta.total, from, to })}
+          </p>
         )}
-      </section>
+        <div className="mt-6">
+          <SearchBar initial={sp.q ?? ''} />
+        </div>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        {/* Results */}
+        <div className="order-2 lg:order-1">
+          {items.length === 0 ? (
+            <EmptyState
+              icon={<Search className="h-12 w-12" />}
+              title={translate('dict.noResults')}
+              description={translate('dict.noResultsHint')}
+            />
+          ) : (
+            <>
+              <ul
+                aria-label={translate('dict.gridLabel')}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+              >
+                {items.map((w, i) => (
+                  <li key={w.id}>
+                    <SignCard word={w} index={from + i} />
+                  </li>
+                ))}
+              </ul>
+              {meta && meta.totalPages > 1 && (
+                <div className="mt-8">
+                  <Pager page={meta.page} totalPages={meta.totalPages} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Filters */}
+        <div className="order-1 lg:order-2">
+          <FilterPanel topics={topics ?? []} levels={levels ?? []} ageGroups={ageGroups ?? []} />
+        </div>
+      </div>
     </main>
   );
 }

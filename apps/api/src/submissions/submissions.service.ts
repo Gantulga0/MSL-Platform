@@ -75,20 +75,15 @@ export class SubmissionsService {
     };
   }
 
-  /** Create a submission and run duplicate detection (FR-02/FR-03). */
+  /** Create a word suggestion and run duplicate detection. */
   async create(
     dto: CreateSubmissionDto,
     userId: string,
   ): Promise<{ submission: unknown; duplicate: boolean; existingWord?: unknown }> {
-    const submitter = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { schoolId: true },
-    });
     const norm = normalizeLemma(dto.proposedLemma);
 
     const submission = await this.prisma.submission.create({
       data: {
-        schoolId: submitter?.schoolId ?? null,
         submittedBy: userId,
         proposedLemma: dto.proposedLemma,
         normalizedLemma: norm,
@@ -130,7 +125,7 @@ export class SubmissionsService {
         where: { id: submission.id },
         data: { status: 'duplicate', duplicateOfWordId: decision.match.wordId },
       });
-      // FR-03/FR-21: duplicate → DO NOT notify teachers (suppressed).
+      // Duplicate → do not notify admins.
       await this.audit.record({
         actorId: userId,
         entityType: 'submission',
@@ -144,8 +139,8 @@ export class SubmissionsService {
       return { submission: updated, duplicate: true, existingWord };
     }
 
-    // Distinct → enter the review queue + notify reviewers (FR-21).
-    await this.notifyReviewers(submission.id, submission.schoolId, submission.proposedLemma);
+    // Distinct → notify admins for review.
+    await this.notifyAdmins(submission.id, submission.proposedLemma);
     await this.audit.record({
       actorId: userId,
       entityType: 'submission',
@@ -186,23 +181,14 @@ export class SubmissionsService {
     return paginate(data, total, page, limit);
   }
 
-  private async notifyReviewers(
-    submissionId: string,
-    schoolId: string | null,
-    lemma: string,
-  ): Promise<void> {
-    const reviewers = await this.prisma.user.findMany({
-      where: {
-        role: { in: ['teacher', 'admin'] },
-        status: 'active',
-        deletedAt: null,
-        ...(schoolId ? { schoolId } : {}),
-      },
+  private async notifyAdmins(submissionId: string, lemma: string): Promise<void> {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'admin', status: 'active', deletedAt: null },
       select: { id: true },
     });
-    if (reviewers.length === 0) return;
+    if (admins.length === 0) return;
     await this.prisma.notification.createMany({
-      data: reviewers.map((r) => ({
+      data: admins.map((r) => ({
         userId: r.id,
         type: 'review_pending' as const,
         payload: { submissionId, lemma },

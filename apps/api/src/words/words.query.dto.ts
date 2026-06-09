@@ -2,7 +2,6 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { PaginationQueryDto } from '../common/dto/pagination.dto';
 
-/** `GET /words?q&topic&level&age&page&limit` (FR-01/FR-08). */
 export class WordsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Free-text search over lemma + definition' })
   @IsOptional()

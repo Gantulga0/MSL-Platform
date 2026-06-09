@@ -18,10 +18,6 @@ export function homeForRole(role: Role): string {
   switch (role) {
     case 'admin':
       return '/admin';
-    case 'teacher':
-      return '/review';
-    case 'learner':
-      return '/profile';
     default:
       return '/dictionary';
   }

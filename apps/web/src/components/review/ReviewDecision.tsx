@@ -6,8 +6,8 @@ import type { Route } from 'next';
 import { Button, Field, Textarea } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import { FormAlert } from '@/components/auth/FormAlert';
-import { approveAction, clarifyAction, rejectAction } from '@/lib/review/actions';
-import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
+import { approveAction, rejectAction } from '@/lib/review/actions';
+import type { TopicNode } from '@/lib/dictionary/types';
 
 function flatten(nodes: TopicNode[], depth = 0): { id: string; name: string; depth: number }[] {
   return nodes.flatMap((n) => [{ id: n.id, name: n.name, depth }, ...flatten(n.children, depth + 1)]);
@@ -19,7 +19,7 @@ interface Props {
   topics: TopicNode[];
 }
 
-/** S-21 approve / reject / request-clarification with a shared comment (FR-04/11). */
+/** Admin approve / reject with optional topic override. */
 export function ReviewDecision({ submissionId, needsTopic, topics }: Props): React.ReactElement {
   const router = useRouter();
   const topicOptions = flatten(topics);
@@ -37,7 +37,7 @@ export function ReviewDecision({ submissionId, needsTopic, topics }: Props): Rea
     start(async () => {
       const res = await action(fd);
       if (res?.error) setError(res.error);
-      else router.push('/review' as Route);
+      else router.push('/admin/submissions' as Route);
     });
   }
 
@@ -67,9 +67,6 @@ export function ReviewDecision({ submissionId, needsTopic, topics }: Props): Rea
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => run(approveAction)} loading={pending}>
           {t('review.approve')}
-        </Button>
-        <Button variant="secondary" onClick={() => run(clarifyAction)} loading={pending}>
-          {t('review.clarify')}
         </Button>
         <Button variant="danger" onClick={() => run(rejectAction)} loading={pending}>
           {t('review.reject')}

@@ -4,10 +4,10 @@ import { translate } from '@/i18n';
 import { apiGetSafe } from '@/lib/api/server';
 import { QueueTable, type QueueItem } from '@/components/review/QueueTable';
 
-export const metadata: Metadata = { title: 'Хянах дараалал' };
+export const metadata: Metadata = { title: 'Санал хянах' };
 
-export default async function ReviewQueuePage(): Promise<React.ReactElement> {
-  const queue = await apiGetSafe<Paginated<QueueItem>>('/submissions?status=pending&limit=50');
+export default async function AdminSubmissionsPage(): Promise<React.ReactElement> {
+  const queue = await apiGetSafe<Paginated<QueueItem>>('/admin/submissions?status=pending&limit=50');
 
   return (
     <main id="main" className="mx-auto max-w-4xl px-4 py-8">

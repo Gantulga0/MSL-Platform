@@ -8,6 +8,8 @@ export interface ReviewActionResult {
   ok?: boolean;
 }
 
+const REVIEW_PATH = '/admin/submissions';
+
 function fail(e: unknown): ReviewActionResult {
   return { error: e instanceof ApiClientError ? e.message : 'Үйлдэл амжилтгүй боллоо.' };
 }
@@ -17,11 +19,11 @@ export async function approveAction(formData: FormData): Promise<ReviewActionRes
   const topicId = String(formData.get('topicId') ?? '').trim();
   const comment = String(formData.get('comment') ?? '').trim();
   try {
-    await apiSend('POST', `/submissions/${id}/approve`, {
+    await apiSend('POST', `/admin/submissions/${id}/approve`, {
       ...(topicId ? { topicId } : {}),
       ...(comment ? { comment } : {}),
     });
-    revalidatePath('/review');
+    revalidatePath(REVIEW_PATH);
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -32,21 +34,8 @@ export async function rejectAction(formData: FormData): Promise<ReviewActionResu
   const id = String(formData.get('id') ?? '');
   const comment = String(formData.get('comment') ?? '').trim();
   try {
-    await apiSend('POST', `/submissions/${id}/reject`, { comment });
-    revalidatePath('/review');
-    return { ok: true };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-export async function clarifyAction(formData: FormData): Promise<ReviewActionResult> {
-  const id = String(formData.get('id') ?? '');
-  const comment = String(formData.get('comment') ?? '').trim();
-  if (!comment) return { error: 'Тайлбар шаардлагатай.' };
-  try {
-    await apiSend('POST', `/submissions/${id}/request-clarification`, { comment });
-    revalidatePath('/review');
+    await apiSend('POST', `/admin/submissions/${id}/reject`, { comment });
+    revalidatePath(REVIEW_PATH);
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -56,8 +45,8 @@ export async function clarifyAction(formData: FormData): Promise<ReviewActionRes
 export async function batchApproveAction(ids: string[]): Promise<ReviewActionResult> {
   if (ids.length === 0) return { error: 'Сонголт алга.' };
   try {
-    await apiSend('POST', '/submissions/batch-approve', { ids });
-    revalidatePath('/review');
+    await apiSend('POST', '/admin/submissions/batch-approve', { ids });
+    revalidatePath(REVIEW_PATH);
     return { ok: true };
   } catch (e) {
     return fail(e);

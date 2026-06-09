@@ -5,7 +5,6 @@ export const MEDIA_OWNER_TYPES = ['word', 'word_variant', 'submission'] as const
 export const MEDIA_TYPES = ['video', 'image', 'thumbnail'] as const;
 export const CONSENT_SCOPES = ['media_publish', 'data_processing'] as const;
 
-/** Minimal shape of a Multer in-memory file (avoids @types/multer dependency). */
 export interface UploadedFile {
   originalname: string;
   mimetype: string;

@@ -1,23 +1,19 @@
-/** RBAC roles, least → most privileged (SPEC §4). */
-export const ROLES = ['guest', 'learner', 'contributor', 'teacher', 'admin'] as const;
+/** RBAC roles — guest (unauthenticated) + authenticated user/admin. */
+export const ROLES = ['guest', 'user', 'admin'] as const;
 
 export type Role = (typeof ROLES)[number];
 
 /** Privilege rank for "at least this role" checks. Higher = more privileged. */
 export const ROLE_RANK: Record<Role, number> = {
   guest: 0,
-  learner: 1,
-  contributor: 2,
-  teacher: 3,
-  admin: 4,
+  user: 1,
+  admin: 2,
 };
 
-/** Mongolian (Cyrillic) display labels for roles (SPEC §4). */
+/** Mongolian (Cyrillic) display labels for roles. */
 export const ROLE_LABELS_MN: Record<Role, string> = {
   guest: 'Зочин',
-  learner: 'Сурагч',
-  contributor: 'Хувь нэмэр оруулагч',
-  teacher: 'Багш / зөвлөх',
+  user: 'Хэрэглэгч',
   admin: 'Админ',
 };
 

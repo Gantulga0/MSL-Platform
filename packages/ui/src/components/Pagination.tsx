@@ -24,7 +24,7 @@ export function Pagination({
   const canNext = page < totalPages;
 
   const btn =
-    'inline-flex min-h-touch min-w-touch items-center gap-1 rounded-md border border-border-strong bg-bg px-3 text-fg disabled:cursor-not-allowed disabled:opacity-50 hover:bg-surface-muted';
+    'inline-flex min-h-touch min-w-touch items-center gap-1 rounded-full border border-border-strong bg-surface px-4 font-medium text-fg transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:bg-surface-muted';
 
   return (
     <nav aria-label={labels.nav} className={cn('flex items-center justify-between gap-4', className)}>

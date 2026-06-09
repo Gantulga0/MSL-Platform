@@ -12,21 +12,21 @@ export class WordsController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'List/search approved words — FR-01/FR-08' })
+  @ApiOperation({ summary: 'List/search approved words ' })
   list(@Query() query: WordsQueryDto): Promise<Paginated<unknown>> {
     return this.words.list(query);
   }
 
   @Public()
   @Get(':id')
-  @ApiOperation({ summary: 'Word detail incl. variants + media — FR-09' })
+  @ApiOperation({ summary: 'Word detail incl. variants + media' })
   detail(@Param('id') id: string): Promise<unknown> {
     return this.words.detail(id);
   }
 
   @Public()
   @Get(':id/variants')
-  @ApiOperation({ summary: 'List word variants — FR-10' })
+  @ApiOperation({ summary: 'List word variants' })
   variants(@Param('id') id: string): Promise<unknown> {
     return this.words.variants(id);
   }

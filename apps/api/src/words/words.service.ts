@@ -6,7 +6,6 @@ import { normalizeLemma } from '../common/normalize';
 import type { Paginated } from '@msl/types';
 import type { WordsQueryDto } from './words.query.dto';
 
-// Public projection — no creator/approver user PII is ever returned (AUTH-11).
 const LIST_SELECT = {
   id: true,
   lemma: true,
@@ -23,7 +22,6 @@ const LIST_SELECT = {
 export class WordsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Public list/search — approved words only (FR-13). */
   async list(query: WordsQueryDto): Promise<Paginated<unknown>> {
     const { page, limit, q, topic, level, age } = query;
     const where: Prisma.WordWhereInput = {
@@ -38,7 +36,6 @@ export class WordsService {
       where.OR = [
         { lemma: { contains: q.trim(), mode: 'insensitive' } },
         { definition: { contains: q.trim(), mode: 'insensitive' } },
-        // normalized_lemma is backed by the pg_trgm GIN index (fuzzy/fast).
         { normalizedLemma: { contains: norm } },
       ];
     }
@@ -57,7 +54,6 @@ export class WordsService {
     return paginate(data, total, page, limit);
   }
 
-  /** Word detail incl. variants + media (FR-09). Increments view count (FR-14). */
   async detail(id: string): Promise<unknown> {
     const word = await this.prisma.word.findFirst({
       where: { id, status: 'approved', deletedAt: null },
@@ -84,7 +80,9 @@ export class WordsService {
       where: {
         OR: [
           { ownerType: 'word', ownerId: id },
-          ...(variantIds.length ? [{ ownerType: 'word_variant' as const, ownerId: { in: variantIds } }] : []),
+          ...(variantIds.length
+            ? [{ ownerType: 'word_variant' as const, ownerId: { in: variantIds } }]
+            : []),
         ],
       },
       select: {
@@ -104,7 +102,6 @@ export class WordsService {
     return { ...word, viewCount: word.viewCount + 1, media };
   }
 
-  /** Variants for a word (FR-10). */
   async variants(id: string): Promise<unknown> {
     const word = await this.prisma.word.findFirst({
       where: { id, status: 'approved', deletedAt: null },

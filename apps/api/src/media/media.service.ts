@@ -8,7 +8,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { MediaAsset } from '@prisma/client';
-import { ROLE_RANK } from '@msl/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from './storage.service';
 import type { AuthenticatedUser } from '../common/auth.types';
@@ -156,8 +155,8 @@ export class MediaService {
   private async assertCanViewPrivate(media: MediaAsset, user?: AuthenticatedUser): Promise<void> {
     if (!user) throw new ForbiddenException('Authentication required');
     const isOwner = media.uploadedBy === user.id;
-    const isReviewer = ROLE_RANK[user.role] >= ROLE_RANK.teacher;
-    if (!isOwner && !isReviewer) throw new ForbiddenException('Not allowed to view this media');
+    const isAdmin = user.role === 'admin';
+    if (!isOwner && !isAdmin) throw new ForbiddenException('Not allowed to view this media');
   }
 
   private signToken(mediaId: string): Promise<string> {

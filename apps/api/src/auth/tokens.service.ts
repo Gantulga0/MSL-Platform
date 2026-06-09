@@ -7,7 +7,6 @@ import type { Role } from '@msl/types';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../common/auth.types';
 
-/** httpOnly cookie carrying the opaque rotating refresh token (AUTH-01). */
 export const REFRESH_COOKIE = 'refresh_token';
 
 interface TokenSubject {
@@ -21,11 +20,6 @@ interface RequestMeta {
   ip?: string | null;
 }
 
-/**
- * Issues short-lived JWT access tokens and manages rotating refresh tokens
- * (AUTH-01). Refresh tokens are random opaque strings stored only as SHA-256
- * hashes in `refresh_tokens`; the raw value lives solely in the httpOnly cookie.
- */
 @Injectable()
 export class TokensService {
   constructor(
@@ -42,7 +36,6 @@ export class TokensService {
     });
   }
 
-  /** Create a fresh refresh-token row and return the raw token for the cookie. */
   async issueRefreshToken(userId: string, meta: RequestMeta): Promise<string> {
     const raw = randomBytes(48).toString('base64url');
     const ttlMs = parseDurationMs(this.config.get<string>('JWT_REFRESH_TTL', '7d'));
@@ -58,11 +51,6 @@ export class TokensService {
     return raw;
   }
 
-  /**
-   * Validate an incoming refresh token, revoke it, and issue a replacement
-   * (rotation). Returns the new raw token + its owning user. Reuse of a revoked
-   * or expired token is rejected.
-   */
   async rotateRefreshToken(
     raw: string,
     meta: RequestMeta,
@@ -80,7 +68,6 @@ export class TokensService {
 
     const newRaw = randomBytes(48).toString('base64url');
     const ttlMs = parseDurationMs(this.config.get<string>('JWT_REFRESH_TTL', '7d'));
-    // Revoke the old row and mint the new one atomically.
     await this.prisma.$transaction([
       this.prisma.refreshToken.update({
         where: { id: existing.id },
@@ -107,7 +94,6 @@ export class TokensService {
     };
   }
 
-  /** Revoke a single refresh token (logout). Silent if already gone. */
   async revokeRefreshToken(raw: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { tokenHash: hashToken(raw), revokedAt: null },
@@ -115,7 +101,6 @@ export class TokensService {
     });
   }
 
-  /** Revoke every active refresh token for a user (password reset, ban). */
   async revokeAllForUser(userId: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { userId, revokedAt: null },
@@ -139,12 +124,10 @@ export class TokensService {
   }
 }
 
-/** SHA-256 is sufficient for high-entropy random tokens (no argon2 needed). */
 function hashToken(raw: string): string {
   return createHash('sha256').update(raw).digest('hex');
 }
 
-/** Parse a short duration like "15m", "7d", "30s", "12h" into milliseconds. */
 export function parseDurationMs(value: string): number {
   const match = /^(\d+)\s*(ms|s|m|h|d)$/.exec(value.trim());
   if (!match) {

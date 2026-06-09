@@ -6,6 +6,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   Min,
   MinLength,
@@ -66,6 +67,113 @@ export class AuditQueryDto {
   @IsOptional()
   @IsString()
   entityType?: string;
+
+  @ApiPropertyOptional({ default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @ApiPropertyOptional({ default: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit = 20;
+}
+
+export class CreateWordDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(120)
+  lemma!: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(2000)
+  definition!: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  exampleSentence?: string;
+
+  @ApiProperty()
+  @IsUUID()
+  topicId!: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  levelId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  ageGroupId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  source?: string;
+}
+
+export class UpdateWordDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  lemma?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  definition?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  exampleSentence?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  topicId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  levelId?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  ageGroupId?: string | null;
+
+  @ApiPropertyOptional({ enum: ['draft', 'pending', 'approved', 'rejected', 'archived'] })
+  @IsOptional()
+  @IsIn(['draft', 'pending', 'approved', 'rejected', 'archived'])
+  status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
+}
+
+export class AdminWordsQueryDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  q?: string;
+
+  @ApiPropertyOptional({ enum: ['draft', 'pending', 'approved', 'rejected', 'archived'] })
+  @IsOptional()
+  @IsIn(['draft', 'pending', 'approved', 'rejected', 'archived'])
+  status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

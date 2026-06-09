@@ -11,7 +11,6 @@ export interface HealthStatus {
 @ApiTags('health')
 @Controller('health')
 export class HealthController {
-  // Liveness probe — unauthenticated by design (bypasses the global JwtAuthGuard).
   @Public()
   @Get()
   check(): HealthStatus {

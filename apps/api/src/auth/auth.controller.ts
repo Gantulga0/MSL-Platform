@@ -8,7 +8,6 @@ import type { AuthenticatedUser } from '../common/auth.types';
 import { AuthService, type PublicUser } from './auth.service';
 import { REFRESH_COOKIE, TokensService } from './tokens.service';
 import {
-  ClassCodeLoginDto,
   ForgotPasswordDto,
   LoginDto,
   RegisterDto,
@@ -16,7 +15,6 @@ import {
   VerifyEmailDto,
 } from './auth.dto';
 
-// Tight per-IP limit on credential endpoints over the global default (AUTH-05).
 const AUTH_THROTTLE = { default: { ttl: 60_000, limit: 10 } };
 
 function requestMeta(req: Request): { userAgent: string | null; ip: string | null } {
@@ -56,23 +54,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string; user: PublicUser }> {
     const { accessToken, refreshToken, user } = await this.auth.login(dto, requestMeta(req));
-    this.tokens.setRefreshCookie(res, refreshToken);
-    return { accessToken, user };
-  }
-
-  @Public()
-  @Throttle(AUTH_THROTTLE)
-  @Post('login/class-code')
-  @ApiOperation({ summary: 'Learner login via username + class code/PIN — AUTH-03' })
-  async classCodeLogin(
-    @Body() dto: ClassCodeLoginDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ accessToken: string; user: PublicUser }> {
-    const { accessToken, refreshToken, user } = await this.auth.classCodeLogin(
-      dto,
-      requestMeta(req),
-    );
     this.tokens.setRefreshCookie(res, refreshToken);
     return { accessToken, user };
   }

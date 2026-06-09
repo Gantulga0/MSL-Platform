@@ -50,17 +50,24 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+const INK = colors.fg;
 const COLOR_TOKENS: Array<{ name: string; value: string; fg?: string }> = [
-  { name: 'primary', value: colors.primary, fg: '#fff' },
-  { name: 'primary-hover', value: colors.primaryHover, fg: '#fff' },
+  { name: 'bg (cream)', value: colors.bg, fg: INK },
+  { name: 'surface', value: colors.surface, fg: INK },
+  { name: 'primary (charcoal)', value: colors.primary, fg: '#fff' },
+  { name: 'accent (sage)', value: colors.accent, fg: INK },
+  { name: 'accent-ink', value: colors.accentInk, fg: '#fff' },
+  { name: 'tint-sage', value: colors.tintSage, fg: INK },
+  { name: 'tint-lav', value: colors.tintLav, fg: INK },
+  { name: 'tint-butter', value: colors.tintButter, fg: INK },
+  { name: 'fg (ink)', value: colors.fg, fg: '#fff' },
+  { name: 'fg-muted', value: colors.fgMuted, fg: '#fff' },
+  { name: 'border', value: colors.border, fg: INK },
   { name: 'success', value: colors.success, fg: '#fff' },
   { name: 'warning', value: colors.warning, fg: '#fff' },
   { name: 'danger', value: colors.danger, fg: '#fff' },
   { name: 'info', value: colors.info, fg: '#fff' },
-  { name: 'fg', value: colors.fg, fg: '#fff' },
-  { name: 'fg-muted', value: colors.fgMuted, fg: '#fff' },
-  { name: 'surface', value: colors.surface, fg: '#0f172a' },
-  { name: 'border', value: colors.border, fg: '#0f172a' },
+  { name: 'focus', value: colors.focus, fg: '#fff' },
 ];
 
 export default function DesignSystemPage(): React.ReactElement {
@@ -231,6 +238,19 @@ export default function DesignSystemPage(): React.ReactElement {
             <StatusBadge status="approved" label="Зөвшөөрсөн" />
           </CardFooter>
         </Card>
+        {/* Pastel tone variants — tints always carry dark ink; dark flips to white. */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {(['white', 'sage', 'lavender', 'butter', 'dark'] as const).map((tone) => (
+            <Card key={tone} tone={tone} interactive>
+              <CardBody>
+                <p className="font-semibold">{tone}</p>
+                <p className={tone === 'dark' ? 'text-sm text-fg-on-primary/80' : 'text-sm text-fg-muted'}>
+                  {t('ds.sampleWord')}
+                </p>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       </Section>
 
       <Section id="ds-video" title={t('ds.video')}>

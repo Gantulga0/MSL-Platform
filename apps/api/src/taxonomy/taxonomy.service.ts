@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { AgeGroup, Level, Topic } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
@@ -15,13 +11,14 @@ import type {
 } from './dto';
 
 export interface TopicNode extends Topic {
+  /** Approved, non-deleted words in this node plus the whole subtree below it. */
+  wordCount: number;
   children: TopicNode[];
 }
 
-/** Builds a nested topic tree from a flat, sorted list (pure → unit-testable). */
 export function buildTopicTree(topics: Topic[]): TopicNode[] {
   const byId = new Map<string, TopicNode>();
-  for (const t of topics) byId.set(t.id, { ...t, children: [] });
+  for (const t of topics) byId.set(t.id, { ...t, wordCount: 0, children: [] });
   const roots: TopicNode[] = [];
   for (const node of byId.values()) {
     if (node.parentId && byId.has(node.parentId)) {
@@ -33,16 +30,45 @@ export function buildTopicTree(topics: Topic[]): TopicNode[] {
   return roots;
 }
 
+/**
+ * Roll the per-topic `ownCounts` up the tree in place: each node's `wordCount`
+ * becomes its own approved words plus the sum of its descendants' counts.
+ * Returns the total for the given level so parents can accumulate it.
+ */
+export function rollUpWordCounts(
+  nodes: TopicNode[],
+  ownCounts: Map<string, number>,
+): number {
+  let total = 0;
+  for (const node of nodes) {
+    const own = ownCounts.get(node.id) ?? 0;
+    node.wordCount = own + rollUpWordCounts(node.children, ownCounts);
+    total += node.wordCount;
+  }
+  return total;
+}
+
 @Injectable()
 export class TaxonomyService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ── Topics ───────────────────────────────────────────────────────────────
   async topicTree(): Promise<TopicNode[]> {
-    const topics = await this.prisma.topic.findMany({
-      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    });
-    return buildTopicTree(topics);
+    // One ordered fetch for the tree shape + one groupBy for counts — no N+1.
+    const [topics, grouped] = await Promise.all([
+      this.prisma.topic.findMany({
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      }),
+      this.prisma.word.groupBy({
+        by: ['topicId'],
+        where: { status: 'approved', deletedAt: null },
+        _count: { _all: true },
+      }),
+    ]);
+    const ownCounts = new Map<string, number>();
+    for (const g of grouped) ownCounts.set(g.topicId, g._count._all);
+    const roots = buildTopicTree(topics);
+    rollUpWordCounts(roots, ownCounts);
+    return roots;
   }
 
   async createTopic(dto: CreateTopicDto): Promise<Topic> {
@@ -79,7 +105,6 @@ export class TaxonomyService {
     return { id };
   }
 
-  // ── Levels ───────────────────────────────────────────────────────────────
   listLevels(): Promise<Level[]> {
     return this.prisma.level.findMany({ orderBy: { sortOrder: 'asc' } });
   }
@@ -101,7 +126,6 @@ export class TaxonomyService {
     return { id };
   }
 
-  // ── Age groups ─────────────────────────────────────────────────────────────
   listAgeGroups(): Promise<AgeGroup[]> {
     return this.prisma.ageGroup.findMany({ orderBy: { minAge: 'asc' } });
   }
@@ -128,7 +152,6 @@ export class TaxonomyService {
     return { id };
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   private async ensureTopic(id: string): Promise<Topic> {
     const topic = await this.prisma.topic.findUnique({ where: { id } });
     if (!topic) throw new NotFoundException('Topic not found');

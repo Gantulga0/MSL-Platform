@@ -51,5 +51,7 @@ export interface TopicNode {
   slug: string;
   icon: string | null;
   parentId: string | null;
+  /** Approved words in this topic plus its whole subtree (server-computed). */
+  wordCount: number;
   children: TopicNode[];
 }

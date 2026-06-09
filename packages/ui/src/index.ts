@@ -20,7 +20,7 @@ export type { TabsProps, TabItem } from './components/Tabs';
 export { ToastProvider, useToast } from './components/Toast';
 export type { ToastProviderProps, ToastTone } from './components/Toast';
 export { Card, CardHeader, CardTitle, CardBody, CardFooter } from './components/Card';
-export type { CardProps } from './components/Card';
+export type { CardProps, CardTone } from './components/Card';
 export { Badge, StatusBadge } from './components/Badge';
 export type { BadgeProps, BadgeTone } from './components/Badge';
 export { VideoPlayer } from './components/VideoPlayer';

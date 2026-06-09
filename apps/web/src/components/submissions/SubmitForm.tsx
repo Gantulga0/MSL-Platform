@@ -26,12 +26,12 @@ interface Props {
   topics: TopicNode[];
   levels: TaxoRef[];
   ageGroups: TaxoRef[];
+  isAuthenticated: boolean;
 }
 
 const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
 
-/** S-09 — submit form with a live duplicate hint (FR-02/FR-03). */
-export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactElement {
+export function SubmitForm({ topics, levels, ageGroups, isAuthenticated }: Props): React.ReactElement {
   const topicOptions = flatten(topics);
   const [lemma, setLemma] = useState('');
   const [topicId, setTopicId] = useState('');
@@ -41,7 +41,6 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
-  // Debounced live duplicate check as the lemma is typed (FR-03).
   useEffect(() => {
     const term = lemma.trim();
     if (!term) {
@@ -57,7 +56,7 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
     return () => clearTimeout(handle);
   }, [lemma, topicId]);
 
-  if (result && !result.error) {
+  if (result && !result.error && !result.loginRequired) {
     return (
       <div className="space-y-4">
         {result.duplicate ? (
@@ -75,8 +74,8 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
         ) : (
           <>
             <FormAlert tone="success">{t('submit.successBody')}</FormAlert>
-            <Link href={'/my-submissions' as Route} className="text-primary underline">
-              {t('submit.goMySubs')}
+            <Link href={'/profile' as Route} className="text-primary underline">
+              {t('submit.goProfile')}
             </Link>
           </>
         )}
@@ -89,11 +88,16 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
+        if (!isAuthenticated) {
+          setError(t('submit.loginRequired'));
+          return;
+        }
         setError(undefined);
         const fd = new FormData(e.currentTarget);
         start(async () => {
           const res = await createSubmissionAction(fd);
-          if (res.error) setError(res.error);
+          if (res.loginRequired) setError(t('submit.loginRequired'));
+          else if (res.error) setError(res.error);
           else setResult(res);
         });
       }}
@@ -110,7 +114,6 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
         />
       </Field>
 
-      {/* Live duplicate hint */}
       {checking && <p className="text-sm text-fg-subtle">{t('submit.checking')}</p>}
       {!checking && hint && hint.candidates.length > 0 && (
         <div
@@ -147,7 +150,7 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
           <option value="">{t('submit.selectTopic')}</option>
           {topicOptions.map((o) => (
             <option key={o.id} value={o.id}>
-              {' '.repeat(o.depth * 2)}
+              {' '.repeat(o.depth * 2)}
               {o.name}
             </option>
           ))}
@@ -177,21 +180,25 @@ export function SubmitForm({ topics, levels, ageGroups }: Props): React.ReactEle
         </Field>
       </div>
 
-      <Field label={t('submit.media')}>
-        <input
-          name="file"
-          type="file"
-          accept="video/mp4,video/webm,image/png,image/jpeg"
-          className="block w-full text-sm text-fg file:mr-3 file:min-h-touch file:rounded-md file:border-0 file:bg-surface-muted file:px-4 file:text-fg"
-        />
-      </Field>
-      <label className="flex items-start gap-2 text-sm text-fg">
-        <input name="consent" type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-primary" />
-        <span>{t('submit.consent')}</span>
-      </label>
+      {isAuthenticated && (
+        <>
+          <Field label={t('submit.media')}>
+            <input
+              name="file"
+              type="file"
+              accept="video/mp4,video/webm,image/png,image/jpeg"
+              className="block w-full text-sm text-fg file:mr-3 file:min-h-touch file:rounded-md file:border-0 file:bg-surface-muted file:px-4 file:text-fg"
+            />
+          </Field>
+          <label className="flex items-start gap-2 text-sm text-fg">
+            <input name="consent" type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-primary" />
+            <span>{t('submit.consent')}</span>
+          </label>
+        </>
+      )}
 
       <Button type="submit" block loading={pending}>
-        {t('submit.button')}
+        {isAuthenticated ? t('submit.button') : t('submit.loginToSubmit')}
       </Button>
     </form>
   );

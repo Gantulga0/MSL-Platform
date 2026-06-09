@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
 import { LogOut, Menu, X } from 'lucide-react';
-import { Button, IconButton } from '@msl/ui';
+import { Button, IconButton, cn } from '@msl/ui';
 import { translate } from '@/i18n';
 import { logoutAction } from '@/lib/auth/actions';
 
@@ -31,6 +32,10 @@ export interface AppShellProps {
  */
 export function AppShell({ areaLabelKey, navItems, user, children }: AppShellProps): React.ReactElement {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  // Active when the path equals the item, or is nested under it (but '/' only on exact).
+  const isActive = (href: string): boolean =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 
   const logout = (
     <form action={logoutAction}>
@@ -43,9 +48,9 @@ export function AppShell({ areaLabelKey, navItems, user, children }: AppShellPro
 
   return (
     <div className="min-h-screen bg-bg">
-      <header className="border-b border-border bg-bg">
+      <header className="sticky top-0 z-30 border-b border-border bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link href={'/' as Route} className="flex items-center gap-2 font-bold text-fg">
+          <Link href={'/' as Route} className="flex items-center gap-2 text-lg font-bold text-fg">
             <span aria-hidden className="text-2xl">
               🤟
             </span>
@@ -56,16 +61,25 @@ export function AppShell({ areaLabelKey, navItems, user, children }: AppShellPro
             {/* Desktop nav */}
             <nav aria-label={translate(areaLabelKey)}>
               <ul className="flex items-center gap-1">
-                {navItems.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href as Route}
-                      className="inline-flex min-h-touch items-center rounded-md px-3 text-base font-medium text-fg-muted hover:bg-surface-muted hover:text-fg"
-                    >
-                      {translate(item.labelKey)}
-                    </Link>
-                  </li>
-                ))}
+                {navItems.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href as Route}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'inline-flex min-h-touch items-center rounded-full px-4 text-base transition-colors',
+                          active
+                            ? 'bg-surface-muted font-semibold text-fg'
+                            : 'font-medium text-fg-muted hover:bg-surface-muted hover:text-fg',
+                        )}
+                      >
+                        {translate(item.labelKey)}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
             {user && (
@@ -93,17 +107,24 @@ export function AppShell({ areaLabelKey, navItems, user, children }: AppShellPro
         {menuOpen && (
           <nav id="mobile-nav" aria-label={translate(areaLabelKey)} className="border-t border-border md:hidden">
             <ul className="mx-auto flex max-w-6xl flex-col px-4 py-2">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href as Route}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex min-h-touch items-center rounded-md px-3 text-base font-medium text-fg hover:bg-surface-muted"
-                  >
-                    {translate(item.labelKey)}
-                  </Link>
-                </li>
-              ))}
+              {navItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href as Route}
+                      aria-current={active ? 'page' : undefined}
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        'flex min-h-touch items-center rounded-full px-4 text-base hover:bg-surface-muted',
+                        active ? 'bg-surface-muted font-semibold text-fg' : 'font-medium text-fg',
+                      )}
+                    >
+                      {translate(item.labelKey)}
+                    </Link>
+                  </li>
+                );
+              })}
               {user && (
                 <li className="mt-2 border-t border-border pt-2">
                   <span className="block px-3 py-1 text-sm font-medium text-fg-muted">

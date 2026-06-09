@@ -20,13 +20,9 @@ import { AdminModule } from './admin/admin.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      // Load repo-root .env so api + worker share one config source.
       envFilePath: ['.env', '../../.env'],
     }),
-    // Global rate limiting (AUTH-05, NFR-04): 100 req / 60s per IP by default;
-    // auth routes tighten this further with @Throttle.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
-    // Global JWT so the APP_GUARD JwtAuthGuard can verify access tokens anywhere.
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
@@ -46,12 +42,9 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
   providers: [
-    // Order matters — APP_GUARDs run in registration order:
-    // 1) rate limit, 2) authenticate (deny by default), 3) authorize by role.
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
-    // Baseline audit trail on every successful mutating request (NFR-12).
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })

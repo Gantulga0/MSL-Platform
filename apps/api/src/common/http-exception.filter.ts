@@ -9,10 +9,6 @@ import {
 import type { ApiError } from '@msl/types';
 import type { Request, Response } from 'express';
 
-/**
- * Converts any thrown error into the standard API error envelope (SPEC §8).
- * Validation errors (class-validator) are surfaced as field-level details.
- */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);

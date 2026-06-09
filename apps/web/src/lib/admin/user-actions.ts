@@ -13,15 +13,16 @@ function fail(e: unknown): AdminActionResult {
 }
 
 export async function createUserAction(formData: FormData): Promise<AdminActionResult> {
-  const role = String(formData.get('role') ?? '');
+  const role = String(formData.get('role') ?? 'user');
   const displayName = String(formData.get('displayName') ?? '').trim();
   const username = String(formData.get('username') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
   const pin = String(formData.get('pin') ?? '').trim();
+  const isMinor = formData.get('isMinor') === 'on';
 
-  const body: Record<string, unknown> = { role, displayName };
-  if (role === 'learner') {
+  const body: Record<string, unknown> = { role, displayName, isMinor };
+  if (isMinor) {
     body.username = username;
     if (pin) body.pin = pin;
   } else {
@@ -40,7 +41,6 @@ export async function createUserAction(formData: FormData): Promise<AdminActionR
 export async function updateSettingAction(formData: FormData): Promise<AdminActionResult> {
   const key = String(formData.get('key') ?? '');
   const raw = String(formData.get('value') ?? '');
-  // Parse JSON when possible (numbers, booleans, objects); else keep as string.
   let value: unknown = raw;
   try {
     value = JSON.parse(raw);

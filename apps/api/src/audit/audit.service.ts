@@ -11,10 +11,6 @@ export interface AuditEntry {
   ip?: string | null;
 }
 
-/**
- * Writes audit_logs (FR-23, NFR-12). Used by the interceptor for baseline
- * coverage and called explicitly by services for before/after content audits.
- */
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
@@ -35,7 +31,6 @@ export class AuditService {
         },
       });
     } catch (err) {
-      // Never let audit failures break the request; surface in logs.
       this.logger.error(`Failed to write audit log: ${(err as Error).message}`);
     }
   }

@@ -102,6 +102,16 @@ export class EditSubmissionDto {
   @IsOptional()
   @IsUUID()
   topicId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  levelId?: string | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  ageGroupId?: string | null;
 }
 
 export class BatchApproveDto {

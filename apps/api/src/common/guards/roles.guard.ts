@@ -4,11 +4,6 @@ import { ROLE_RANK, type Role } from '@msl/types';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import type { RequestWithUser } from '../auth.types';
 
-/**
- * RBAC authorization guard (AUTH-06, NFR-04). Runs after JwtAuthGuard. If a route
- * declares @Roles, the authenticated user must hold at least the lowest-ranked
- * required role. No @Roles → any authenticated user passes. Deny by default.
- */
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

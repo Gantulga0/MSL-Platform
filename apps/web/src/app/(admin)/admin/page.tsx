@@ -30,6 +30,8 @@ export default async function AdminDashboardPage(): Promise<React.ReactElement> 
   ];
 
   const links: { href: Route; label: string }[] = [
+    { href: '/admin/submissions' as Route, label: translate('nav.review') },
+    { href: '/admin/words' as Route, label: translate('nav.words') },
     { href: '/admin/users' as Route, label: translate('nav.users') },
     { href: '/admin/topics' as Route, label: translate('nav.topics') },
     { href: '/admin/settings' as Route, label: translate('nav.systemSettings') },

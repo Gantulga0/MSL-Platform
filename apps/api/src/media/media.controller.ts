@@ -26,9 +26,9 @@ import { RegisterMediaDto, UploadUrlDto, type UploadedFile as MulterFile } from 
 export class MediaController {
   constructor(private readonly media: MediaService) {}
 
-  @Roles('contributor')
+  @Roles('user')
   @Post('upload-url')
-  @ApiOperation({ summary: 'Get an upload descriptor (validates type/size) — G-7' })
+  @ApiOperation({ summary: 'Get an upload descriptor' })
   uploadUrl(@Body() dto: UploadUrlDto): {
     storageKey: string;
     uploadUrl: string;
@@ -38,11 +38,11 @@ export class MediaController {
     return this.media.createUploadDescriptor(dto);
   }
 
-  @Roles('contributor')
+  @Roles('user')
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Upload + register a media asset (+consent ref) — AUTH-10/FR-24' })
+  @ApiOperation({ summary: 'Upload + register a media asset' })
   upload(
     @UploadedFile() file: MulterFile,
     @Body() dto: RegisterMediaDto,
@@ -52,7 +52,7 @@ export class MediaController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Role-aware media URL (signed if private) — AUTH-09' })
+  @ApiOperation({ summary: 'Role-aware media URL' })
   get(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -76,7 +76,7 @@ export class MediaController {
 
   @Roles('admin')
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a media asset (admin) — S-30' })
+  @ApiOperation({ summary: 'Delete a media asset' })
   remove(@Param('id') id: string): Promise<{ id: string }> {
     return this.media.remove(id);
   }

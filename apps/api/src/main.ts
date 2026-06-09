@@ -14,13 +14,10 @@ async function bootstrap(): Promise<void> {
   const globalPrefix = config.get<string>('API_GLOBAL_PREFIX', 'api/v1');
   app.setGlobalPrefix(globalPrefix);
 
-  // Parse cookies so the rotating refresh token (httpOnly cookie) is readable (AUTH-01).
   app.use(cookieParser());
 
-  // Standardized error envelope on every error response (SPEC §8).
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Validate + strip unknown fields on all DTO input (coding standards).
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -37,10 +34,9 @@ async function bootstrap(): Promise<void> {
     .filter(Boolean);
   app.enableCors({ origin: corsOrigins, credentials: true });
 
-  // Auto-generated OpenAPI docs at /api/docs (Phase B).
   const swaggerConfig = new DocumentBuilder()
     .setTitle('MSL Platform API')
-    .setDescription('Mongolian Sign Language Interactive Platform — REST API (SPEC §8)')
+    .setDescription('Mongolian Sign Language Interactive Platform API')
     .setVersion('1.0')
     .addBearerAuth()
     .addCookieAuth('refresh_token')

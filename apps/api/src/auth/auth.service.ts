@@ -1,10 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import type { User } from '@prisma/client';
@@ -13,7 +8,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { TokensService, parseDurationMs } from './tokens.service';
 import type {
-  ClassCodeLoginDto,
   ForgotPasswordDto,
   LoginDto,
   RegisterDto,
@@ -21,7 +15,6 @@ import type {
   VerifyEmailDto,
 } from './auth.dto';
 
-/** Sanitized user returned to clients — never exposes hashes (AUTH-04, FR-07). */
 export interface PublicUser {
   id: string;
   role: Role;
@@ -29,7 +22,6 @@ export interface PublicUser {
   username: string | null;
   email: string | null;
   isMinor: boolean;
-  schoolId: string | null;
   locale: string;
   emailVerified: boolean;
 }
@@ -52,28 +44,23 @@ export class AuthService {
     private readonly audit: AuditService,
   ) {}
 
-  // ── Email account registration (AUTH-02) ──────────────────────────────────
-
   async register(dto: RegisterDto, meta: RequestMeta): Promise<{ message: string }> {
     const email = dto.email.toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
-      // Avoid leaking which emails exist — generic success, no account created.
       this.logger.warn(`Registration attempt for existing email`);
       return { message: 'Registration received. Check your email to verify your account.' };
     }
 
     const passwordHash = await argon2.hash(dto.password);
-    // No mail worker yet (G-6): in development, auto-verify so accounts are usable
-    // without an email round-trip. Production keeps the real verify-email flow.
+
     const autoVerify = this.config.get<string>('NODE_ENV') !== 'production';
-    // Self-registered email users start as contributors (parents/community, G-2);
-    // teacher/admin elevation is admin-only. Minors never self-register (G-1).
+
     const user = await this.prisma.user.create({
       data: {
         email,
         passwordHash,
-        role: 'contributor',
+        role: 'user',
         displayName: dto.displayName,
         isMinor: false,
         locale: 'mn',
@@ -111,8 +98,6 @@ export class AuthService {
     return { message: 'Email verified. You can now sign in.' };
   }
 
-  // ── Login (email/username + password) (AUTH-02/04/05) ──────────────────────
-
   async login(
     dto: LoginDto,
     meta: RequestMeta,
@@ -125,8 +110,7 @@ export class AuthService {
       },
     });
 
-    // Uniform failure for unknown user vs bad password (no enumeration).
-    if (!user || !user.passwordHash) {
+    if (!user) {
       await this.recordFailedLogin(null, meta);
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -135,59 +119,22 @@ export class AuthService {
       throw new ForbiddenException('Account is suspended');
     }
 
-    const ok = await argon2.verify(user.passwordHash, dto.password);
+    let ok = false;
+    if (user.isMinor && user.pinHash) {
+      ok = await argon2.verify(user.pinHash, dto.password);
+    } else if (user.passwordHash) {
+      ok = await argon2.verify(user.passwordHash, dto.password);
+    }
     if (!ok) {
       await this.registerFailedAttempt(user, meta);
       throw new UnauthorizedException('Invalid credentials');
     }
-    if (!user.emailVerifiedAt) {
+    if (!user.isMinor && !user.emailVerifiedAt) {
       throw new ForbiddenException('Email not verified');
     }
 
     return this.completeLogin(user, meta, 'auth.login');
   }
-
-  // ── Learner login via class code / PIN (AUTH-03, G-1) ──────────────────────
-
-  async classCodeLogin(
-    dto: ClassCodeLoginDto,
-    meta: RequestMeta,
-  ): Promise<{ accessToken: string; refreshToken: string; user: PublicUser }> {
-    const user = await this.prisma.user.findFirst({
-      where: { username: dto.username, isMinor: true, deletedAt: null },
-    });
-    if (!user) {
-      await this.recordFailedLogin(null, meta);
-      throw new UnauthorizedException('Invalid learner credentials');
-    }
-    this.assertNotLocked(user);
-    if (user.status !== 'active') {
-      throw new ForbiddenException('Account is suspended');
-    }
-
-    const classCode = await this.prisma.classCode.findUnique({ where: { code: dto.classCode } });
-    const codeValid =
-      classCode &&
-      classCode.schoolId === user.schoolId &&
-      (!classCode.expiresAt || classCode.expiresAt > new Date());
-    if (!codeValid) {
-      await this.registerFailedAttempt(user, meta);
-      throw new UnauthorizedException('Invalid learner credentials');
-    }
-
-    // If a PIN was provisioned, it must match (AUTH-03).
-    if (user.pinHash) {
-      const pinOk = dto.pin ? await argon2.verify(user.pinHash, dto.pin) : false;
-      if (!pinOk) {
-        await this.registerFailedAttempt(user, meta);
-        throw new UnauthorizedException('Invalid learner credentials');
-      }
-    }
-
-    return this.completeLogin(user, meta, 'auth.login.class_code');
-  }
-
-  // ── Refresh / logout (AUTH-01) ─────────────────────────────────────────────
 
   async refresh(
     rawToken: string | undefined,
@@ -199,7 +146,11 @@ export class AuthService {
     return { accessToken, refreshToken: newRefresh };
   }
 
-  async logout(rawToken: string | undefined, actorId: string | undefined, meta: RequestMeta): Promise<void> {
+  async logout(
+    rawToken: string | undefined,
+    actorId: string | undefined,
+    meta: RequestMeta,
+  ): Promise<void> {
     if (rawToken) await this.tokens.revokeRefreshToken(rawToken);
     await this.audit.record({
       actorId: actorId ?? null,
@@ -210,11 +161,8 @@ export class AuthService {
     });
   }
 
-  // ── Password reset (G-14) ──────────────────────────────────────────────────
-
   async forgotPassword(dto: ForgotPasswordDto): Promise<{ message: string }> {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email.toLowerCase() } });
-    // Always return success — never reveal whether the email is registered.
     if (user && user.passwordHash) {
       await this.issueEmailToken(user.id, 'reset_password');
     }
@@ -228,7 +176,6 @@ export class AuthService {
       where: { id: record.userId },
       data: { passwordHash, failedLogins: 0, lockedUntil: null },
     });
-    // Invalidate all existing sessions after a password change.
     await this.tokens.revokeAllForUser(record.userId);
     await this.audit.record({
       actorId: record.userId,
@@ -239,15 +186,11 @@ export class AuthService {
     return { message: 'Password updated. Please sign in.' };
   }
 
-  // ── Current user (AUTH /me) ────────────────────────────────────────────────
-
   async me(userId: string): Promise<PublicUser> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.deletedAt) throw new UnauthorizedException('Account not found');
     return toPublicUser(user);
   }
-
-  // ── Internals ──────────────────────────────────────────────────────────────
 
   private async completeLogin(
     user: User,
@@ -277,7 +220,6 @@ export class AuthService {
     }
   }
 
-  /** Increment failure count and lock the account after N attempts (AUTH-05). */
   private async registerFailedAttempt(user: User, meta: RequestMeta): Promise<void> {
     const max = this.config.get<number>('AUTH_MAX_FAILED_LOGINS', 5);
     const lockMinutes = this.config.get<number>('AUTH_LOCKOUT_MINUTES', 15);
@@ -301,11 +243,6 @@ export class AuthService {
     });
   }
 
-  /**
-   * Create a single-use email token (verify/reset). The raw token is returned to
-   * the caller for delivery by the mail worker; only its hash is persisted.
-   * Until the mailer exists (G-6), the raw token is logged in non-production.
-   */
   private async issueEmailToken(
     userId: string,
     purpose: 'verify_email' | 'reset_password',
@@ -355,7 +292,6 @@ function toPublicUser(user: User): PublicUser {
     username: user.username,
     email: user.email,
     isMinor: user.isMinor,
-    schoolId: user.schoolId,
     locale: user.locale,
     emailVerified: user.emailVerifiedAt !== null,
   };

@@ -29,28 +29,30 @@ interface SubmissionDetail {
   media: { id: string; type: string; mime: string }[];
 }
 
-export default async function ReviewDetailPage({
+export default async function AdminSubmissionDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<React.ReactElement> {
   const { id } = await params;
   const [submission, topics] = await Promise.all([
-    apiGetSafe<SubmissionDetail>(`/submissions/${id}`),
+    apiGetSafe<SubmissionDetail>(`/admin/submissions/${id}`),
     apiGetSafe<TopicNode[]>('/topics'),
   ]);
   if (!submission) notFound();
 
   return (
     <main id="main" className="mx-auto max-w-4xl px-4 py-8">
-      <Link href={'/review' as Route} className="mb-4 inline-flex items-center gap-1 text-sm text-primary underline">
+      <Link
+        href={'/admin/submissions' as Route}
+        className="mb-4 inline-flex items-center gap-1 text-sm text-primary underline"
+      >
         <ArrowLeft aria-hidden className="h-4 w-4" />
         {translate('review.back')}
       </Link>
       <h1 className="mb-6 text-2xl font-bold tracking-tight text-fg">{translate('review.detailTitle')}</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Proposed entry */}
         <Card>
           <CardBody className="space-y-3">
             <CardTitle>{translate('review.proposed')}</CardTitle>
@@ -77,7 +79,6 @@ export default async function ReviewDetailPage({
           </CardBody>
         </Card>
 
-        {/* Duplicate candidates (S-21 side-by-side) */}
         <Card>
           <CardBody className="space-y-3">
             <CardTitle>{translate('review.duplicates')}</CardTitle>
@@ -107,7 +108,6 @@ export default async function ReviewDetailPage({
         </Card>
       </div>
 
-      {/* Decision */}
       <div className="mt-6">
         <Card>
           <CardBody>
@@ -120,7 +120,6 @@ export default async function ReviewDetailPage({
         </Card>
       </div>
 
-      {/* History */}
       {submission.reviews.length > 0 && (
         <section className="mt-6">
           <h2 className="mb-2 text-lg font-semibold text-fg">{translate('review.history')}</h2>

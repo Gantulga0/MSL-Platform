@@ -14,12 +14,11 @@ type AnyMock = jest.Mock;
 function makeUser(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     id: 'u1',
-    role: 'contributor',
+    role: 'user',
     isMinor: false,
     displayName: 'Бат',
     username: null,
     email: 'bat@example.mn',
-    schoolId: null,
     locale: 'mn',
     passwordHash: 'hashed',
     pinHash: null,
@@ -177,7 +176,7 @@ describe('AuthService', () => {
       expect(m.prisma.user.create).not.toHaveBeenCalled();
     });
 
-    it('in production, creates a contributor + verification token (G-2)', async () => {
+    it('in production, creates a user + verification token (G-2)', async () => {
       const { service, m } = build('production');
       m.prisma.user.findUnique.mockResolvedValue(null);
       m.prisma.user.create.mockResolvedValue(makeUser({ id: 'new' }));
@@ -186,7 +185,7 @@ describe('AuthService', () => {
         {},
       );
       const data = m.prisma.user.create.mock.calls[0][0].data;
-      expect(data.role).toBe('contributor');
+      expect(data.role).toBe('user');
       expect(data.emailVerifiedAt).toBeUndefined();
       expect(m.prisma.emailToken.create).toHaveBeenCalled();
     });

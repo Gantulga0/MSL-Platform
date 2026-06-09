@@ -13,7 +13,7 @@ export class AgeGroupsController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'List age groups — FR-08' })
+  @ApiOperation({ summary: 'List age groups' })
   list(): Promise<AgeGroup[]> {
     return this.taxonomy.listAgeGroups();
   }

@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
-// Password policy (AUTH-04): ≥ 8 chars with letters + numbers (complexity).
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 const PASSWORD_MESSAGE = 'Password must be at least 8 characters and include a letter and a number';
 
@@ -39,23 +38,6 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   password!: string;
-}
-
-export class ClassCodeLoginDto {
-  @ApiProperty({ example: 'bat_erdene' })
-  @IsString()
-  @IsNotEmpty()
-  username!: string;
-
-  @ApiProperty({ description: 'Class code provisioned by the teacher', example: 'CLASS-3A-2026' })
-  @IsString()
-  @IsNotEmpty()
-  classCode!: string;
-
-  @ApiPropertyOptional({ description: 'Optional learner PIN' })
-  @IsOptional()
-  @IsString()
-  pin?: string;
 }
 
 export class ForgotPasswordDto {

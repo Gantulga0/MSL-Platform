@@ -6,7 +6,7 @@
 @import '@msl/ui/styles.css';
 
 :root {
-  --msl-focus: #1d4ed8;
+  --msl-focus: #3e5224;
 }
 
 html {
@@ -16,6 +16,7 @@ html {
 body {
   color: theme('colors.fg');
   background: theme('colors.bg');
+  font-family: theme('fontFamily.sans');
 }
 
 /* Skip link: visually hidden until focused (FR-27). */
