@@ -2,8 +2,6 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Paginated } from '@msl/types';
 import { Roles } from '../common/decorators/roles.decorator';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../common/auth.types';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UsersQueryDto } from './dto';
 
