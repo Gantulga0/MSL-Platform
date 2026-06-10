@@ -5,6 +5,7 @@ import type { Paginated } from '@msl/types';
 import { Badge, Card, CardBody, EmptyState, type BadgeTone } from '@msl/ui';
 import { translate } from '@/i18n';
 import { apiGetSafe } from '@/lib/api/server';
+import { AuthTrigger } from '@/components/auth/AuthTrigger';
 import { getSession } from '@/lib/auth/session';
 
 export const metadata: Metadata = { title: 'Миний профайл' };
@@ -33,9 +34,9 @@ export default async function ProfilePage(): Promise<React.ReactElement> {
     return (
       <main id="main" className="mx-auto max-w-lg px-4 py-12 text-center">
         <p className="text-fg-muted">{translate('profile.loginRequired')}</p>
-        <Link href={'/login' as Route} className="mt-4 inline-block text-primary underline">
+        <AuthTrigger view="login" className="mt-4 inline-block text-primary underline">
           {translate('nav.login')}
-        </Link>
+        </AuthTrigger>
       </main>
     );
   }

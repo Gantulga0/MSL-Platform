@@ -13,9 +13,21 @@ interface Props {
   topics: TopicNode[];
   levels: TaxoRef[];
   ageGroups: TaxoRef[];
+  locations: TaxoRef[];
+  movements: TaxoRef[];
 }
 
-const FILTER_KEYS = ['q', 'topic', 'level', 'age'] as const;
+const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'location', 'movement'] as const;
+
+/** Flatten the topic tree into an indented, ordered list for a flat picker. */
+function flattenTopics(nodes: TopicNode[], depth = 0): Array<{ id: string; label: string }> {
+  const out: Array<{ id: string; label: string }> = [];
+  for (const node of nodes) {
+    out.push({ id: node.id, label: `${'— '.repeat(depth)}${node.name}` });
+    if (node.children?.length) out.push(...flattenTopics(node.children, depth + 1));
+  }
+  return out;
+}
 
 /**
  * Dictionary filters (FR-08, S-06). Sticky white card on desktop; an accessible
@@ -24,7 +36,13 @@ const FILTER_KEYS = ['q', 'topic', 'level', 'age'] as const;
  * pickers are designed but scaffolded (no data field yet) so they never break
  * the words API — they render disabled with a "coming soon" note.
  */
-export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactElement {
+export function FilterPanel({
+  topics,
+  levels,
+  ageGroups,
+  locations,
+  movements,
+}: Props): React.ReactElement {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -49,6 +67,8 @@ export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactEl
       topics={topics}
       levels={levels}
       ageGroups={ageGroups}
+      locations={locations}
+      movements={movements}
       params={params}
       setParam={setParam}
     />
@@ -113,6 +133,8 @@ function FilterSections({
   topics,
   levels,
   ageGroups,
+  locations,
+  movements,
   params,
   setParam,
 }: Props & {
@@ -123,6 +145,7 @@ function FilterSections({
     'h-control-sm w-full rounded-md border border-border-strong bg-surface px-3 text-base text-fg';
   const levelLabel = t('dict.filterLevel').replace(/:$/, '');
   const ageLabel = t('dict.filterAge').replace(/:$/, '');
+  const flatTopics = flattenTopics(topics);
 
   return (
     <div className="space-y-6">
@@ -157,6 +180,54 @@ function FilterSections({
           {ageGroups.map((a) => (
             <option key={a.id} value={a.id}>
               {a.label}
+            </option>
+          ))}
+        </select>
+      </Section>
+
+      <Section title={t('dict.location')}>
+        <select
+          className={selectCls}
+          aria-label={t('dict.location')}
+          value={params.get('location') ?? ''}
+          onChange={(e) => setParam('location', e.target.value)}
+        >
+          <option value="">{t('dict.allLocations')}</option>
+          {locations.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.label}
+            </option>
+          ))}
+        </select>
+      </Section>
+
+      <Section title={t('dict.movement')}>
+        <select
+          className={selectCls}
+          aria-label={t('dict.movement')}
+          value={params.get('movement') ?? ''}
+          onChange={(e) => setParam('movement', e.target.value)}
+        >
+          <option value="">{t('dict.allMovements')}</option>
+          {movements.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </Section>
+
+      <Section title={t('dict.usefulTopics')}>
+        <select
+          className={selectCls}
+          aria-label={t('dict.usefulTopics')}
+          value={params.get('topic') ?? ''}
+          onChange={(e) => setParam('topic', e.target.value)}
+        >
+          <option value="">{t('dict.allTopics')}</option>
+          {flatTopics.map((tp) => (
+            <option key={tp.id} value={tp.id}>
+              {tp.label}
             </option>
           ))}
         </select>

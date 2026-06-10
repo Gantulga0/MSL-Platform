@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../cn';
 import { IconButton } from './IconButton';
+import { VisuallyHidden } from './VisuallyHidden';
 
 export interface DialogProps {
   open?: boolean;
@@ -63,6 +64,50 @@ export function Dialog({
           </div>
           <div className="text-base text-fg">{children}</div>
           {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
+        </RDialog.Content>
+      </RDialog.Portal>
+    </RDialog.Root>
+  );
+}
+
+export interface DialogShellProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Accessible name for the dialog (rendered visually-hidden as the Radix Title). */
+  label: string;
+  children: ReactNode;
+  className?: string;
+}
+
+/**
+ * Chrome-less modal shell — same Radix behaviours as `Dialog` (focus trap,
+ * Esc-to-close, overlay-click, scroll lock, role=dialog/aria-modal, focus return
+ * to trigger) but with NO card/title/close chrome. The caller's `children` own the
+ * entire visual presentation. The accessible name comes from a visually-hidden
+ * Title (`label`); `aria-describedby` is cleared since there is no description.
+ */
+export function DialogShell({
+  open,
+  onOpenChange,
+  label,
+  children,
+  className,
+}: DialogShellProps): React.ReactElement {
+  return (
+    <RDialog.Root open={open} onOpenChange={onOpenChange}>
+      <RDialog.Portal>
+        <RDialog.Overlay className="msl-overlay fixed inset-0 z-40 bg-overlay" />
+        <RDialog.Content
+          aria-describedby={undefined}
+          className={cn(
+            'msl-dialog fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 focus:outline-none',
+            className,
+          )}
+        >
+          <VisuallyHidden>
+            <RDialog.Title>{label}</RDialog.Title>
+          </VisuallyHidden>
+          {children}
         </RDialog.Content>
       </RDialog.Portal>
     </RDialog.Root>

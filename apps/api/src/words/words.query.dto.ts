@@ -23,4 +23,14 @@ export class WordsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsUUID()
   age?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by sign-location id' })
+  @IsOptional()
+  @IsUUID()
+  location?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by sign-movement id' })
+  @IsOptional()
+  @IsUUID()
+  movement?: string;
 }

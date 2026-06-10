@@ -27,6 +27,43 @@ async function seedAgeGroups(): Promise<void> {
   }
 }
 
+async function seedSignLocations(): Promise<void> {
+  const locations = [
+    { code: 'neutral', label: 'Саармаг орон зай', sortOrder: 1 },
+    { code: 'head', label: 'Толгой', sortOrder: 2 },
+    { code: 'face', label: 'Нүүр', sortOrder: 3 },
+    { code: 'mouth', label: 'Ам', sortOrder: 4 },
+    { code: 'eye', label: 'Нүд', sortOrder: 5 },
+    { code: 'ear', label: 'Чих', sortOrder: 6 },
+    { code: 'neck', label: 'Хүзүү', sortOrder: 7 },
+    { code: 'chest', label: 'Цээж', sortOrder: 8 },
+    { code: 'shoulder', label: 'Мөр', sortOrder: 9 },
+    { code: 'arm', label: 'Шуу', sortOrder: 10 },
+    { code: 'hand', label: 'Алга', sortOrder: 11 },
+  ];
+  for (const loc of locations) {
+    await prisma.signLocation.upsert({ where: { code: loc.code }, update: loc, create: loc });
+  }
+}
+
+async function seedSignMovements(): Promise<void> {
+  const movements = [
+    { code: 'none', label: 'Хөдөлгөөнгүй', sortOrder: 1 },
+    { code: 'straight', label: 'Шулуун', sortOrder: 2 },
+    { code: 'circular', label: 'Тойрог', sortOrder: 3 },
+    { code: 'up-down', label: 'Дээш доош', sortOrder: 4 },
+    { code: 'sideways', label: 'Хажуу тийш', sortOrder: 5 },
+    { code: 'forward', label: 'Урагш', sortOrder: 6 },
+    { code: 'tap', label: 'Товших', sortOrder: 7 },
+    { code: 'wiggle', label: 'Хуруу хөдөлгөх', sortOrder: 8 },
+    { code: 'open-close', label: 'Нээх хаах', sortOrder: 9 },
+    { code: 'repeated', label: 'Давтагдах', sortOrder: 10 },
+  ];
+  for (const mov of movements) {
+    await prisma.signMovement.upsert({ where: { code: mov.code }, update: mov, create: mov });
+  }
+}
+
 interface TopicSeed {
   slug: string;
   name: string;
@@ -140,6 +177,8 @@ async function seedSettings(): Promise<void> {
 async function main(): Promise<void> {
   await seedLevels();
   await seedAgeGroups();
+  await seedSignLocations();
+  await seedSignMovements();
   await seedTopics();
   await seedAdmin();
   await seedSettings();

@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import Link from 'next/link';
-import type { Route } from 'next';
 import { Button } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import { verifyEmailAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from './FormAlert';
+import { AuthTrigger } from './AuthTrigger';
 
 /** S-03/AUTH-02 — confirm an email-verification token. */
 export function VerifyEmailForm({ token }: { token: string }): React.ReactElement {
@@ -32,9 +31,9 @@ export function VerifyEmailForm({ token }: { token: string }): React.ReactElemen
     return (
       <div className="space-y-4">
         <FormAlert tone="success">{success}</FormAlert>
-        <Link href={'/login' as Route} className="text-primary underline">
+        <AuthTrigger view="login" className="text-primary underline">
           {t('auth.backToLogin')}
-        </Link>
+        </AuthTrigger>
       </div>
     );
   }

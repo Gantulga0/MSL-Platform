@@ -1,13 +1,22 @@
 import type { NavItem } from '@/components/AppShell';
 
-/** Public site navigation (guests + signed-in users). */
+/** "Дүрэм" dropdown — sign-language reference articles. */
+export const RULES_NAV: NavItem[] = [
+  { href: '/rules/standard', labelKey: 'nav.rulesStandard' },
+  { href: '/rules/structure', labelKey: 'nav.rulesStructure' },
+  { href: '/rules/mouthing', labelKey: 'nav.rulesMouthing' },
+];
+
+/**
+ * Public site navigation (guests + signed-in users). Sign-in / sign-up are not
+ * listed here — the shell renders a single "Бүртгүүлэх" auth dropdown for guests.
+ */
 export const PUBLIC_NAV: NavItem[] = [
   { href: '/', labelKey: 'nav.home' },
   { href: '/dictionary', labelKey: 'nav.dictionary' },
+  { href: '/rules', labelKey: 'nav.rules', children: RULES_NAV },
   { href: '/submit-word', labelKey: 'nav.submitWord' },
   { href: '/games', labelKey: 'nav.games' },
-  { href: '/login', labelKey: 'nav.login' },
-  { href: '/register', labelKey: 'nav.register' },
 ];
 
 /** Extra links shown when signed in (injected into public nav). */
@@ -28,9 +37,7 @@ export const ADMIN_NAV: NavItem[] = [
 /** Build public nav for the current session. */
 export function navForSession(role: string): NavItem[] {
   const authed = role !== 'guest';
-  let items = authed
-    ? PUBLIC_NAV.filter((item) => item.href !== '/login' && item.href !== '/register')
-    : [...PUBLIC_NAV];
+  let items = [...PUBLIC_NAV];
   if (authed) items = [...items, ...AUTHED_PUBLIC_NAV];
   if (role === 'admin') {
     items = [...items, { href: '/admin', labelKey: 'nav.adminDashboard' }];

@@ -94,3 +94,43 @@ export class CreateAgeGroupDto {
 }
 
 export class UpdateAgeGroupDto extends PartialType(CreateAgeGroupDto) {}
+
+export class CreateSignLocationDto {
+  @ApiProperty({ example: 'mouth' })
+  @IsString()
+  @MaxLength(64)
+  code!: string;
+
+  @ApiProperty({ example: 'Ам' })
+  @IsString()
+  @MaxLength(120)
+  label!: string;
+
+  @ApiPropertyOptional({ default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class UpdateSignLocationDto extends PartialType(CreateSignLocationDto) {}
+
+export class CreateSignMovementDto {
+  @ApiProperty({ example: 'circular' })
+  @IsString()
+  @MaxLength(64)
+  code!: string;
+
+  @ApiProperty({ example: 'Тойрог' })
+  @IsString()
+  @MaxLength(120)
+  label!: string;
+
+  @ApiPropertyOptional({ default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class UpdateSignMovementDto extends PartialType(CreateSignMovementDto) {}

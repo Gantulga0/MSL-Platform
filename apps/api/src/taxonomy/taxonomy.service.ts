@@ -1,12 +1,16 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { AgeGroup, Level, Topic } from '@prisma/client';
+import type { AgeGroup, Level, SignLocation, SignMovement, Topic } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   CreateAgeGroupDto,
   CreateLevelDto,
+  CreateSignLocationDto,
+  CreateSignMovementDto,
   CreateTopicDto,
   UpdateAgeGroupDto,
   UpdateLevelDto,
+  UpdateSignLocationDto,
+  UpdateSignMovementDto,
   UpdateTopicDto,
 } from './dto';
 
@@ -149,6 +153,48 @@ export class TaxonomyService {
   async deleteAgeGroup(id: string): Promise<{ id: string }> {
     await this.ensure(this.prisma.ageGroup.findUnique({ where: { id } }), 'Age group');
     await this.prisma.ageGroup.delete({ where: { id } });
+    return { id };
+  }
+
+  listSignLocations(): Promise<SignLocation[]> {
+    return this.prisma.signLocation.findMany({ orderBy: { sortOrder: 'asc' } });
+  }
+
+  createSignLocation(dto: CreateSignLocationDto): Promise<SignLocation> {
+    return this.prisma.signLocation.create({
+      data: { code: dto.code, label: dto.label, sortOrder: dto.sortOrder ?? 0 },
+    });
+  }
+
+  async updateSignLocation(id: string, dto: UpdateSignLocationDto): Promise<SignLocation> {
+    await this.ensure(this.prisma.signLocation.findUnique({ where: { id } }), 'Sign location');
+    return this.prisma.signLocation.update({ where: { id }, data: dto });
+  }
+
+  async deleteSignLocation(id: string): Promise<{ id: string }> {
+    await this.ensure(this.prisma.signLocation.findUnique({ where: { id } }), 'Sign location');
+    await this.prisma.signLocation.delete({ where: { id } });
+    return { id };
+  }
+
+  listSignMovements(): Promise<SignMovement[]> {
+    return this.prisma.signMovement.findMany({ orderBy: { sortOrder: 'asc' } });
+  }
+
+  createSignMovement(dto: CreateSignMovementDto): Promise<SignMovement> {
+    return this.prisma.signMovement.create({
+      data: { code: dto.code, label: dto.label, sortOrder: dto.sortOrder ?? 0 },
+    });
+  }
+
+  async updateSignMovement(id: string, dto: UpdateSignMovementDto): Promise<SignMovement> {
+    await this.ensure(this.prisma.signMovement.findUnique({ where: { id } }), 'Sign movement');
+    return this.prisma.signMovement.update({ where: { id }, data: dto });
+  }
+
+  async deleteSignMovement(id: string): Promise<{ id: string }> {
+    await this.ensure(this.prisma.signMovement.findUnique({ where: { id } }), 'Sign movement');
+    await this.prisma.signMovement.delete({ where: { id } });
     return { id };
   }
 

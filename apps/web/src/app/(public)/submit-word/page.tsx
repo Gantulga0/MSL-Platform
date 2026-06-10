@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import type { Route } from 'next';
 import { translate } from '@/i18n';
 import { apiGetSafe } from '@/lib/api/server';
 import { SubmitForm } from '@/components/submissions/SubmitForm';
+import { AuthTrigger } from '@/components/auth/AuthTrigger';
 import { getSession } from '@/lib/auth/session';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
@@ -27,13 +26,13 @@ export default async function SubmitWordPage(): Promise<React.ReactElement> {
       {session.role === 'guest' ? (
         <p className="mb-4 rounded-md border border-border bg-surface-muted p-3 text-sm text-fg">
           {translate('submit.guestHint')}{' '}
-          <Link href={'/login' as Route} className="font-medium text-primary underline">
+          <AuthTrigger view="login" className="font-medium text-primary underline">
             {translate('nav.login')}
-          </Link>
+          </AuthTrigger>
           {' · '}
-          <Link href={'/register' as Route} className="font-medium text-primary underline">
+          <AuthTrigger view="register" className="font-medium text-primary underline">
             {translate('nav.register')}
-          </Link>
+          </AuthTrigger>
         </p>
       ) : null}
 

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@msl/ui';
 import { DEFAULT_LOCALE, translate } from '@/i18n';
+import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 
 /**
  * Inter — geometric-humanist sans with verified full Mongolian Cyrillic coverage:
@@ -29,7 +30,9 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           {translate('common.skipToContent')}
         </a>
-        <ToastProvider closeLabel={translate('common.close')}>{children}</ToastProvider>
+        <ToastProvider closeLabel={translate('common.close')}>
+          <AuthModalProvider>{children}</AuthModalProvider>
+        </ToastProvider>
       </body>
     </html>
   );

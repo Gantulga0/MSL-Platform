@@ -16,6 +16,8 @@ const LIST_SELECT = {
   topic: { select: { id: true, name: true, slug: true } },
   level: { select: { id: true, code: true, label: true } },
   ageGroup: { select: { id: true, code: true, label: true } },
+  location: { select: { id: true, code: true, label: true } },
+  movement: { select: { id: true, code: true, label: true } },
 } satisfies Prisma.WordSelect;
 
 @Injectable()
@@ -23,13 +25,15 @@ export class WordsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: WordsQueryDto): Promise<Paginated<unknown>> {
-    const { page, limit, q, topic, level, age } = query;
+    const { page, limit, q, topic, level, age, location, movement } = query;
     const where: Prisma.WordWhereInput = {
       status: 'approved',
       deletedAt: null,
       ...(topic ? { topicId: topic } : {}),
       ...(level ? { levelId: level } : {}),
       ...(age ? { ageGroupId: age } : {}),
+      ...(location ? { locationId: location } : {}),
+      ...(movement ? { movementId: movement } : {}),
     };
     if (q && q.trim()) {
       const norm = normalizeLemma(q);

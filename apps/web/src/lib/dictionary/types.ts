@@ -16,6 +16,8 @@ export interface WordListItem {
   topic: { id: string; name: string; slug: string } | null;
   level: { id: string; code: string; label: string } | null;
   ageGroup: { id: string; code: string; label: string } | null;
+  location?: { id: string; code: string; label: string } | null;
+  movement?: { id: string; code: string; label: string } | null;
 }
 
 export interface WordMedia {
