@@ -1,20 +1,13 @@
 import type { Metadata } from 'next';
 import { translate } from '@/i18n';
-import { apiGetSafe } from '@/lib/api/server';
 import { SubmitForm } from '@/components/submissions/SubmitForm';
 import { AuthTrigger } from '@/components/auth/AuthTrigger';
 import { getSession } from '@/lib/auth/session';
-import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
 export const metadata: Metadata = { title: 'Үг санал болгох' };
 
 export default async function SubmitWordPage(): Promise<React.ReactElement> {
   const session = await getSession();
-  const [topics, levels, ageGroups] = await Promise.all([
-    apiGetSafe<TopicNode[]>('/topics'),
-    apiGetSafe<TaxoRef[]>('/levels'),
-    apiGetSafe<TaxoRef[]>('/age-groups'),
-  ]);
 
   return (
     <main id="main" className="mx-auto max-w-2xl px-4 py-8">
@@ -36,12 +29,7 @@ export default async function SubmitWordPage(): Promise<React.ReactElement> {
         </p>
       ) : null}
 
-      <SubmitForm
-        topics={topics ?? []}
-        levels={levels ?? []}
-        ageGroups={ageGroups ?? []}
-        isAuthenticated={session.role !== 'guest'}
-      />
+      <SubmitForm isAuthenticated={session.role !== 'guest'} />
     </main>
   );
 }

@@ -19,6 +19,8 @@ export async function createWordAction(formData: FormData): Promise<AdminActionR
   const topicId = String(formData.get('topicId') ?? '').trim();
   const levelId = String(formData.get('levelId') ?? '').trim();
   const ageGroupId = String(formData.get('ageGroupId') ?? '').trim();
+  const handshapeId = String(formData.get('handshapeId') ?? '').trim();
+  const handCount = String(formData.get('handCount') ?? '').trim();
 
   try {
     await apiSend('POST', '/admin/words/create', {
@@ -28,6 +30,8 @@ export async function createWordAction(formData: FormData): Promise<AdminActionR
       topicId,
       ...(levelId ? { levelId } : {}),
       ...(ageGroupId ? { ageGroupId } : {}),
+      ...(handshapeId ? { handshapeId } : {}),
+      ...(handCount ? { handCount: Number(handCount) } : {}),
     });
     revalidatePath('/admin/words');
     return { ok: true };

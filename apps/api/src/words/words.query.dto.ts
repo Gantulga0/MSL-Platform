@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PaginationQueryDto } from '../common/dto/pagination.dto';
 
 export class WordsQueryDto extends PaginationQueryDto {
@@ -33,4 +34,15 @@ export class WordsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsUUID()
   movement?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by handshape id' })
+  @IsOptional()
+  @IsUUID()
+  handshape?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by number of hands (1 or 2)', enum: [1, 2] })
+  @IsOptional()
+  @Type(() => Number)
+  @IsIn([1, 2])
+  hands?: number;
 }

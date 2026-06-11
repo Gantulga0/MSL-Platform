@@ -11,8 +11,7 @@ export interface UserRow {
   id: string;
   role: string;
   displayName: string;
-  username: string | null;
-  email: string | null;
+  isMinor?: boolean;
   status: string;
 }
 
@@ -107,7 +106,7 @@ export function UserManager({ users }: { users: UserRow[] }): React.ReactElement
           <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3">
             <div>
               <span className="font-medium text-fg">{u.displayName}</span>{' '}
-              <span className="text-sm text-fg-subtle">{u.email ?? u.username}</span>
+              {u.isMinor && <span className="text-sm text-fg-subtle">{t('admin.users.minorTag')}</span>}
             </div>
             <div className="flex items-center gap-2">
               <Badge tone="neutral">{u.role}</Badge>

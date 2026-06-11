@@ -87,7 +87,7 @@ export class SubmissionsService {
         submittedBy: userId,
         proposedLemma: dto.proposedLemma,
         normalizedLemma: norm,
-        proposedDefinition: dto.proposedDefinition,
+        proposedDefinition: dto.proposedDefinition ?? '',
         exampleSentence: dto.exampleSentence ?? null,
         topicId: dto.topicId ?? null,
         levelId: dto.levelId ?? null,

@@ -63,36 +63,27 @@ export async function createSubmissionAction(formData: FormData): Promise<Submit
   const session = await getSession();
   if (session.role === 'guest') return { loginRequired: true };
 
+  // Simplified public submission (FR-02): name + video only.
   const proposedLemma = String(formData.get('proposedLemma') ?? '').trim();
-  const proposedDefinition = String(formData.get('proposedDefinition') ?? '').trim();
-  const exampleSentence = String(formData.get('exampleSentence') ?? '').trim();
-  const topicId = String(formData.get('topicId') ?? '').trim();
-  const levelId = String(formData.get('levelId') ?? '').trim();
-  const ageGroupId = String(formData.get('ageGroupId') ?? '').trim();
   const file = formData.get('file');
   const consent = formData.get('consent') === 'on';
 
+  if (!proposedLemma) return { error: 'Үгийн нэр шаардлагатай.' };
+  if (!(file instanceof File) || file.size === 0) return { error: 'Видео заавал шаардлагатай.' };
+  if (!consent) return { error: 'Медиа оруулахын тулд зөвшөөрөл шаардлагатай.' };
+
   try {
-    const mediaIds: string[] = [];
-    if (file instanceof File && file.size > 0) {
-      if (!consent) return { error: 'Медиа оруулахын тулд зөвшөөрөл шаардлагатай.' };
-      const consentRec = await apiSend<{ id: string }>('POST', '/consents', {
-        scope: 'media_publish',
-      });
-      const mediaId = await uploadMedia(file, consentRec.id);
-      if (mediaId) mediaIds.push(mediaId);
-    }
+    const consentRec = await apiSend<{ id: string }>('POST', '/consents', {
+      scope: 'media_publish',
+    });
+    const mediaId = await uploadMedia(file, consentRec.id);
+    const mediaIds = mediaId ? [mediaId] : [];
 
     const res = await apiSend<{ duplicate: boolean; existingWord?: { id: string; lemma: string } | null }>(
       'POST',
       '/submissions',
       {
         proposedLemma,
-        proposedDefinition,
-        ...(exampleSentence ? { exampleSentence } : {}),
-        ...(topicId ? { topicId } : {}),
-        ...(levelId ? { levelId } : {}),
-        ...(ageGroupId ? { ageGroupId } : {}),
         ...(mediaIds.length ? { mediaIds } : {}),
       },
     );

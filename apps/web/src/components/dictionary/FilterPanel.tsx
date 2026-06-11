@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams } from 'next/navigation';
 import type { Route } from 'next';
-import { Hand, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { Button, Dialog, cn } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
@@ -15,9 +15,10 @@ interface Props {
   ageGroups: TaxoRef[];
   locations: TaxoRef[];
   movements: TaxoRef[];
+  handshapes: TaxoRef[];
 }
 
-const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'location', 'movement'] as const;
+const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'location', 'movement', 'handshape', 'hands'] as const;
 
 /** Flatten the topic tree into an indented, ordered list for a flat picker. */
 function flattenTopics(nodes: TopicNode[], depth = 0): Array<{ id: string; label: string }> {
@@ -32,9 +33,8 @@ function flattenTopics(nodes: TopicNode[], depth = 0): Array<{ id: string; label
 /**
  * Dictionary filters (FR-08, S-06). Sticky white card on desktop; an accessible
  * bottom-sheet drawer (Radix Dialog: focus-trap, Esc, scroll-lock) on mobile.
- * Search/topic/level/age are live URL filters; the one/two-hand and handshape
- * pickers are designed but scaffolded (no data field yet) so they never break
- * the words API — they render disabled with a "coming soon" note.
+ * Search/topic/level/age/location/movement plus the one/two-hand and handshape
+ * pickers are all live URL filters backed by the words API.
  */
 export function FilterPanel({
   topics,
@@ -42,6 +42,7 @@ export function FilterPanel({
   ageGroups,
   locations,
   movements,
+  handshapes,
 }: Props): React.ReactElement {
   const router = useRouter();
   const pathname = usePathname();
@@ -69,6 +70,7 @@ export function FilterPanel({
       ageGroups={ageGroups}
       locations={locations}
       movements={movements}
+      handshapes={handshapes}
       params={params}
       setParam={setParam}
     />
@@ -135,6 +137,7 @@ function FilterSections({
   ageGroups,
   locations,
   movements,
+  handshapes,
   params,
   setParam,
 }: Props & {
@@ -233,8 +236,23 @@ function FilterSections({
         </select>
       </Section>
 
-      <HandsToggle />
-      <HandshapePicker />
+      <HandsToggle value={params.get('hands') ?? ''} setParam={setParam} />
+
+      <Section title={t('dict.handshape')}>
+        <select
+          className={selectCls}
+          aria-label={t('dict.handshape')}
+          value={params.get('handshape') ?? ''}
+          onChange={(e) => setParam('handshape', e.target.value)}
+        >
+          <option value="">{t('dict.allHandshapes')}</option>
+          {handshapes.map((h) => (
+            <option key={h.id} value={h.id}>
+              {h.label}
+            </option>
+          ))}
+        </select>
+      </Section>
     </div>
   );
 }
@@ -259,62 +277,40 @@ function Section({
   );
 }
 
-function ComingSoon(): React.ReactElement {
-  return (
-    <span className="rounded-full bg-tint-butter px-2 py-0.5 text-xs font-semibold text-fg">
-      {t('dict.comingSoon')}
-    </span>
-  );
-}
-
-/** One-/two-hand filter — designed, disabled until a data field exists. */
-function HandsToggle(): React.ReactElement {
+/** One-/two-hand filter — a live segmented URL filter (`hands`=1|2). */
+function HandsToggle({
+  value,
+  setParam,
+}: {
+  value: string;
+  setParam: (key: string, value: string) => void;
+}): React.ReactElement {
   const opts: Array<[string, string]> = [
-    ['any', 'dict.handsAny'],
-    ['one', 'dict.handsOne'],
-    ['two', 'dict.handsTwo'],
+    ['', 'dict.handsAny'],
+    ['1', 'dict.handsOne'],
+    ['2', 'dict.handsTwo'],
   ];
   return (
-    <Section title={t('dict.hands')} badge={<ComingSoon />}>
+    <Section title={t('dict.hands')}>
       <div role="group" aria-label={t('dict.hands')} className="inline-flex rounded-full bg-surface-muted p-1">
-        {opts.map(([v, k], i) => (
-          <button
-            key={v}
-            type="button"
-            disabled
-            className={cn(
-              'inline-flex min-h-touch items-center rounded-full px-4 text-sm font-medium disabled:cursor-not-allowed',
-              i === 0 ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted',
-            )}
-          >
-            {t(k)}
-          </button>
-        ))}
-      </div>
-      <p className="text-xs text-fg-subtle">{t('dict.comingSoonHint')}</p>
-    </Section>
-  );
-}
-
-/** Handshape picker — grid of handshape chips, disabled until assets exist. */
-function HandshapePicker(): React.ReactElement {
-  return (
-    <Section title={t('dict.handshape')} badge={<ComingSoon />}>
-      <ul className="grid grid-cols-4 gap-2">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <li key={i}>
+        {opts.map(([v, k]) => {
+          const active = value === v;
+          return (
             <button
+              key={v || 'any'}
               type="button"
-              disabled
-              aria-label={`${t('dict.handshape')} ${i + 1}`}
-              className="flex aspect-square w-full items-center justify-center rounded-lg border border-border bg-surface-muted text-fg-subtle disabled:cursor-not-allowed disabled:opacity-70"
+              aria-pressed={active}
+              onClick={() => setParam('hands', v)}
+              className={cn(
+                'inline-flex min-h-touch items-center rounded-full px-4 text-sm font-medium',
+                active ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg',
+              )}
             >
-              <Hand aria-hidden className="h-6 w-6" />
+              {t(k)}
             </button>
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs text-fg-subtle">{t('dict.comingSoonHint')}</p>
+          );
+        })}
+      </div>
     </Section>
   );
 }

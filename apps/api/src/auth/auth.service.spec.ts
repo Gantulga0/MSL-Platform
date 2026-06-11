@@ -43,9 +43,10 @@ interface Mocks {
   };
   config: { get: AnyMock };
   audit: { record: AnyMock };
+  mail: { enabled: boolean; sendVerificationEmail: AnyMock; sendPasswordResetEmail: AnyMock };
 }
 
-function build(nodeEnv: string = 'test'): { service: AuthService; m: Mocks } {
+function build(mailEnabled = false): { service: AuthService; m: Mocks } {
   const m: Mocks = {
     prisma: {
       user: {
@@ -66,18 +67,24 @@ function build(nodeEnv: string = 'test'): { service: AuthService; m: Mocks } {
         const map: Record<string, unknown> = {
           AUTH_MAX_FAILED_LOGINS: 5,
           AUTH_LOCKOUT_MINUTES: 15,
-          NODE_ENV: nodeEnv,
+          NODE_ENV: 'test',
         };
         return key in map ? map[key] : def;
       }),
     },
     audit: { record: jest.fn().mockResolvedValue(undefined) },
+    mail: {
+      enabled: mailEnabled,
+      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+      sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
+    },
   };
   const service = new AuthService(
     m.prisma as never,
     m.tokens as never,
     m.config as never,
     m.audit as never,
+    m.mail as never,
   );
   return { service, m };
 }
@@ -176,8 +183,8 @@ describe('AuthService', () => {
       expect(m.prisma.user.create).not.toHaveBeenCalled();
     });
 
-    it('in production, creates a user + verification token (G-2)', async () => {
-      const { service, m } = build('production');
+    it('when mail is enabled, creates an unverified user + sends a verification email (G-2)', async () => {
+      const { service, m } = build(true);
       m.prisma.user.findUnique.mockResolvedValue(null);
       m.prisma.user.create.mockResolvedValue(makeUser({ id: 'new' }));
       await service.register(
@@ -188,10 +195,11 @@ describe('AuthService', () => {
       expect(data.role).toBe('user');
       expect(data.emailVerifiedAt).toBeUndefined();
       expect(m.prisma.emailToken.create).toHaveBeenCalled();
+      expect(m.mail.sendVerificationEmail).toHaveBeenCalledWith('new@example.mn', expect.any(String));
     });
 
-    it('in development, auto-verifies and skips the email token (G-6)', async () => {
-      const { service, m } = build('development');
+    it('without SMTP, auto-verifies and skips the email token (G-6)', async () => {
+      const { service, m } = build(false);
       m.prisma.user.findUnique.mockResolvedValue(null);
       m.prisma.user.create.mockResolvedValue(makeUser({ id: 'new' }));
       const res = await service.register(
@@ -201,6 +209,7 @@ describe('AuthService', () => {
       const data = m.prisma.user.create.mock.calls[0][0].data;
       expect(data.emailVerifiedAt).toBeInstanceOf(Date);
       expect(m.prisma.emailToken.create).not.toHaveBeenCalled();
+      expect(m.mail.sendVerificationEmail).not.toHaveBeenCalled();
       expect(res.message).toMatch(/auto-verified/i);
     });
   });

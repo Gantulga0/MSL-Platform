@@ -43,10 +43,14 @@ export function WordManager({
   words,
   topics,
   levels,
+  ageGroups,
+  handshapes,
 }: {
   words: WordRow[];
   topics: TopicNode[];
   levels: TaxoRef[];
+  ageGroups: TaxoRef[];
+  handshapes: TaxoRef[];
 }): React.ReactElement {
   const router = useRouter();
   const topicOptions = flatten(topics);
@@ -102,12 +106,41 @@ export function WordManager({
             <Field label={t('submit.example')}>
               <Input name="exampleSentence" maxLength={2000} />
             </Field>
+            <Field label={t('submit.age')} required>
+              <select name="ageGroupId" className={selectCls} required defaultValue="">
+                <option value="" disabled>
+                  {t('submit.selectAge')}
+                </option>
+                {ageGroups.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
             <Field label={t('submit.level')}>
               <select name="levelId" className={selectCls} defaultValue="">
                 <option value="">{t('submit.none')}</option>
                 {levels.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t('dict.hands')}>
+              <select name="handCount" className={selectCls} defaultValue="">
+                <option value="">{t('submit.none')}</option>
+                <option value="1">{t('dict.handsOne')}</option>
+                <option value="2">{t('dict.handsTwo')}</option>
+              </select>
+            </Field>
+            <Field label={t('dict.handshape')}>
+              <select name="handshapeId" className={selectCls} defaultValue="">
+                <option value="">{t('submit.none')}</option>
+                {handshapes.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.label}
                   </option>
                 ))}
               </select>

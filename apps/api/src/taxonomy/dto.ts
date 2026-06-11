@@ -134,3 +134,23 @@ export class CreateSignMovementDto {
 }
 
 export class UpdateSignMovementDto extends PartialType(CreateSignMovementDto) {}
+
+export class CreateHandshapeDto {
+  @ApiProperty({ example: 'flat' })
+  @IsString()
+  @MaxLength(64)
+  code!: string;
+
+  @ApiProperty({ example: 'Алга дэлгэсэн' })
+  @IsString()
+  @MaxLength(120)
+  label!: string;
+
+  @ApiPropertyOptional({ default: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+export class UpdateHandshapeDto extends PartialType(CreateHandshapeDto) {}

@@ -64,6 +64,24 @@ async function seedSignMovements(): Promise<void> {
   }
 }
 
+async function seedHandshapes(): Promise<void> {
+  const handshapes = [
+    { code: 'flat', label: 'Алга дэлгэсэн', sortOrder: 1 },
+    { code: 'fist', label: 'Нударга', sortOrder: 2 },
+    { code: 'index', label: 'Заасан хуруу', sortOrder: 3 },
+    { code: 'thumb', label: 'Эрхий хуруу', sortOrder: 4 },
+    { code: 'c-shape', label: 'C хэлбэр', sortOrder: 5 },
+    { code: 'o-shape', label: 'O хэлбэр', sortOrder: 6 },
+    { code: 'v-shape', label: 'V хэлбэр (хоёр хуруу)', sortOrder: 7 },
+    { code: 'spread', label: 'Хуруу дэлгэсэн', sortOrder: 8 },
+    { code: 'pinch', label: 'Чимхсэн', sortOrder: 9 },
+    { code: 'hook', label: 'Дэгээ', sortOrder: 10 },
+  ];
+  for (const hs of handshapes) {
+    await prisma.handshape.upsert({ where: { code: hs.code }, update: hs, create: hs });
+  }
+}
+
 interface TopicSeed {
   slug: string;
   name: string;
@@ -179,6 +197,7 @@ async function main(): Promise<void> {
   await seedAgeGroups();
   await seedSignLocations();
   await seedSignMovements();
+  await seedHandshapes();
   await seedTopics();
   await seedAdmin();
   await seedSettings();

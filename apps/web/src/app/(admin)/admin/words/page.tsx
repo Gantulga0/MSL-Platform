@@ -8,10 +8,12 @@ import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 export const metadata: Metadata = { title: 'Үгс' };
 
 export default async function AdminWordsPage(): Promise<React.ReactElement> {
-  const [wordsRes, topics, levels] = await Promise.all([
+  const [wordsRes, topics, levels, ageGroups, handshapes] = await Promise.all([
     apiGetSafe<Paginated<WordRow>>('/admin/words?limit=50'),
     apiGetSafe<TopicNode[]>('/topics'),
     apiGetSafe<TaxoRef[]>('/levels'),
+    apiGetSafe<TaxoRef[]>('/age-groups'),
+    apiGetSafe<TaxoRef[]>('/handshapes'),
   ]);
 
   return (
@@ -21,6 +23,8 @@ export default async function AdminWordsPage(): Promise<React.ReactElement> {
         words={wordsRes?.data ?? []}
         topics={topics ?? []}
         levels={levels ?? []}
+        ageGroups={ageGroups ?? []}
+        handshapes={handshapes ?? []}
       />
     </main>
   );

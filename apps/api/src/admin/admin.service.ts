@@ -150,6 +150,8 @@ export class AdminService {
         topicId: dto.topicId,
         levelId: dto.levelId ?? null,
         ageGroupId: dto.ageGroupId ?? null,
+        handshapeId: dto.handshapeId ?? null,
+        handCount: dto.handCount ?? null,
         status: 'approved',
         source: dto.source ?? 'admin',
         createdBy: actorId,
@@ -185,6 +187,10 @@ export class AdminService {
     if (dto.ageGroupId !== undefined) {
       data.ageGroup = dto.ageGroupId ? { connect: { id: dto.ageGroupId } } : { disconnect: true };
     }
+    if (dto.handshapeId !== undefined) {
+      data.handshape = dto.handshapeId ? { connect: { id: dto.handshapeId } } : { disconnect: true };
+    }
+    if (dto.handCount !== undefined) data.handCount = dto.handCount;
     if (dto.status !== undefined) data.status = dto.status;
 
     const after = await this.prisma.word.update({ where: { id }, data });
@@ -284,6 +290,11 @@ export class AdminService {
 
     const lemma = dto.lemma ?? submission.proposedLemma;
     const definition = dto.definition ?? submission.proposedDefinition;
+    // Published words must carry a text definition (G-15) — the public submit
+    // form only collects a name + video, so the reviewer supplies it here.
+    if (!definition.trim()) {
+      throw new BadRequestException('A definition is required to approve this submission');
+    }
     const normalizedLemma = normalizeLemma(lemma);
 
     const wordId = await this.prisma.$transaction(async (tx) => {

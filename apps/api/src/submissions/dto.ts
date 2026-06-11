@@ -5,22 +5,27 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { CYRILLIC_LEMMA_PATTERN, CYRILLIC_LEMMA_MESSAGE } from '../common/cyrillic';
 
 export class CreateSubmissionDto {
-  @ApiProperty({ example: 'Сайн уу' })
+  @ApiProperty({ example: 'Сайн уу', description: 'Cyrillic-only word/phrase' })
   @IsString()
   @MinLength(1)
   @MaxLength(120)
+  @Matches(CYRILLIC_LEMMA_PATTERN, { message: CYRILLIC_LEMMA_MESSAGE })
   proposedLemma!: string;
 
-  @ApiProperty({ example: 'Мэндчилгээний үг.' })
+  // Optional on submission: the public form only collects a name + video.
+  // A definition is mandatory on the published Word and is enforced at approval.
+  @ApiPropertyOptional({ example: 'Мэндчилгээний үг.' })
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(2000)
-  proposedDefinition!: string;
+  proposedDefinition?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

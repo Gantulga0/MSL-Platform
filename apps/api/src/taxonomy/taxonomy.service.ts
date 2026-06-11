@@ -1,13 +1,15 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { AgeGroup, Level, SignLocation, SignMovement, Topic } from '@prisma/client';
+import type { AgeGroup, Handshape, Level, SignLocation, SignMovement, Topic } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   CreateAgeGroupDto,
+  CreateHandshapeDto,
   CreateLevelDto,
   CreateSignLocationDto,
   CreateSignMovementDto,
   CreateTopicDto,
   UpdateAgeGroupDto,
+  UpdateHandshapeDto,
   UpdateLevelDto,
   UpdateSignLocationDto,
   UpdateSignMovementDto,
@@ -195,6 +197,27 @@ export class TaxonomyService {
   async deleteSignMovement(id: string): Promise<{ id: string }> {
     await this.ensure(this.prisma.signMovement.findUnique({ where: { id } }), 'Sign movement');
     await this.prisma.signMovement.delete({ where: { id } });
+    return { id };
+  }
+
+  listHandshapes(): Promise<Handshape[]> {
+    return this.prisma.handshape.findMany({ orderBy: { sortOrder: 'asc' } });
+  }
+
+  createHandshape(dto: CreateHandshapeDto): Promise<Handshape> {
+    return this.prisma.handshape.create({
+      data: { code: dto.code, label: dto.label, sortOrder: dto.sortOrder ?? 0 },
+    });
+  }
+
+  async updateHandshape(id: string, dto: UpdateHandshapeDto): Promise<Handshape> {
+    await this.ensure(this.prisma.handshape.findUnique({ where: { id } }), 'Handshape');
+    return this.prisma.handshape.update({ where: { id }, data: dto });
+  }
+
+  async deleteHandshape(id: string): Promise<{ id: string }> {
+    await this.ensure(this.prisma.handshape.findUnique({ where: { id } }), 'Handshape');
+    await this.prisma.handshape.delete({ where: { id } });
     return { id };
   }
 

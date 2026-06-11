@@ -1,13 +1,7 @@
-import Link from 'next/link';
-import type { Route } from 'next';
-import { Card, CardBody } from '@msl/ui';
 import { translate } from '@/i18n';
 import { fetchApiHealth } from '@/lib/api';
 
 export default async function HomePage(): Promise<React.ReactElement> {
-  const health = await fetchApiHealth();
-  const apiOnline = health?.status === 'ok';
-
   return (
     <main id="main" className="mx-auto max-w-3xl px-4 py-12">
       <header className="mb-10">
@@ -29,7 +23,7 @@ export default async function HomePage(): Promise<React.ReactElement> {
           className="mt-1 h-control-sm w-full rounded-md border border-border-strong px-3 text-base"
         />
       </section>
-
+      {/* 
       <Card>
         <CardBody>
           <p aria-live="polite" className="text-sm">
@@ -46,7 +40,7 @@ export default async function HomePage(): Promise<React.ReactElement> {
             </Link>
           </p>
         </CardBody>
-      </Card>
+      </Card> */}
     </main>
   );
 }

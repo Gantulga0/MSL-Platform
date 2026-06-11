@@ -18,6 +18,8 @@ export interface WordListItem {
   ageGroup: { id: string; code: string; label: string } | null;
   location?: { id: string; code: string; label: string } | null;
   movement?: { id: string; code: string; label: string } | null;
+  handshape?: { id: string; code: string; label: string } | null;
+  handCount?: number | null;
 }
 
 export interface WordMedia {

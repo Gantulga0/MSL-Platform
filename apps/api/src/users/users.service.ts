@@ -24,6 +24,20 @@ const PUBLIC_USER = {
   createdAt: true,
 } satisfies Prisma.UserSelect;
 
+/**
+ * Admin user list — deliberately omits PII (email, username, login times).
+ * Admins manage roles/status but never need to see personal data (AUTH-11,
+ * NFR-05). Server-side projection, not UI hiding (NFR-04 §12).
+ */
+const ADMIN_LIST_USER = {
+  id: true,
+  role: true,
+  displayName: true,
+  isMinor: true,
+  status: true,
+  createdAt: true,
+} satisfies Prisma.UserSelect;
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -32,21 +46,14 @@ export class UsersService {
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
       ...(query.role ? { role: query.role } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { displayName: { contains: query.q, mode: 'insensitive' } },
-              { username: { contains: query.q, mode: 'insensitive' } },
-              { email: { contains: query.q, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
+      // Search by display name only — never expose/probe PII like email (AUTH-11).
+      ...(query.q ? { displayName: { contains: query.q, mode: 'insensitive' } } : {}),
     };
     const { skip, take } = toSkipTake(query.page, query.limit);
     const [data, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
         where,
-        select: PUBLIC_USER,
+        select: ADMIN_LIST_USER,
         orderBy: { createdAt: 'desc' },
         skip,
         take,

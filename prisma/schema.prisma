@@ -254,6 +254,17 @@ model SignMovement {
   @@map("sign_movements")
 }
 
+model Handshape {
+  id        String @id @default(uuid())
+  code      String @unique
+  label     String
+  sortOrder Int    @default(0) @map("sort_order")
+
+  words Word[]
+
+  @@map("handshapes")
+}
+
 model Word {
   id              String     @id @default(uuid())
   lemma           String
@@ -265,6 +276,8 @@ model Word {
   ageGroupId      String?    @map("age_group_id")
   locationId      String?    @map("location_id")
   movementId      String?    @map("movement_id")
+  handshapeId     String?    @map("handshape_id")
+  handCount       Int?       @map("hand_count")
   status          WordStatus @default(pending)
   source          String?
   viewCount       Int        @default(0) @map("view_count")
@@ -275,13 +288,14 @@ model Word {
   updatedAt       DateTime   @updatedAt @map("updated_at")
   deletedAt       DateTime?  @map("deleted_at")
 
-  topic    Topic         @relation(fields: [topicId], references: [id])
-  level    Level?        @relation(fields: [levelId], references: [id])
-  ageGroup AgeGroup?     @relation(fields: [ageGroupId], references: [id])
-  location SignLocation? @relation(fields: [locationId], references: [id])
-  movement SignMovement? @relation(fields: [movementId], references: [id])
-  creator  User          @relation("WordCreatedBy", fields: [createdBy], references: [id])
-  approver User?         @relation("WordApprovedBy", fields: [approvedBy], references: [id])
+  topic     Topic         @relation(fields: [topicId], references: [id])
+  level     Level?        @relation(fields: [levelId], references: [id])
+  ageGroup  AgeGroup?     @relation(fields: [ageGroupId], references: [id])
+  location  SignLocation? @relation(fields: [locationId], references: [id])
+  movement  SignMovement? @relation(fields: [movementId], references: [id])
+  handshape Handshape?    @relation(fields: [handshapeId], references: [id])
+  creator   User          @relation("WordCreatedBy", fields: [createdBy], references: [id])
+  approver  User?         @relation("WordApprovedBy", fields: [approvedBy], references: [id])
 
   variants        WordVariant[]
   progress        UserWordProgress[]
@@ -296,6 +310,8 @@ model Word {
   @@index([topicId])
   @@index([locationId])
   @@index([movementId])
+  @@index([handshapeId])
+  @@index([handCount])
   @@map("words")
 }
 

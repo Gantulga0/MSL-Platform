@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { AlertTriangle } from 'lucide-react';
-import { Button, Field, Input, Textarea } from '@msl/ui';
+import { Button, Field, Input } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import { FormAlert } from '@/components/auth/FormAlert';
 import {
@@ -13,48 +13,41 @@ import {
   type CheckResult,
   type SubmitResult,
 } from '@/lib/submissions/actions';
-import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
+import { VideoCapture } from './VideoCapture';
 
-function flatten(nodes: TopicNode[], depth = 0): { id: string; name: string; depth: number }[] {
-  return nodes.flatMap((n) => [
-    { id: n.id, name: n.name, depth },
-    ...flatten(n.children, depth + 1),
-  ]);
-}
+/** Mongolian Cyrillic only (mirrors the API CYRILLIC_LEMMA_PATTERN). */
+const CYRILLIC_PATTERN = /^[А-Яа-яЁёӨөҮү\s-]+$/u;
 
 interface Props {
-  topics: TopicNode[];
-  levels: TaxoRef[];
-  ageGroups: TaxoRef[];
   isAuthenticated: boolean;
 }
 
-const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
-
-export function SubmitForm({ topics, levels, ageGroups, isAuthenticated }: Props): React.ReactElement {
-  const topicOptions = flatten(topics);
+export function SubmitForm({ isAuthenticated }: Props): React.ReactElement {
   const [lemma, setLemma] = useState('');
-  const [topicId, setTopicId] = useState('');
+  const [video, setVideo] = useState<File | null>(null);
+  const [consent, setConsent] = useState(false);
   const [hint, setHint] = useState<CheckResult | null>(null);
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
+  const lemmaInvalid = lemma.trim().length > 0 && !CYRILLIC_PATTERN.test(lemma.trim());
+
   useEffect(() => {
     const term = lemma.trim();
-    if (!term) {
+    if (!term || !CYRILLIC_PATTERN.test(term)) {
       setHint(null);
       return;
     }
     setChecking(true);
     const handle = setTimeout(async () => {
-      const res = await checkDuplicateAction(term, topicId || undefined);
+      const res = await checkDuplicateAction(term);
       setHint(res);
       setChecking(false);
     }, 400);
     return () => clearTimeout(handle);
-  }, [lemma, topicId]);
+  }, [lemma]);
 
   if (result && !result.error && !result.loginRequired) {
     return (
@@ -83,34 +76,54 @@ export function SubmitForm({ topics, levels, ageGroups, isAuthenticated }: Props
     );
   }
 
+  function onSubmit(e: React.FormEvent): void {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      setError(t('submit.loginRequired'));
+      return;
+    }
+    if (lemmaInvalid || !lemma.trim()) {
+      setError(t('submit.lemmaInvalid'));
+      return;
+    }
+    if (!video) {
+      setError(t('submit.videoRequired'));
+      return;
+    }
+    if (!consent) {
+      setError(t('submit.consentRequired'));
+      return;
+    }
+    setError(undefined);
+    const fd = new FormData();
+    fd.set('proposedLemma', lemma.trim());
+    fd.set('file', video);
+    fd.set('consent', 'on');
+    start(async () => {
+      const res = await createSubmissionAction(fd);
+      if (res.loginRequired) setError(t('submit.loginRequired'));
+      else if (res.error) setError(res.error);
+      else setResult(res);
+    });
+  }
+
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!isAuthenticated) {
-          setError(t('submit.loginRequired'));
-          return;
-        }
-        setError(undefined);
-        const fd = new FormData(e.currentTarget);
-        start(async () => {
-          const res = await createSubmissionAction(fd);
-          if (res.loginRequired) setError(t('submit.loginRequired'));
-          else if (res.error) setError(res.error);
-          else setResult(res);
-        });
-      }}
-    >
+    <form className="space-y-5" onSubmit={onSubmit} noValidate>
       {error && <FormAlert tone="error">{error}</FormAlert>}
 
-      <Field label={t('submit.lemma')} required>
+      <Field
+        label={t('submit.lemma')}
+        required
+        description={t('submit.lemmaCyrillicHint')}
+        error={lemmaInvalid ? t('submit.lemmaInvalid') : undefined}
+      >
         <Input
           name="proposedLemma"
           required
           maxLength={120}
           value={lemma}
           onChange={(e) => setLemma(e.target.value)}
+          lang="mn"
         />
       </Field>
 
@@ -137,64 +150,27 @@ export function SubmitForm({ topics, levels, ageGroups, isAuthenticated }: Props
         </div>
       )}
 
-      <Field label={t('submit.definition')} required>
-        <Textarea name="proposedDefinition" required maxLength={2000} />
+      <Field label={t('submit.video')} required>
+        {isAuthenticated ? (
+          <VideoCapture onChange={setVideo} />
+        ) : (
+          <p className="rounded-md border border-border bg-surface-muted p-3 text-sm text-fg-muted">
+            {t('submit.loginRequired')}
+          </p>
+        )}
       </Field>
-
-      <Field label={t('submit.example')}>
-        <Input name="exampleSentence" maxLength={2000} />
-      </Field>
-
-      <Field label={t('submit.topic')}>
-        <select name="topicId" className={selectCls} value={topicId} onChange={(e) => setTopicId(e.target.value)}>
-          <option value="">{t('submit.selectTopic')}</option>
-          {topicOptions.map((o) => (
-            <option key={o.id} value={o.id}>
-              {' '.repeat(o.depth * 2)}
-              {o.name}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('submit.level')}>
-          <select name="levelId" className={selectCls} defaultValue="">
-            <option value="">{t('submit.none')}</option>
-            {levels.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t('submit.age')}>
-          <select name="ageGroupId" className={selectCls} defaultValue="">
-            <option value="">{t('submit.none')}</option>
-            {ageGroups.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
 
       {isAuthenticated && (
-        <>
-          <Field label={t('submit.media')}>
-            <input
-              name="file"
-              type="file"
-              accept="video/mp4,video/webm,image/png,image/jpeg"
-              className="block w-full text-sm text-fg file:mr-3 file:min-h-touch file:rounded-md file:border-0 file:bg-surface-muted file:px-4 file:text-fg"
-            />
-          </Field>
-          <label className="flex items-start gap-2 text-sm text-fg">
-            <input name="consent" type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-primary" />
-            <span>{t('submit.consent')}</span>
-          </label>
-        </>
+        <label className="flex items-start gap-2 text-sm text-fg">
+          <input
+            name="consent"
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => setConsent(e.target.checked)}
+            className="mt-1 h-5 w-5 shrink-0 accent-primary"
+          />
+          <span>{t('submit.consent')}</span>
+        </label>
       )}
 
       <Button type="submit" block loading={pending}>

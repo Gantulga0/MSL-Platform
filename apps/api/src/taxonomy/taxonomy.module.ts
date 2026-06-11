@@ -5,6 +5,7 @@ import { LevelsController } from './levels.controller';
 import { AgeGroupsController } from './age-groups.controller';
 import { SignLocationsController } from './sign-locations.controller';
 import { SignMovementsController } from './sign-movements.controller';
+import { HandshapesController } from './handshapes.controller';
 
 @Module({
   controllers: [
@@ -13,6 +14,7 @@ import { SignMovementsController } from './sign-movements.controller';
     AgeGroupsController,
     SignLocationsController,
     SignMovementsController,
+    HandshapesController,
   ],
   providers: [TaxonomyService],
   exports: [TaxonomyService],

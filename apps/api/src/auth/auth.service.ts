@@ -6,6 +6,7 @@ import type { User } from '@prisma/client';
 import type { Role } from '@msl/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { MailService } from '../mail/mail.service';
 import { TokensService, parseDurationMs } from './tokens.service';
 import type {
   ForgotPasswordDto,
@@ -42,6 +43,7 @@ export class AuthService {
     private readonly tokens: TokensService,
     private readonly config: ConfigService,
     private readonly audit: AuditService,
+    private readonly mail: MailService,
   ) {}
 
   async register(dto: RegisterDto, meta: RequestMeta): Promise<{ message: string }> {
@@ -54,7 +56,9 @@ export class AuthService {
 
     const passwordHash = await argon2.hash(dto.password);
 
-    const autoVerify = this.config.get<string>('NODE_ENV') !== 'production';
+    // With SMTP configured we require real email verification (AUTH-02). Without
+    // it (local dev), auto-verify so the flow stays usable offline.
+    const autoVerify = !this.mail.enabled;
 
     const user = await this.prisma.user.create({
       data: {
@@ -68,7 +72,10 @@ export class AuthService {
       },
     });
 
-    if (!autoVerify) await this.issueEmailToken(user.id, 'verify_email');
+    if (!autoVerify) {
+      const token = await this.issueEmailToken(user.id, 'verify_email');
+      await this.mail.sendVerificationEmail(email, token);
+    }
     await this.audit.record({
       actorId: user.id,
       entityType: 'user',
@@ -78,7 +85,7 @@ export class AuthService {
     });
     return {
       message: autoVerify
-        ? 'Registration complete — email auto-verified in development. You can sign in now.'
+        ? 'Registration complete — email auto-verified. You can sign in now.'
         : 'Registration received. Check your email to verify your account.',
     };
   }
@@ -162,9 +169,11 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<{ message: string }> {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email.toLowerCase() } });
+    const email = dto.email.toLowerCase();
+    const user = await this.prisma.user.findUnique({ where: { email } });
     if (user && user.passwordHash) {
-      await this.issueEmailToken(user.id, 'reset_password');
+      const token = await this.issueEmailToken(user.id, 'reset_password');
+      await this.mail.sendPasswordResetEmail(email, token);
     }
     return { message: 'If that email is registered, a reset link has been sent.' };
   }
