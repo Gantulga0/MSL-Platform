@@ -1,22 +1,23 @@
 import { Module } from '@nestjs/common';
+import { MediaModule } from '../media/media.module';
 import { TaxonomyService } from './taxonomy.service';
+import { OptionImagesService } from './option-images.service';
 import { TopicsController } from './topics.controller';
 import { LevelsController } from './levels.controller';
 import { AgeGroupsController } from './age-groups.controller';
-import { SignLocationsController } from './sign-locations.controller';
-import { SignMovementsController } from './sign-movements.controller';
-import { HandshapesController } from './handshapes.controller';
+import { HandednessController } from './handedness.controller';
+import { OptionImagesController } from './option-images.controller';
 
 @Module({
+  imports: [MediaModule],
   controllers: [
     TopicsController,
     LevelsController,
     AgeGroupsController,
-    SignLocationsController,
-    SignMovementsController,
-    HandshapesController,
+    HandednessController,
+    OptionImagesController,
   ],
-  providers: [TaxonomyService],
+  providers: [TaxonomyService, OptionImagesService],
   exports: [TaxonomyService],
 })
 export class TaxonomyModule {}

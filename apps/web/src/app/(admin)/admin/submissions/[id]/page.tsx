@@ -3,11 +3,11 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { Badge, Card, CardBody, CardTitle } from '@msl/ui';
+import { Card, CardBody, CardTitle } from '@msl/ui';
 import { translate } from '@/i18n';
 import { apiGetSafe } from '@/lib/api/server';
 import { ReviewDecision } from '@/components/review/ReviewDecision';
-import type { TopicNode } from '@/lib/dictionary/types';
+import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
 export const metadata: Metadata = { title: 'Саналыг хянах' };
 
@@ -18,14 +18,11 @@ interface SubmissionDetail {
   exampleSentence: string | null;
   status: string;
   topic: { id: string; name: string } | null;
+  level: { id: string; label: string } | null;
+  ageGroup: { id: string; label: string } | null;
+  handCount: number | null;
   submitter: { displayName: string; isMinor: boolean } | null;
   reviews: { action: string; comment: string | null; createdAt: string; reviewer: { displayName: string } | null }[];
-  duplicateChecks: {
-    method: string;
-    similarityScore: number;
-    decision: string;
-    candidate: { id: string; lemma: string; definition: string } | null;
-  }[];
   media: { id: string; type: string; mime: string }[];
 }
 
@@ -35,11 +32,21 @@ export default async function AdminSubmissionDetailPage({
   params: Promise<{ id: string }>;
 }): Promise<React.ReactElement> {
   const { id } = await params;
-  const [submission, topics] = await Promise.all([
+  const [submission, topics, levels, ageGroups, handednesses] = await Promise.all([
     apiGetSafe<SubmissionDetail>(`/admin/submissions/${id}`),
     apiGetSafe<TopicNode[]>('/topics'),
+    apiGetSafe<TaxoRef[]>('/levels'),
+    apiGetSafe<TaxoRef[]>('/age-groups'),
+    apiGetSafe<TaxoRef[]>('/handedness'),
   ]);
   if (!submission) notFound();
+
+  // Submission media is private — fetch a short-lived signed URL for the video so
+  // the reviewer can watch it before deciding (AUTH-09).
+  const videoMedia = submission.media.find((m) => m.type === 'video') ?? null;
+  const video = videoMedia
+    ? await apiGetSafe<{ url: string; mime: string }>(`/media/${videoMedia.id}`)
+    : null;
 
   return (
     <main id="main" className="mx-auto max-w-4xl px-4 py-8">
@@ -69,40 +76,33 @@ export default async function AdminSubmissionDetailPage({
             )}
             <p className="text-sm text-fg-subtle">
               {translate('review.topic')}: {submission.topic?.name ?? '—'} ·{' '}
+              {translate('review.age')}: {submission.ageGroup?.label ?? '—'} ·{' '}
+              {translate('review.handCount')}:{' '}
+              {submission.handCount
+                ? translate(submission.handCount === 1 ? 'dict.handsOne' : 'dict.handsTwo')
+                : '—'}
+            </p>
+            <p className="text-sm text-fg-subtle">
               {translate('review.submittedBy')}: {submission.submitter?.displayName}
             </p>
-            {submission.media.length > 0 && (
-              <p className="text-sm text-fg-subtle">
-                {translate('review.media')}: {submission.media.length}
-              </p>
-            )}
           </CardBody>
         </Card>
 
         <Card>
           <CardBody className="space-y-3">
-            <CardTitle>{translate('review.duplicates')}</CardTitle>
-            {submission.duplicateChecks.length === 0 ? (
-              <p className="text-fg-muted">{translate('review.noDuplicates')}</p>
+            <CardTitle>{translate('review.video')}</CardTitle>
+            {video ? (
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                src={video.url}
+                className="aspect-video w-full rounded-md bg-black"
+              >
+                {translate('review.noVideo')}
+              </video>
             ) : (
-              <ul className="space-y-2">
-                {submission.duplicateChecks.map((d, i) => (
-                  <li key={i} className="rounded-md border border-border p-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <Link
-                        href={`/dictionary/${d.candidate?.id}` as Route}
-                        className="font-medium text-primary underline"
-                      >
-                        {d.candidate?.lemma}
-                      </Link>
-                      <Badge tone={d.decision === 'matched' ? 'warning' : 'neutral'}>
-                        {translate('review.similarity')}: {Math.round(d.similarityScore * 100)}%
-                      </Badge>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{d.candidate?.definition}</p>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-fg-muted">{translate('review.noVideo')}</p>
             )}
           </CardBody>
         </Card>
@@ -113,8 +113,14 @@ export default async function AdminSubmissionDetailPage({
           <CardBody>
             <ReviewDecision
               submissionId={submission.id}
-              needsTopic={!submission.topic}
               topics={topics ?? []}
+              levels={levels ?? []}
+              ageGroups={ageGroups ?? []}
+              handednesses={handednesses ?? []}
+              defaultTopicId={submission.topic?.id ?? ''}
+              defaultLevelId={submission.level?.id ?? ''}
+              defaultAgeGroupId={submission.ageGroup?.id ?? ''}
+              defaultHandCount={submission.handCount}
             />
           </CardBody>
         </Card>

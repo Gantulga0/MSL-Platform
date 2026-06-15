@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -56,6 +57,12 @@ export class ApproveSubmissionDto {
   @IsUUID()
   ageGroupId?: string;
 
+  @ApiPropertyOptional({ description: 'Number of hands (1 or 2)', enum: [1, 2] })
+  @IsOptional()
+  @Type(() => Number)
+  @IsIn([1, 2])
+  handCount?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -112,6 +119,12 @@ export class EditSubmissionDto {
   @IsOptional()
   @IsUUID()
   ageGroupId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Number of hands (1 or 2)', enum: [1, 2] })
+  @IsOptional()
+  @Type(() => Number)
+  @IsIn([1, 2])
+  handCount?: number;
 }
 
 export class BatchApproveDto {

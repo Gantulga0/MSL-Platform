@@ -27,6 +27,7 @@ export const AUTHED_PUBLIC_NAV: NavItem[] = [
 /** Admin panel navigation. */
 export const ADMIN_NAV: NavItem[] = [
   { href: '/admin', labelKey: 'nav.adminDashboard' },
+  { href: '/admin/notifications', labelKey: 'nav.notifications' },
   { href: '/admin/submissions', labelKey: 'nav.review' },
   { href: '/admin/words', labelKey: 'nav.words' },
   { href: '/admin/users', labelKey: 'nav.users' },

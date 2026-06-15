@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsInt,
   IsOptional,
@@ -95,16 +96,27 @@ export class CreateAgeGroupDto {
 
 export class UpdateAgeGroupDto extends PartialType(CreateAgeGroupDto) {}
 
-export class CreateSignLocationDto {
-  @ApiProperty({ example: 'mouth' })
+export class CreateHandednessDto {
+  @ApiProperty({ example: 'one' })
   @IsString()
   @MaxLength(64)
   code!: string;
 
-  @ApiProperty({ example: 'Ам' })
+  @ApiProperty({ example: 'Нэг гар' })
   @IsString()
   @MaxLength(120)
   label!: string;
+
+  @ApiProperty({ description: 'Maps to Word.handCount', enum: [1, 2], example: 1 })
+  @IsInt()
+  @Min(1)
+  handCount!: number;
+
+  @ApiPropertyOptional({ description: 'Image URL/path for the option', example: '/api/v1/options/images/handedness/one.png' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  imageUrl?: string;
 
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()
@@ -113,44 +125,31 @@ export class CreateSignLocationDto {
   sortOrder?: number;
 }
 
-export class UpdateSignLocationDto extends PartialType(CreateSignLocationDto) {}
+export class UpdateHandednessDto extends PartialType(CreateHandednessDto) {}
 
-export class CreateSignMovementDto {
-  @ApiProperty({ example: 'circular' })
+/** Multipart body for uploading a new option image + creating the option. */
+export class UploadOptionDto {
+  @ApiProperty({ description: 'Unique code (internal reference)', example: 'pinch' })
   @IsString()
   @MaxLength(64)
   code!: string;
 
-  @ApiProperty({ example: 'Тойрог' })
+  @ApiProperty({ description: 'Internal label (not shown to end users)', example: 'Чимхсэн' })
   @IsString()
   @MaxLength(120)
   label!: string;
 
+  @ApiPropertyOptional({ description: 'Required for handedness — maps to Word.handCount', enum: [1, 2] })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  handCount?: number;
+
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   sortOrder?: number;
 }
-
-export class UpdateSignMovementDto extends PartialType(CreateSignMovementDto) {}
-
-export class CreateHandshapeDto {
-  @ApiProperty({ example: 'flat' })
-  @IsString()
-  @MaxLength(64)
-  code!: string;
-
-  @ApiProperty({ example: 'Алга дэлгэсэн' })
-  @IsString()
-  @MaxLength(120)
-  label!: string;
-
-  @ApiPropertyOptional({ default: 0 })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  sortOrder?: number;
-}
-
-export class UpdateHandshapeDto extends PartialType(CreateHandshapeDto) {}

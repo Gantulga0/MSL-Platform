@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ArrowUpRight, Hand } from 'lucide-react';
 import { Badge, Skeleton } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import type { WordListItem } from '@/lib/dictionary/types';
+import { SignCardVideo } from './SignCardVideo';
 
 /**
  * A single sign in the dictionary grid (S-06). White card floating on cream:
@@ -27,21 +27,8 @@ export function SignCard({
       aria-label={t('dict.openWord', undefined, { lemma: word.lemma })}
       className="group block rounded-xl border border-border bg-surface shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none"
     >
-      {/* Sign-video thumbnail (placeholder until list media is wired). */}
-      <div className="relative aspect-video overflow-hidden rounded-t-xl bg-tint-sage">
-        <div className="flex h-full w-full items-center justify-center">
-          <Hand aria-hidden className="h-10 w-10 text-accent-ink/70" />
-        </div>
-        <span className="absolute bottom-2 left-2 rounded-full bg-surface/85 px-2 py-0.5 text-xs font-medium text-fg-muted">
-          {t('dict.video')}
-        </span>
-        <span
-          aria-hidden
-          className="absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface/85 text-fg transition-colors group-hover:bg-primary group-hover:text-fg-on-primary"
-        >
-          <ArrowUpRight className="h-5 w-5" />
-        </span>
-      </div>
+      {/* Sign-video thumbnail — plays on hover / when in view (touch). */}
+      <SignCardVideo src={word.video?.url ?? null} />
 
       <div className="flex items-start justify-between gap-2 px-4 py-3">
         <h3 className="text-base font-semibold text-fg">

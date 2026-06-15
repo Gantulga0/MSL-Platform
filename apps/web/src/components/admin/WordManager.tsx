@@ -9,14 +9,15 @@ import { translate as t } from '@/i18n';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { createWordAction, deleteWordAction, updateWordAction } from '@/lib/admin/word-actions';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
+import { ImagePicker, type PickerOption } from './ImagePicker';
+import { TopicSelect } from './TopicSelect';
 
 export interface WordRow {
   id: string;
   lemma: string;
-  definition: string;
+  definition: string | null;
   exampleSentence: string | null;
   status: string;
-  viewCount: number;
   topic: { id: string; name: string } | null;
 }
 
@@ -30,33 +31,34 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 
 const STATUSES = ['approved', 'pending', 'draft', 'rejected', 'archived'] as const;
 
-function flatten(nodes: TopicNode[], depth = 0): { id: string; name: string; depth: number }[] {
-  return nodes.flatMap((n) => [
-    { id: n.id, name: n.name, depth },
-    ...flatten(n.children, depth + 1),
-  ]);
-}
-
-const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
+const selectCls ='h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
 
 export function WordManager({
   words,
   topics,
   levels,
   ageGroups,
-  handshapes,
+  handednesses,
 }: {
   words: WordRow[];
   topics: TopicNode[];
   levels: TaxoRef[];
   ageGroups: TaxoRef[];
-  handshapes: TaxoRef[];
+  handednesses: TaxoRef[];
 }): React.ReactElement {
   const router = useRouter();
-  const topicOptions = flatten(topics);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Bumping this remounts the form so the image pickers reset after a create.
+  const [formKey, setFormKey] = useState(0);
+
+  // Handedness picker submits the mapped handCount (1/2) into `handCount`.
+  const handCountOptions: PickerOption[] = handednesses.map((h) => ({
+    id: String(h.handCount ?? ''),
+    label: h.label ?? '',
+    imageUrl: h.imageUrl,
+  }));
 
   return (
     <div className="space-y-8">
@@ -64,6 +66,7 @@ export function WordManager({
         <CardBody className="space-y-4">
           <h2 className="text-lg font-semibold text-fg">{t('admin.words.create')}</h2>
           <form
+            key={formKey}
             className="grid gap-3 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
@@ -73,7 +76,7 @@ export function WordManager({
                 const res = await createWordAction(fd);
                 if (res.error) setError(res.error);
                 else {
-                  e.currentTarget.reset();
+                  setFormKey((k) => k + 1);
                   router.refresh();
                 }
               });
@@ -88,20 +91,13 @@ export function WordManager({
               <Input name="lemma" required maxLength={120} />
             </Field>
             <Field label={t('submit.topic')} required>
-              <select name="topicId" className={selectCls} required defaultValue="">
-                <option value="" disabled>
-                  {t('submit.selectTopic')}
-                </option>
-                {topicOptions.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {' '.repeat(o.depth * 2)}
-                    {o.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('submit.definition')} required>
-              <Textarea name="definition" required maxLength={2000} />
+              <TopicSelect
+                name="topicId"
+                topics={topics}
+                required
+                ariaLabel={t('submit.topic')}
+                placeholder={t('submit.selectTopic')}
+              />
             </Field>
             <Field label={t('submit.example')}>
               <Input name="exampleSentence" maxLength={2000} />
@@ -128,23 +124,24 @@ export function WordManager({
                 ))}
               </select>
             </Field>
-            <Field label={t('dict.hands')}>
-              <select name="handCount" className={selectCls} defaultValue="">
-                <option value="">{t('submit.none')}</option>
-                <option value="1">{t('dict.handsOne')}</option>
-                <option value="2">{t('dict.handsTwo')}</option>
-              </select>
-            </Field>
-            <Field label={t('dict.handshape')}>
-              <select name="handshapeId" className={selectCls} defaultValue="">
-                <option value="">{t('submit.none')}</option>
-                {handshapes.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+
+            <div className="sm:col-span-2">
+              <Field label={t('admin.words.video')} required>
+                <input
+                  type="file"
+                  name="video"
+                  accept="video/mp4,video/webm"
+                  required
+                  className="block w-full text-sm text-fg file:mr-3 file:min-h-touch file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-4 file:font-medium file:text-fg-on-primary hover:file:bg-primary/90"
+                />
+              </Field>
+            </div>
+
+            <fieldset className="sm:col-span-2 space-y-2">
+              <legend className="text-sm font-medium text-fg">{t('dict.hands')}</legend>
+              <ImagePicker name="handCount" options={handCountOptions} columns={2} imageOnly />
+            </fieldset>
+
             <div className="sm:col-span-2">
               <Button type="submit" loading={pending}>
                 {t('admin.words.create')}
@@ -193,7 +190,7 @@ export function WordManager({
                           </select>
                         </Field>
                         <Field label={t('submit.definition')}>
-                          <Textarea name="definition" defaultValue={w.definition} maxLength={2000} />
+                          <Textarea name="definition" defaultValue={w.definition ?? ''} maxLength={2000} />
                         </Field>
                         <div className="flex gap-2 sm:col-span-2">
                           <Button type="submit" size="sm" loading={pending}>
@@ -216,10 +213,10 @@ export function WordManager({
                             </Link>
                             <Badge tone={STATUS_TONE[w.status] ?? 'neutral'}>{w.status}</Badge>
                           </div>
-                          <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{w.definition}</p>
-                          <p className="mt-1 text-xs text-fg-subtle">
-                            {w.topic?.name ?? '—'} · {w.viewCount} {t('admin.words.views')}
-                          </p>
+                          {w.definition && (
+                            <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{w.definition}</p>
+                          )}
+                          <p className="mt-1 text-xs text-fg-subtle">{w.topic?.name ?? '—'}</p>
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="secondary" onClick={() => setEditingId(w.id)}>

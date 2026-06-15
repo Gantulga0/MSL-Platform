@@ -12,14 +12,10 @@ const LIST_SELECT = {
   definition: true,
   exampleSentence: true,
   status: true,
-  viewCount: true,
   handCount: true,
   topic: { select: { id: true, name: true, slug: true } },
   level: { select: { id: true, code: true, label: true } },
   ageGroup: { select: { id: true, code: true, label: true } },
-  location: { select: { id: true, code: true, label: true } },
-  movement: { select: { id: true, code: true, label: true } },
-  handshape: { select: { id: true, code: true, label: true } },
 } satisfies Prisma.WordSelect;
 
 @Injectable()
@@ -27,16 +23,13 @@ export class WordsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(query: WordsQueryDto): Promise<Paginated<unknown>> {
-    const { page, limit, q, topic, level, age, location, movement, handshape, hands } = query;
+    const { page, limit, q, topic, level, age, hands } = query;
     const where: Prisma.WordWhereInput = {
       status: 'approved',
       deletedAt: null,
       ...(topic ? { topicId: topic } : {}),
       ...(level ? { levelId: level } : {}),
       ...(age ? { ageGroupId: age } : {}),
-      ...(location ? { locationId: location } : {}),
-      ...(movement ? { movementId: movement } : {}),
-      ...(handshape ? { handshapeId: handshape } : {}),
       ...(hands ? { handCount: hands } : {}),
     };
     if (q && q.trim()) {
@@ -53,13 +46,27 @@ export class WordsService {
       this.prisma.word.findMany({
         where,
         select: LIST_SELECT,
-        orderBy: [{ viewCount: 'desc' }, { lemma: 'asc' }],
+        orderBy: [{ lemma: 'asc' }],
         skip,
         take,
       }),
       this.prisma.word.count({ where }),
     ]);
-    return paginate(data, total, page, limit);
+
+    // Attach each word's sign video so cards can play it on hover (one query, no N+1).
+    const ids = data.map((w) => w.id);
+    const videos = ids.length
+      ? await this.prisma.mediaAsset.findMany({
+          where: { ownerType: 'word', ownerId: { in: ids }, type: 'video' },
+          select: { ownerId: true, publicUrl: true },
+        })
+      : [];
+    const videoByWord = new Map(videos.map((v) => [v.ownerId, v.publicUrl]));
+    const withVideo = data.map((w) => {
+      const url = videoByWord.get(w.id);
+      return { ...w, video: url ? { url } : null };
+    });
+    return paginate(withVideo, total, page, limit);
   }
 
   async detail(id: string): Promise<unknown> {
@@ -67,6 +74,16 @@ export class WordsService {
       where: { id, status: 'approved', deletedAt: null },
       select: {
         ...LIST_SELECT,
+        // Override topic to also carry its parent so the UI can show the parent
+        // as CATEGORY and the child as a TAG (the word belongs to both).
+        topic: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parent: { select: { id: true, name: true, slug: true } },
+          },
+        },
         source: true,
         createdAt: true,
         variants: {
@@ -106,8 +123,16 @@ export class WordsService {
       },
     });
 
-    await this.prisma.word.update({ where: { id }, data: { viewCount: { increment: 1 } } });
-    return { ...word, viewCount: word.viewCount + 1, media };
+    // Resolve the handedness option image for this word's hand count (1/2) so the
+    // detail view can show it as an image alongside the other attributes.
+    const handedness = word.handCount
+      ? await this.prisma.handedness.findFirst({
+          where: { handCount: word.handCount },
+          select: { id: true, code: true, label: true, imageUrl: true, handCount: true },
+        })
+      : null;
+
+    return { ...word, handedness, media };
   }
 
   async variants(id: string): Promise<unknown> {

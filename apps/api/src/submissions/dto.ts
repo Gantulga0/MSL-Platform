@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
@@ -33,20 +35,24 @@ export class CreateSubmissionDto {
   @MaxLength(2000)
   exampleSentence?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({ description: 'Topic (required) — a subtopic also implies its parent' })
   @IsUUID()
-  topicId?: string;
+  topicId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
   levelId?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  // Age group + hand count are required on the public submit form (FR-02).
+  @ApiProperty({ description: 'Age group (required)' })
   @IsUUID()
-  ageGroupId?: string;
+  ageGroupId!: string;
+
+  @ApiProperty({ description: 'Number of hands used — 1 or 2 (required)', enum: [1, 2] })
+  @Type(() => Number)
+  @IsIn([1, 2])
+  handCount!: number;
 
   @ApiPropertyOptional({ description: 'Ids of pre-uploaded media to attach', type: [String] })
   @IsOptional()

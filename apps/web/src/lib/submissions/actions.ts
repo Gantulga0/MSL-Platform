@@ -63,12 +63,18 @@ export async function createSubmissionAction(formData: FormData): Promise<Submit
   const session = await getSession();
   if (session.role === 'guest') return { loginRequired: true };
 
-  // Simplified public submission (FR-02): name + video only.
+  // Public submission (FR-02): name + topic + video.
   const proposedLemma = String(formData.get('proposedLemma') ?? '').trim();
+  const topicId = String(formData.get('topicId') ?? '').trim();
+  const ageGroupId = String(formData.get('ageGroupId') ?? '').trim();
+  const handCount = Number(formData.get('handCount'));
   const file = formData.get('file');
   const consent = formData.get('consent') === 'on';
 
   if (!proposedLemma) return { error: 'Үгийн нэр шаардлагатай.' };
+  if (!topicId) return { error: 'Сэдэв заавал шаардлагатай.' };
+  if (!ageGroupId) return { error: 'Насны ангилал заавал шаардлагатай.' };
+  if (handCount !== 1 && handCount !== 2) return { error: 'Хэдэн гар ашигласныг сонгоно уу.' };
   if (!(file instanceof File) || file.size === 0) return { error: 'Видео заавал шаардлагатай.' };
   if (!consent) return { error: 'Медиа оруулахын тулд зөвшөөрөл шаардлагатай.' };
 
@@ -84,6 +90,9 @@ export async function createSubmissionAction(formData: FormData): Promise<Submit
       '/submissions',
       {
         proposedLemma,
+        topicId,
+        ageGroupId,
+        handCount,
         ...(mediaIds.length ? { mediaIds } : {}),
       },
     );

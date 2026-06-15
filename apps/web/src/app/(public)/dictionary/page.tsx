@@ -17,9 +17,6 @@ interface SP {
   topic?: string;
   level?: string;
   age?: string;
-  location?: string;
-  movement?: string;
-  handshape?: string;
   hands?: string;
   page?: string;
 }
@@ -37,19 +34,13 @@ export default async function DictionaryPage({
   if (sp.topic) qs.set('topic', sp.topic);
   if (sp.level) qs.set('level', sp.level);
   if (sp.age) qs.set('age', sp.age);
-  if (sp.location) qs.set('location', sp.location);
-  if (sp.movement) qs.set('movement', sp.movement);
-  if (sp.handshape) qs.set('handshape', sp.handshape);
   if (sp.hands) qs.set('hands', sp.hands);
   qs.set('page', String(page));
 
-  const [topics, levels, ageGroups, locations, movements, handshapes, words] = await Promise.all([
+  const [topics, levels, ageGroups, words] = await Promise.all([
     apiGetSafe<TopicNode[]>('/topics'),
     apiGetSafe<TaxoRef[]>('/levels'),
     apiGetSafe<TaxoRef[]>('/age-groups'),
-    apiGetSafe<TaxoRef[]>('/sign-locations'),
-    apiGetSafe<TaxoRef[]>('/sign-movements'),
-    apiGetSafe<TaxoRef[]>('/handshapes'),
     apiGetSafe<Paginated<WordListItem>>(`/words?${qs.toString()}`),
   ]);
 
@@ -106,14 +97,7 @@ export default async function DictionaryPage({
 
         {/* Filters */}
         <div className="order-1 lg:order-2">
-          <FilterPanel
-            topics={topics ?? []}
-            levels={levels ?? []}
-            ageGroups={ageGroups ?? []}
-            locations={locations ?? []}
-            movements={movements ?? []}
-            handshapes={handshapes ?? []}
-          />
+          <FilterPanel topics={topics ?? []} levels={levels ?? []} ageGroups={ageGroups ?? []} />
         </div>
       </div>
     </main>

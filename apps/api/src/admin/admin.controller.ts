@@ -75,7 +75,7 @@ export class AdminController {
     return this.admin.bulkImport(dto, user.id);
   }
 
-  // ── Direct word management ──
+  //ҮГ
 
   @Get('words')
   @ApiOperation({ summary: 'List words for admin management' })
@@ -111,7 +111,7 @@ export class AdminController {
     return this.admin.deleteWord(id, user.id);
   }
 
-  // ── Submission review ──
+  //Үг оруулах
 
   @Get('submissions')
   @ApiOperation({ summary: 'Submission review queue' })

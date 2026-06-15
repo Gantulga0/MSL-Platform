@@ -32,11 +32,11 @@ export class ImportWordDto {
   @MaxLength(120)
   lemma!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Optional text definition' })
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(2000)
-  definition!: string;
+  definition?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -48,6 +48,18 @@ export class ImportWordDto {
   @IsOptional()
   @IsString()
   topicSlug?: string;
+
+  // Required for every word, but kept optional at the DTO layer so a single bad
+  // row yields a per-row error instead of rejecting the whole batch. The service
+  // enforces presence + URL validity (Г).
+  @ApiProperty({
+    description: 'URL of a pre-uploaded sign video to attach to the word (required)',
+    example: 'https://cdn.example.com/signs/eej.mp4',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  videoUrl?: string;
 }
 
 export class BulkImportDto {
@@ -55,7 +67,13 @@ export class BulkImportDto {
   @IsIn(['pending', 'approved'])
   status!: 'pending' | 'approved';
 
-  @ApiProperty({ type: [ImportWordDto] })
+  @ApiProperty({
+    type: [ImportWordDto],
+    example: [
+      { lemma: 'Ээж', topicSlug: 'family', videoUrl: 'https://cdn.example.com/signs/eej.mp4' },
+      { lemma: 'Аав', topicSlug: 'family', videoUrl: 'https://cdn.example.com/signs/aav.mp4' },
+    ],
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ImportWordDto)
@@ -90,11 +108,11 @@ export class CreateWordDto {
   @MaxLength(120)
   lemma!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Optional text definition' })
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(2000)
-  definition!: string;
+  definition?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -116,10 +134,14 @@ export class CreateWordDto {
   @IsUUID()
   ageGroupId?: string;
 
-  @ApiPropertyOptional({ description: 'Handshape id' })
+  @ApiPropertyOptional({
+    description: 'Ids of pre-uploaded media (e.g. the sign video) to attach to the word',
+    type: [String],
+  })
   @IsOptional()
-  @IsUUID()
-  handshapeId?: string;
+  @IsArray()
+  @IsUUID('all', { each: true })
+  mediaIds?: string[];
 
   @ApiPropertyOptional({ description: 'Number of hands (1 or 2)', enum: [1, 2] })
   @IsOptional()
@@ -167,11 +189,6 @@ export class UpdateWordDto {
   @IsOptional()
   @IsUUID()
   ageGroupId?: string | null;
-
-  @ApiPropertyOptional({ description: 'Handshape id' })
-  @IsOptional()
-  @IsUUID()
-  handshapeId?: string | null;
 
   @ApiPropertyOptional({ description: 'Number of hands (1 or 2)', enum: [1, 2] })
   @IsOptional()

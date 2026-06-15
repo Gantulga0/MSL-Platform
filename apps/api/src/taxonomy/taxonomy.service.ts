@@ -1,18 +1,14 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { AgeGroup, Handshape, Level, SignLocation, SignMovement, Topic } from '@prisma/client';
+import type { AgeGroup, Handedness, Level, Topic } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   CreateAgeGroupDto,
-  CreateHandshapeDto,
+  CreateHandednessDto,
   CreateLevelDto,
-  CreateSignLocationDto,
-  CreateSignMovementDto,
   CreateTopicDto,
   UpdateAgeGroupDto,
-  UpdateHandshapeDto,
+  UpdateHandednessDto,
   UpdateLevelDto,
-  UpdateSignLocationDto,
-  UpdateSignMovementDto,
   UpdateTopicDto,
 } from './dto';
 
@@ -158,66 +154,30 @@ export class TaxonomyService {
     return { id };
   }
 
-  listSignLocations(): Promise<SignLocation[]> {
-    return this.prisma.signLocation.findMany({ orderBy: { sortOrder: 'asc' } });
+  listHandednesses(): Promise<Handedness[]> {
+    return this.prisma.handedness.findMany({ orderBy: { sortOrder: 'asc' } });
   }
 
-  createSignLocation(dto: CreateSignLocationDto): Promise<SignLocation> {
-    return this.prisma.signLocation.create({
-      data: { code: dto.code, label: dto.label, sortOrder: dto.sortOrder ?? 0 },
+  createHandedness(dto: CreateHandednessDto): Promise<Handedness> {
+    return this.prisma.handedness.create({
+      data: {
+        code: dto.code,
+        label: dto.label,
+        handCount: dto.handCount,
+        imageUrl: dto.imageUrl ?? null,
+        sortOrder: dto.sortOrder ?? 0,
+      },
     });
   }
 
-  async updateSignLocation(id: string, dto: UpdateSignLocationDto): Promise<SignLocation> {
-    await this.ensure(this.prisma.signLocation.findUnique({ where: { id } }), 'Sign location');
-    return this.prisma.signLocation.update({ where: { id }, data: dto });
+  async updateHandedness(id: string, dto: UpdateHandednessDto): Promise<Handedness> {
+    await this.ensure(this.prisma.handedness.findUnique({ where: { id } }), 'Handedness');
+    return this.prisma.handedness.update({ where: { id }, data: dto });
   }
 
-  async deleteSignLocation(id: string): Promise<{ id: string }> {
-    await this.ensure(this.prisma.signLocation.findUnique({ where: { id } }), 'Sign location');
-    await this.prisma.signLocation.delete({ where: { id } });
-    return { id };
-  }
-
-  listSignMovements(): Promise<SignMovement[]> {
-    return this.prisma.signMovement.findMany({ orderBy: { sortOrder: 'asc' } });
-  }
-
-  createSignMovement(dto: CreateSignMovementDto): Promise<SignMovement> {
-    return this.prisma.signMovement.create({
-      data: { code: dto.code, label: dto.label, sortOrder: dto.sortOrder ?? 0 },
-    });
-  }
-
-  async updateSignMovement(id: string, dto: UpdateSignMovementDto): Promise<SignMovement> {
-    await this.ensure(this.prisma.signMovement.findUnique({ where: { id } }), 'Sign movement');
-    return this.prisma.signMovement.update({ where: { id }, data: dto });
-  }
-
-  async deleteSignMovement(id: string): Promise<{ id: string }> {
-    await this.ensure(this.prisma.signMovement.findUnique({ where: { id } }), 'Sign movement');
-    await this.prisma.signMovement.delete({ where: { id } });
-    return { id };
-  }
-
-  listHandshapes(): Promise<Handshape[]> {
-    return this.prisma.handshape.findMany({ orderBy: { sortOrder: 'asc' } });
-  }
-
-  createHandshape(dto: CreateHandshapeDto): Promise<Handshape> {
-    return this.prisma.handshape.create({
-      data: { code: dto.code, label: dto.label, sortOrder: dto.sortOrder ?? 0 },
-    });
-  }
-
-  async updateHandshape(id: string, dto: UpdateHandshapeDto): Promise<Handshape> {
-    await this.ensure(this.prisma.handshape.findUnique({ where: { id } }), 'Handshape');
-    return this.prisma.handshape.update({ where: { id }, data: dto });
-  }
-
-  async deleteHandshape(id: string): Promise<{ id: string }> {
-    await this.ensure(this.prisma.handshape.findUnique({ where: { id } }), 'Handshape');
-    await this.prisma.handshape.delete({ where: { id } });
+  async deleteHandedness(id: string): Promise<{ id: string }> {
+    await this.ensure(this.prisma.handedness.findUnique({ where: { id } }), 'Handedness');
+    await this.prisma.handedness.delete({ where: { id } });
     return { id };
   }
 

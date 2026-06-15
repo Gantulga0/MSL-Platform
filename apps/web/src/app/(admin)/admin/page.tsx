@@ -26,12 +26,12 @@ export default async function AdminDashboardPage(): Promise<React.ReactElement> 
     { label: translate('admin.dash.activeUsers'), value: d.activeUsers ?? 0, tone: 'text-fg' },
     { label: translate('admin.dash.gameSessions'), value: d.gameSessions ?? 0, tone: 'text-fg' },
     { label: translate('admin.dash.approvedPercent'), value: r.approvedPercent ?? 0, tone: 'text-primary' },
-    { label: translate('admin.dash.totalViews'), value: r.totalWordViews ?? 0, tone: 'text-fg' },
   ];
 
   const links: { href: Route; label: string }[] = [
     { href: '/admin/submissions' as Route, label: translate('nav.review') },
     { href: '/admin/words' as Route, label: translate('nav.words') },
+    { href: '/admin/options' as Route, label: translate('admin.options.title') },
     { href: '/admin/users' as Route, label: translate('nav.users') },
     { href: '/admin/topics' as Route, label: translate('nav.topics') },
     { href: '/admin/settings' as Route, label: translate('nav.systemSettings') },

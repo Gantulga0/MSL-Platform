@@ -25,21 +25,6 @@ export class WordsQueryDto extends PaginationQueryDto {
   @IsUUID()
   age?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by sign-location id' })
-  @IsOptional()
-  @IsUUID()
-  location?: string;
-
-  @ApiPropertyOptional({ description: 'Filter by sign-movement id' })
-  @IsOptional()
-  @IsUUID()
-  movement?: string;
-
-  @ApiPropertyOptional({ description: 'Filter by handshape id' })
-  @IsOptional()
-  @IsUUID()
-  handshape?: string;
-
   @ApiPropertyOptional({ description: 'Filter by number of hands (1 or 2)', enum: [1, 2] })
   @IsOptional()
   @Type(() => Number)

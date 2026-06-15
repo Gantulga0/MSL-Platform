@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { isURL } from 'class-validator';
 import type { Paginated } from '@msl/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -15,6 +16,11 @@ import type {
   RejectSubmissionDto,
 } from '../submissions/review.dto';
 import type { CreateWordDto, UpdateWordDto, AdminWordsQueryDto } from './dto';
+
+/** Best-effort MIME from a video URL's extension; defaults to mp4. */
+function mimeFromUrl(url: string): string {
+  return /\.webm(?:$|[?#])/i.test(url) ? 'video/webm' : 'video/mp4';
+}
 
 @Injectable()
 export class AdminService {
@@ -38,13 +44,12 @@ export class AdminService {
   }
 
   async reportsSummary(): Promise<Record<string, number>> {
-    const [totalSubmissions, approved, duplicates, rejected, viewsAgg, sessions] =
+    const [totalSubmissions, approved, duplicates, rejected, sessions] =
       await this.prisma.$transaction([
         this.prisma.submission.count(),
         this.prisma.submission.count({ where: { status: 'approved' } }),
         this.prisma.submission.count({ where: { status: 'duplicate' } }),
         this.prisma.submission.count({ where: { status: 'rejected' } }),
-        this.prisma.word.aggregate({ _sum: { viewCount: true } }),
         this.prisma.gameSession.count(),
       ]);
     const approvedPercent = totalSubmissions ? Math.round((approved / totalSubmissions) * 100) : 0;
@@ -54,7 +59,6 @@ export class AdminService {
       duplicates,
       rejected,
       approvedPercent,
-      totalWordViews: viewsAgg._sum.viewCount ?? 0,
       gameSessions: sessions,
     };
   }
@@ -126,7 +130,6 @@ export class AdminService {
           definition: true,
           exampleSentence: true,
           status: true,
-          viewCount: true,
           createdAt: true,
           topic: { select: { id: true, name: true } },
         },
@@ -141,16 +144,27 @@ export class AdminService {
 
   /** Direct word creation — bypasses submission flow. */
   async createWord(dto: CreateWordDto, actorId: string): Promise<{ id: string }> {
+    // Every word must have a sign video (FR-01 here): validate the uploaded media
+    // BEFORE creating the word so we never leave a videoless word behind.
+    const media = dto.mediaIds?.length
+      ? await this.prisma.mediaAsset.findMany({
+          where: { id: { in: dto.mediaIds }, ownerType: 'word', uploadedBy: actorId },
+          select: { id: true, type: true },
+        })
+      : [];
+    if (!media.some((m) => m.type === 'video')) {
+      throw new BadRequestException('A sign video is required to create a word');
+    }
+
     const word = await this.prisma.word.create({
       data: {
         lemma: dto.lemma,
         normalizedLemma: normalizeLemma(dto.lemma),
-        definition: dto.definition,
+        definition: dto.definition ?? null,
         exampleSentence: dto.exampleSentence ?? null,
         topicId: dto.topicId,
         levelId: dto.levelId ?? null,
         ageGroupId: dto.ageGroupId ?? null,
-        handshapeId: dto.handshapeId ?? null,
         handCount: dto.handCount ?? null,
         status: 'approved',
         source: dto.source ?? 'admin',
@@ -159,6 +173,15 @@ export class AdminService {
         approvedAt: new Date(),
       },
     });
+    // Re-parent the pre-uploaded media onto the new word — same MediaAsset
+    // relation the submission-approval flow uses.
+    for (const m of media) {
+      await this.prisma.mediaAsset.update({
+        where: { id: m.id },
+        data: { ownerId: word.id, publicUrl: `/api/v1/media/${m.id}/blob` },
+      });
+    }
+
     await this.audit.record({
       actorId,
       entityType: 'word',
@@ -186,9 +209,6 @@ export class AdminService {
     }
     if (dto.ageGroupId !== undefined) {
       data.ageGroup = dto.ageGroupId ? { connect: { id: dto.ageGroupId } } : { disconnect: true };
-    }
-    if (dto.handshapeId !== undefined) {
-      data.handshape = dto.handshapeId ? { connect: { id: dto.handshapeId } } : { disconnect: true };
     }
     if (dto.handCount !== undefined) data.handCount = dto.handCount;
     if (dto.status !== undefined) data.status = dto.status;
@@ -285,16 +305,25 @@ export class AdminService {
     reviewerId: string,
   ): Promise<{ wordId: string }> {
     const submission = await this.requireReviewable(id);
+
+    // The reviewer must classify the word fully before it can be approved (FR-04):
+    // topic, age, level, hand count, ≥1 handshape, position and movement.
     const topicId = dto.topicId ?? submission.topicId;
-    if (!topicId) throw new BadRequestException('A topic is required to approve this submission');
+    const levelId = dto.levelId ?? submission.levelId;
+    const ageGroupId = dto.ageGroupId ?? submission.ageGroupId;
+    const handCount = dto.handCount ?? submission.handCount ?? undefined;
+    const missing: string[] = [];
+    if (!topicId) missing.push('topic');
+    if (!ageGroupId) missing.push('ageGroup');
+    if (!levelId) missing.push('level');
+    if (!handCount) missing.push('handCount');
+    if (missing.length) {
+      throw new BadRequestException(`Missing required attributes: ${missing.join(', ')}`);
+    }
 
     const lemma = dto.lemma ?? submission.proposedLemma;
-    const definition = dto.definition ?? submission.proposedDefinition;
-    // Published words must carry a text definition (G-15) — the public submit
-    // form only collects a name + video, so the reviewer supplies it here.
-    if (!definition.trim()) {
-      throw new BadRequestException('A definition is required to approve this submission');
-    }
+    // Definition is optional everywhere now; store null when blank.
+    const definition = (dto.definition ?? submission.proposedDefinition)?.trim() || null;
     const normalizedLemma = normalizeLemma(lemma);
 
     const wordId = await this.prisma.$transaction(async (tx) => {
@@ -304,9 +333,10 @@ export class AdminService {
           normalizedLemma,
           definition,
           exampleSentence: dto.exampleSentence ?? submission.exampleSentence,
-          topicId,
-          levelId: dto.levelId ?? submission.levelId,
-          ageGroupId: dto.ageGroupId ?? submission.ageGroupId,
+          topicId: topicId as string,
+          levelId,
+          ageGroupId,
+          handCount,
           status: 'approved',
           source: 'submission',
           createdBy: submission.submittedBy,
@@ -332,6 +362,10 @@ export class AdminService {
       });
       await tx.review.create({
         data: { submissionId: id, reviewerId, action: 'approve', comment: dto.comment ?? null },
+      });
+      // The submission is decided — clear the admins' "review pending" notifications.
+      await tx.notification.deleteMany({
+        where: { type: 'review_pending', payload: { path: ['submissionId'], equals: id } },
       });
       await tx.notification.create({
         data: {
@@ -371,6 +405,10 @@ export class AdminService {
           payload: { submissionId: id, lemma: submission.proposedLemma, comment: dto.comment ?? null },
         },
       }),
+      // The submission is decided — clear the admins' "review pending" notifications.
+      this.prisma.notification.deleteMany({
+        where: { type: 'review_pending', payload: { path: ['submissionId'], equals: id } },
+      }),
     ]);
     await this.audit.record({
       actorId: reviewerId,
@@ -392,6 +430,7 @@ export class AdminService {
         ...(dto.topicId ? { topicId: dto.topicId } : {}),
         ...(dto.levelId !== undefined ? { levelId: dto.levelId } : {}),
         ...(dto.ageGroupId !== undefined ? { ageGroupId: dto.ageGroupId } : {}),
+        ...(dto.handCount !== undefined ? { handCount: dto.handCount } : {}),
       },
     });
     await this.prisma.review.create({
@@ -430,7 +469,16 @@ export class AdminService {
   }
 
   async bulkImport(
-    dto: { status: 'pending' | 'approved'; words: Array<{ lemma: string; definition: string; exampleSentence?: string; topicSlug?: string }> },
+    dto: {
+      status: 'pending' | 'approved';
+      words: Array<{
+        lemma: string;
+        definition?: string;
+        exampleSentence?: string;
+        topicSlug?: string;
+        videoUrl?: string;
+      }>;
+    },
     actorId: string,
   ): Promise<{ total: number; success: number; errors: { row: number; reason: string }[] }> {
     const errors: { row: number; reason: string }[] = [];
@@ -447,6 +495,14 @@ export class AdminService {
       select: { id: true },
     });
 
+    // Pre-load existing (topic + normalized lemma) pairs to flag duplicates (Г4).
+    const norms = [...new Set(dto.words.map((w) => normalizeLemma(w.lemma)))];
+    const existing = await this.prisma.word.findMany({
+      where: { normalizedLemma: { in: norms }, deletedAt: null },
+      select: { topicId: true, normalizedLemma: true },
+    });
+    const seen = new Set(existing.map((w) => `${w.topicId}::${w.normalizedLemma}`));
+
     for (let i = 0; i < dto.words.length; i++) {
       const w = dto.words[i];
       const topicId = (w.topicSlug && topicBySlug.get(w.topicSlug)) || fallback?.id;
@@ -454,20 +510,57 @@ export class AdminService {
         errors.push({ row: i + 1, reason: 'No topic available' });
         continue;
       }
+      // Every word must ship with a video — reject rows with no/invalid videoUrl.
+      if (!w.videoUrl) {
+        errors.push({ row: i + 1, reason: 'videoUrl required' });
+        continue;
+      }
+      if (!isURL(w.videoUrl, { require_protocol: true, require_tld: false })) {
+        errors.push({ row: i + 1, reason: 'invalid videoUrl' });
+        continue;
+      }
+      const normalizedLemma = normalizeLemma(w.lemma);
+      const key = `${topicId}::${normalizedLemma}`;
+      // Skip rows that collide with an existing word or an earlier row in this batch.
+      if (seen.has(key)) {
+        errors.push({ row: i + 1, reason: 'duplicate' });
+        continue;
+      }
       try {
-        await this.prisma.word.create({
-          data: {
-            lemma: w.lemma,
-            normalizedLemma: normalizeLemma(w.lemma),
-            definition: w.definition,
-            exampleSentence: w.exampleSentence ?? null,
-            topicId,
-            status: dto.status,
-            source: 'import',
-            createdBy: actorId,
-            ...(dto.status === 'approved' ? { approvedBy: actorId, approvedAt: new Date() } : {}),
-          },
+        // Word + its video are created together so a media failure rolls the word back.
+        await this.prisma.$transaction(async (tx) => {
+          const word = await tx.word.create({
+            data: {
+              lemma: w.lemma,
+              normalizedLemma,
+              definition: w.definition ?? null,
+              exampleSentence: w.exampleSentence ?? null,
+              topicId,
+              status: dto.status,
+              source: 'import',
+              createdBy: actorId,
+              ...(dto.status === 'approved' ? { approvedBy: actorId, approvedAt: new Date() } : {}),
+            },
+          });
+          // Attach the pre-uploaded video by reference, same word↔media relation
+          // as the single-word flow (MediaAsset, ownerType='word').
+          if (w.videoUrl) {
+            await tx.mediaAsset.create({
+              data: {
+                ownerType: 'word',
+                ownerId: word.id,
+                type: 'video',
+                storageProvider: 'external',
+                storageKey: w.videoUrl,
+                publicUrl: w.videoUrl,
+                mime: mimeFromUrl(w.videoUrl),
+                sizeBytes: 0,
+                uploadedBy: actorId,
+              },
+            });
+          }
         });
+        seen.add(key);
         success++;
       } catch (e) {
         errors.push({ row: i + 1, reason: (e as Error).message });

@@ -8,6 +8,6 @@ import { ConsentsController } from './consents.controller';
 @Module({
   controllers: [MediaController, ConsentsController],
   providers: [MediaService, StorageService],
-  exports: [MediaService],
+  exports: [MediaService, StorageService],
 })
 export class MediaModule {}

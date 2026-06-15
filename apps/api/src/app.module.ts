@@ -14,6 +14,7 @@ import { TaxonomyModule } from './taxonomy/taxonomy.module';
 import { WordsModule } from './words/words.module';
 import { MediaModule } from './media/media.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { AdminModule } from './admin/admin.module';
 
 @Module({
@@ -39,6 +40,7 @@ import { AdminModule } from './admin/admin.module';
     WordsModule,
     MediaModule,
     SubmissionsModule,
+    NotificationsModule,
     AdminModule,
   ],
   providers: [

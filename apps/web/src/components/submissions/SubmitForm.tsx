@@ -13,17 +13,34 @@ import {
   type CheckResult,
   type SubmitResult,
 } from '@/lib/submissions/actions';
+import { TopicSelect } from '@/components/admin/TopicSelect';
+import { ImagePicker, type PickerOption } from '@/components/admin/ImagePicker';
+import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 import { VideoCapture } from './VideoCapture';
 
 /** Mongolian Cyrillic only (mirrors the API CYRILLIC_LEMMA_PATTERN). */
 const CYRILLIC_PATTERN = /^[А-Яа-яЁёӨөҮү\s-]+$/u;
 
+const selectCls =
+  'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
+
 interface Props {
   isAuthenticated: boolean;
+  topics: TopicNode[];
+  ageGroups: TaxoRef[];
+  handednesses: TaxoRef[];
 }
 
-export function SubmitForm({ isAuthenticated }: Props): React.ReactElement {
+export function SubmitForm({
+  isAuthenticated,
+  topics,
+  ageGroups,
+  handednesses,
+}: Props): React.ReactElement {
   const [lemma, setLemma] = useState('');
+  const [topicId, setTopicId] = useState('');
+  const [ageGroupId, setAgeGroupId] = useState('');
+  const [handCount, setHandCount] = useState('');
   const [video, setVideo] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [hint, setHint] = useState<CheckResult | null>(null);
@@ -32,7 +49,15 @@ export function SubmitForm({ isAuthenticated }: Props): React.ReactElement {
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
+  const [showFieldErrors, setShowFieldErrors] = useState(false);
+
   const lemmaInvalid = lemma.trim().length > 0 && !CYRILLIC_PATTERN.test(lemma.trim());
+
+  const handCountOptions: PickerOption[] = handednesses.map((h) => ({
+    id: String(h.handCount ?? ''),
+    label: h.label ?? '',
+    imageUrl: h.imageUrl,
+  }));
 
   useEffect(() => {
     const term = lemma.trim();
@@ -86,6 +111,21 @@ export function SubmitForm({ isAuthenticated }: Props): React.ReactElement {
       setError(t('submit.lemmaInvalid'));
       return;
     }
+    if (!topicId) {
+      setShowFieldErrors(true);
+      setError(t('submit.topicRequired'));
+      return;
+    }
+    if (!ageGroupId) {
+      setShowFieldErrors(true);
+      setError(t('submit.ageRequired'));
+      return;
+    }
+    if (!handCount) {
+      setShowFieldErrors(true);
+      setError(t('submit.handsRequired'));
+      return;
+    }
     if (!video) {
       setError(t('submit.videoRequired'));
       return;
@@ -97,6 +137,9 @@ export function SubmitForm({ isAuthenticated }: Props): React.ReactElement {
     setError(undefined);
     const fd = new FormData();
     fd.set('proposedLemma', lemma.trim());
+    fd.set('topicId', topicId);
+    fd.set('ageGroupId', ageGroupId);
+    fd.set('handCount', handCount);
     fd.set('file', video);
     fd.set('consent', 'on');
     start(async () => {
@@ -149,6 +192,56 @@ export function SubmitForm({ isAuthenticated }: Props): React.ReactElement {
           </div>
         </div>
       )}
+
+      <Field label={t('submit.topic')} required>
+        <TopicSelect
+          name="topicId"
+          topics={topics}
+          value={topicId}
+          onChange={setTopicId}
+          required
+          ariaLabel={t('submit.topic')}
+          placeholder={t('submit.selectTopic')}
+        />
+      </Field>
+
+      <Field
+        label={t('submit.age')}
+        required
+        error={showFieldErrors && !ageGroupId ? t('submit.ageRequired') : undefined}
+      >
+        <select
+          name="ageGroupId"
+          className={selectCls}
+          required
+          value={ageGroupId}
+          onChange={(e) => setAgeGroupId(e.target.value)}
+          aria-label={t('submit.age')}
+        >
+          <option value="" disabled>
+            {t('submit.selectAge')}
+          </option>
+          {ageGroups.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+
+      <Field
+        label={t('dict.hands')}
+        required
+        error={showFieldErrors && !handCount ? t('submit.handsRequired') : undefined}
+      >
+        <ImagePicker
+          name="handCount"
+          options={handCountOptions}
+          columns={2}
+          imageOnly
+          onChange={(ids) => setHandCount(ids[0] ?? '')}
+        />
+      </Field>
 
       <Field label={t('submit.video')} required>
         {isAuthenticated ? (

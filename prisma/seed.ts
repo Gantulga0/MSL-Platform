@@ -1,7 +1,50 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
+
+// Option images live in the SAME storage as videos (apps/api/storage), under
+// options/<kind>/. The API serves them at /api/v1/options/images/<kind>/<file>.
+const API_DIR = resolve(__dirname, '..', 'apps', 'api');
+const STORAGE_DIR = resolve(API_DIR, process.env.STORAGE_LOCAL_DIR ?? './storage');
+const SEED_IMAGES_DIR = resolve(API_DIR, 'seed', 'option-images');
+const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'svg'] as const;
+
+/** Minimal labelled SVG placeholder used when no real artwork is supplied. */
+function placeholderSvg(label: string, kind: string): Buffer {
+  const hue = [...kind].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <rect width="160" height="160" rx="16" fill="hsl(${hue} 50% 90%)"/>
+  <text x="80" y="86" font-family="sans-serif" font-size="16" fill="hsl(${hue} 40% 30%)" text-anchor="middle">${label}</text>
+</svg>`;
+  return Buffer.from(svg, 'utf8');
+}
+
+/**
+ * Copy a known option image into storage (or generate a placeholder), returning
+ * the public imageUrl. Real artwork dropped at
+ * apps/api/seed/option-images/<kind>/<code>.<ext> takes precedence.
+ */
+function materializeOptionImage(kind: string, code: string, label: string): string {
+  let ext = 'svg';
+  let bytes: Buffer | null = null;
+  for (const e of IMAGE_EXTS) {
+    const src = resolve(SEED_IMAGES_DIR, kind, `${code}.${e}`);
+    if (existsSync(src)) {
+      ext = e;
+      bytes = readFileSync(src);
+      break;
+    }
+  }
+  if (!bytes) bytes = placeholderSvg(label, kind);
+
+  const destDir = resolve(STORAGE_DIR, 'options', kind);
+  mkdirSync(destDir, { recursive: true });
+  writeFileSync(resolve(destDir, `${code}.${ext}`), bytes);
+  return `/api/v1/options/images/${kind}/${code}.${ext}`;
+}
 
 async function seedLevels(): Promise<void> {
   const levels = [
@@ -27,58 +70,14 @@ async function seedAgeGroups(): Promise<void> {
   }
 }
 
-async function seedSignLocations(): Promise<void> {
-  const locations = [
-    { code: 'neutral', label: 'Саармаг орон зай', sortOrder: 1 },
-    { code: 'head', label: 'Толгой', sortOrder: 2 },
-    { code: 'face', label: 'Нүүр', sortOrder: 3 },
-    { code: 'mouth', label: 'Ам', sortOrder: 4 },
-    { code: 'eye', label: 'Нүд', sortOrder: 5 },
-    { code: 'ear', label: 'Чих', sortOrder: 6 },
-    { code: 'neck', label: 'Хүзүү', sortOrder: 7 },
-    { code: 'chest', label: 'Цээж', sortOrder: 8 },
-    { code: 'shoulder', label: 'Мөр', sortOrder: 9 },
-    { code: 'arm', label: 'Шуу', sortOrder: 10 },
-    { code: 'hand', label: 'Алга', sortOrder: 11 },
+async function seedHandedness(): Promise<void> {
+  const items = [
+    { code: 'one', label: 'Нэг гар', handCount: 1, sortOrder: 1 },
+    { code: 'two', label: 'Хоёр гар', handCount: 2, sortOrder: 2 },
   ];
-  for (const loc of locations) {
-    await prisma.signLocation.upsert({ where: { code: loc.code }, update: loc, create: loc });
-  }
-}
-
-async function seedSignMovements(): Promise<void> {
-  const movements = [
-    { code: 'none', label: 'Хөдөлгөөнгүй', sortOrder: 1 },
-    { code: 'straight', label: 'Шулуун', sortOrder: 2 },
-    { code: 'circular', label: 'Тойрог', sortOrder: 3 },
-    { code: 'up-down', label: 'Дээш доош', sortOrder: 4 },
-    { code: 'sideways', label: 'Хажуу тийш', sortOrder: 5 },
-    { code: 'forward', label: 'Урагш', sortOrder: 6 },
-    { code: 'tap', label: 'Товших', sortOrder: 7 },
-    { code: 'wiggle', label: 'Хуруу хөдөлгөх', sortOrder: 8 },
-    { code: 'open-close', label: 'Нээх хаах', sortOrder: 9 },
-    { code: 'repeated', label: 'Давтагдах', sortOrder: 10 },
-  ];
-  for (const mov of movements) {
-    await prisma.signMovement.upsert({ where: { code: mov.code }, update: mov, create: mov });
-  }
-}
-
-async function seedHandshapes(): Promise<void> {
-  const handshapes = [
-    { code: 'flat', label: 'Алга дэлгэсэн', sortOrder: 1 },
-    { code: 'fist', label: 'Нударга', sortOrder: 2 },
-    { code: 'index', label: 'Заасан хуруу', sortOrder: 3 },
-    { code: 'thumb', label: 'Эрхий хуруу', sortOrder: 4 },
-    { code: 'c-shape', label: 'C хэлбэр', sortOrder: 5 },
-    { code: 'o-shape', label: 'O хэлбэр', sortOrder: 6 },
-    { code: 'v-shape', label: 'V хэлбэр (хоёр хуруу)', sortOrder: 7 },
-    { code: 'spread', label: 'Хуруу дэлгэсэн', sortOrder: 8 },
-    { code: 'pinch', label: 'Чимхсэн', sortOrder: 9 },
-    { code: 'hook', label: 'Дэгээ', sortOrder: 10 },
-  ];
-  for (const hs of handshapes) {
-    await prisma.handshape.upsert({ where: { code: hs.code }, update: hs, create: hs });
+  for (const h of items) {
+    const data = { ...h, imageUrl: materializeOptionImage('handedness', h.code, h.label) };
+    await prisma.handedness.upsert({ where: { code: h.code }, update: data, create: data });
   }
 }
 
@@ -195,9 +194,7 @@ async function seedSettings(): Promise<void> {
 async function main(): Promise<void> {
   await seedLevels();
   await seedAgeGroups();
-  await seedSignLocations();
-  await seedSignMovements();
-  await seedHandshapes();
+  await seedHandedness();
   await seedTopics();
   await seedAdmin();
   await seedSettings();

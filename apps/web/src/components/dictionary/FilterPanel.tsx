@@ -7,18 +7,14 @@ import { SlidersHorizontal } from 'lucide-react';
 import { Button, Dialog, cn } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
-import { TopicTree } from './TopicTree';
 
 interface Props {
   topics: TopicNode[];
   levels: TaxoRef[];
   ageGroups: TaxoRef[];
-  locations: TaxoRef[];
-  movements: TaxoRef[];
-  handshapes: TaxoRef[];
 }
 
-const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'location', 'movement', 'handshape', 'hands'] as const;
+const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'hands'] as const;
 
 /** Flatten the topic tree into an indented, ordered list for a flat picker. */
 function flattenTopics(nodes: TopicNode[], depth = 0): Array<{ id: string; label: string }> {
@@ -33,17 +29,10 @@ function flattenTopics(nodes: TopicNode[], depth = 0): Array<{ id: string; label
 /**
  * Dictionary filters (FR-08, S-06). Sticky white card on desktop; an accessible
  * bottom-sheet drawer (Radix Dialog: focus-trap, Esc, scroll-lock) on mobile.
- * Search/topic/level/age/location/movement plus the one/two-hand and handshape
- * pickers are all live URL filters backed by the words API.
+ * Search/topic/level/age plus the one/two-hand picker are all live URL filters
+ * backed by the words API.
  */
-export function FilterPanel({
-  topics,
-  levels,
-  ageGroups,
-  locations,
-  movements,
-  handshapes,
-}: Props): React.ReactElement {
+export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactElement {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -68,9 +57,6 @@ export function FilterPanel({
       topics={topics}
       levels={levels}
       ageGroups={ageGroups}
-      locations={locations}
-      movements={movements}
-      handshapes={handshapes}
       params={params}
       setParam={setParam}
     />
@@ -135,9 +121,6 @@ function FilterSections({
   topics,
   levels,
   ageGroups,
-  locations,
-  movements,
-  handshapes,
   params,
   setParam,
 }: Props & {
@@ -153,7 +136,19 @@ function FilterSections({
   return (
     <div className="space-y-6">
       <Section title={t('dict.topics')}>
-        <TopicTree topics={topics} activeId={params.get('topic') ?? undefined} />
+        <select
+          className={selectCls}
+          aria-label={t('dict.topics')}
+          value={params.get('topic') ?? ''}
+          onChange={(e) => setParam('topic', e.target.value)}
+        >
+          <option value="">{t('dict.allTopics')}</option>
+          {flatTopics.map((tp) => (
+            <option key={tp.id} value={tp.id}>
+              {tp.label}
+            </option>
+          ))}
+        </select>
       </Section>
 
       <Section title={levelLabel}>
@@ -188,71 +183,7 @@ function FilterSections({
         </select>
       </Section>
 
-      <Section title={t('dict.location')}>
-        <select
-          className={selectCls}
-          aria-label={t('dict.location')}
-          value={params.get('location') ?? ''}
-          onChange={(e) => setParam('location', e.target.value)}
-        >
-          <option value="">{t('dict.allLocations')}</option>
-          {locations.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.label}
-            </option>
-          ))}
-        </select>
-      </Section>
-
-      <Section title={t('dict.movement')}>
-        <select
-          className={selectCls}
-          aria-label={t('dict.movement')}
-          value={params.get('movement') ?? ''}
-          onChange={(e) => setParam('movement', e.target.value)}
-        >
-          <option value="">{t('dict.allMovements')}</option>
-          {movements.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-      </Section>
-
-      <Section title={t('dict.usefulTopics')}>
-        <select
-          className={selectCls}
-          aria-label={t('dict.usefulTopics')}
-          value={params.get('topic') ?? ''}
-          onChange={(e) => setParam('topic', e.target.value)}
-        >
-          <option value="">{t('dict.allTopics')}</option>
-          {flatTopics.map((tp) => (
-            <option key={tp.id} value={tp.id}>
-              {tp.label}
-            </option>
-          ))}
-        </select>
-      </Section>
-
       <HandsToggle value={params.get('hands') ?? ''} setParam={setParam} />
-
-      <Section title={t('dict.handshape')}>
-        <select
-          className={selectCls}
-          aria-label={t('dict.handshape')}
-          value={params.get('handshape') ?? ''}
-          onChange={(e) => setParam('handshape', e.target.value)}
-        >
-          <option value="">{t('dict.allHandshapes')}</option>
-          {handshapes.map((h) => (
-            <option key={h.id} value={h.id}>
-              {h.label}
-            </option>
-          ))}
-        </select>
-      </Section>
     </div>
   );
 }

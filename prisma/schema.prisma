@@ -232,55 +232,32 @@ model AgeGroup {
   @@map("age_groups")
 }
 
-model SignLocation {
-  id        String @id @default(uuid())
-  code      String @unique
+/// One- vs two-handed sign, as an image-backed option. `handCount` maps the
+/// selection onto Word.handCount (1 or 2) so the existing dictionary filter is
+/// unchanged.
+model Handedness {
+  id        String  @id @default(uuid())
+  code      String  @unique
   label     String
-  sortOrder Int    @default(0) @map("sort_order")
+  imageUrl  String? @map("image_url")
+  handCount Int     @map("hand_count")
+  sortOrder Int     @default(0) @map("sort_order")
 
-  words Word[]
-
-  @@map("sign_locations")
-}
-
-model SignMovement {
-  id        String @id @default(uuid())
-  code      String @unique
-  label     String
-  sortOrder Int    @default(0) @map("sort_order")
-
-  words Word[]
-
-  @@map("sign_movements")
-}
-
-model Handshape {
-  id        String @id @default(uuid())
-  code      String @unique
-  label     String
-  sortOrder Int    @default(0) @map("sort_order")
-
-  words Word[]
-
-  @@map("handshapes")
+  @@map("handedness")
 }
 
 model Word {
   id              String     @id @default(uuid())
   lemma           String
   normalizedLemma String     @map("normalized_lemma")
-  definition      String
+  definition      String?
   exampleSentence String?    @map("example_sentence")
   topicId         String     @map("topic_id")
   levelId         String?    @map("level_id")
   ageGroupId      String?    @map("age_group_id")
-  locationId      String?    @map("location_id")
-  movementId      String?    @map("movement_id")
-  handshapeId     String?    @map("handshape_id")
   handCount       Int?       @map("hand_count")
   status          WordStatus @default(pending)
   source          String?
-  viewCount       Int        @default(0) @map("view_count")
   createdBy       String     @map("created_by")
   approvedBy      String?    @map("approved_by")
   approvedAt      DateTime?  @map("approved_at")
@@ -288,14 +265,11 @@ model Word {
   updatedAt       DateTime   @updatedAt @map("updated_at")
   deletedAt       DateTime?  @map("deleted_at")
 
-  topic     Topic         @relation(fields: [topicId], references: [id])
-  level     Level?        @relation(fields: [levelId], references: [id])
-  ageGroup  AgeGroup?     @relation(fields: [ageGroupId], references: [id])
-  location  SignLocation? @relation(fields: [locationId], references: [id])
-  movement  SignMovement? @relation(fields: [movementId], references: [id])
-  handshape Handshape?    @relation(fields: [handshapeId], references: [id])
-  creator   User          @relation("WordCreatedBy", fields: [createdBy], references: [id])
-  approver  User?         @relation("WordApprovedBy", fields: [approvedBy], references: [id])
+  topic    Topic     @relation(fields: [topicId], references: [id])
+  level    Level?    @relation(fields: [levelId], references: [id])
+  ageGroup AgeGroup? @relation(fields: [ageGroupId], references: [id])
+  creator  User      @relation("WordCreatedBy", fields: [createdBy], references: [id])
+  approver User?     @relation("WordApprovedBy", fields: [approvedBy], references: [id])
 
   variants        WordVariant[]
   progress        UserWordProgress[]
@@ -308,9 +282,6 @@ model Word {
   @@index([normalizedLemma, topicId])
   @@index([status])
   @@index([topicId])
-  @@index([locationId])
-  @@index([movementId])
-  @@index([handshapeId])
   @@index([handCount])
   @@map("words")
 }
@@ -366,6 +337,7 @@ model Submission {
   topicId            String?          @map("topic_id")
   levelId            String?          @map("level_id")
   ageGroupId         String?          @map("age_group_id")
+  handCount          Int?             @map("hand_count")
   status             SubmissionStatus @default(pending)
   duplicateOfWordId  String?          @map("duplicate_of_word_id")
   resultingWordId    String?          @map("resulting_word_id")

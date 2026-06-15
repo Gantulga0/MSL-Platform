@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import type { Paginated } from '@msl/types';
@@ -80,6 +80,10 @@ export class SubmissionsService {
     dto: CreateSubmissionDto,
     userId: string,
   ): Promise<{ submission: unknown; duplicate: boolean; existingWord?: unknown }> {
+    // Every suggested word must come with a sign video (FR-01).
+    if (!dto.mediaIds?.length) {
+      throw new BadRequestException('A sign video is required');
+    }
     const norm = normalizeLemma(dto.proposedLemma);
 
     const submission = await this.prisma.submission.create({
@@ -89,9 +93,10 @@ export class SubmissionsService {
         normalizedLemma: norm,
         proposedDefinition: dto.proposedDefinition ?? '',
         exampleSentence: dto.exampleSentence ?? null,
-        topicId: dto.topicId ?? null,
+        topicId: dto.topicId,
         levelId: dto.levelId ?? null,
         ageGroupId: dto.ageGroupId ?? null,
+        handCount: dto.handCount,
         status: 'pending',
       },
     });
