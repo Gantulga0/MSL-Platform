@@ -3,10 +3,11 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { Badge, Card, CardBody, VideoPlayer } from '@msl/ui';
 import { translate } from '@/i18n';
 import { apiGetSafe } from '@/lib/api/server';
 import type { WordDetail } from '@/lib/dictionary/types';
+import { SignPlayer } from '@/components/dictionary/SignPlayer';
+import { WordDetailTabs } from '@/components/dictionary/WordDetailTabs';
 
 export const metadata: Metadata = { title: 'Үг' };
 
@@ -31,8 +32,17 @@ export default async function WordDetailPage({
     ...(word.handedness ? [{ ...word.handedness, group: translate('dict.hands') }] : []),
   ].filter((a) => a.imageUrl);
 
+  // The primary variant's region badges the player (if any).
+  const primaryVariant = word.variants.find((v) => v.isPrimary) ?? word.variants[0];
+  const handLabel =
+    word.handCount === 1
+      ? translate('dict.handsOne')
+      : word.handCount === 2
+        ? translate('dict.handsTwo')
+        : null;
+
   return (
-    <main id="main" className="mx-auto max-w-3xl px-4 py-8">
+    <main id="main" className="mx-auto max-w-6xl px-4 py-8">
       <Link
         href={'/dictionary' as Route}
         className="mb-4 inline-flex min-h-touch items-center gap-1 rounded-full px-3 text-sm font-semibold text-accent-ink hover:bg-surface-muted"
@@ -41,104 +51,40 @@ export default async function WordDetailPage({
         {translate('dict.back')}
       </Link>
 
-      <header className="mb-4 flex flex-wrap items-center gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-fg">{word.lemma}</h1>
-        {word.level && <Badge tone="info">{word.level.label}</Badge>}
-        {word.ageGroup && <Badge tone="neutral">{word.ageGroup.label}</Badge>}
-      </header>
-
-      {/* CATEGORY (parent topic) + TAG (child subtopic). */}
-      {category && (
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-fg-muted">{translate('dict.category')}:</span>
-          <Badge tone="info">{category}</Badge>
-          {tag && <Badge tone="neutral">#{tag}</Badge>}
-        </div>
-      )}
-
-      {/* Deaf-first: video is primary, but text is always present (G-15). */}
-      <div className="mb-6">
-        {video?.publicUrl ? (
-          <VideoPlayer
-            src={video.publicUrl}
+      {/* Split: player on the LEFT, info + tabs on the RIGHT (G-15: text always present). */}
+      <div className="glass grid gap-5 p-3.5 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
+        <div className="relative z-[6]">
+          <SignPlayer
+            src={video?.publicUrl ?? null}
             poster={poster}
             label={`${word.lemma} — ${translate('dict.video')}`}
-            loop
-            captionsLabels={{ show: translate('ds.captionsShow'), hide: translate('ds.captionsHide') }}
+            region={primaryVariant?.region ?? null}
           />
-        ) : (
-          <Card>
-            <CardBody>
-              <p className="text-fg-muted">🎬 {translate('dict.noMedia')}</p>
-            </CardBody>
-          </Card>
-        )}
+        </div>
+
+        <div className="relative z-[6] flex flex-col px-1 pb-2 pt-1">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-fg">{word.lemma}</h1>
+
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {category && <span className="tagm tagm-topic">{category}</span>}
+            {tag && <span className="tagm">#{tag}</span>}
+            {handLabel && <span className="tagm">{handLabel}</span>}
+            {word.level && <span className="tagm tagm-level">{word.level.label}</span>}
+            {word.ageGroup && <span className="tagm">{word.ageGroup.label}</span>}
+          </div>
+
+          {!video?.publicUrl && !word.definition && !word.exampleSentence && (
+            <p className="mt-4 text-fg-muted">🎬 {translate('dict.noMedia')}</p>
+          )}
+
+          <WordDetailTabs
+            definition={word.definition}
+            exampleSentence={word.exampleSentence}
+            variants={word.variants}
+            attributes={attributes}
+          />
+        </div>
       </div>
-
-      {word.definition && (
-        <section aria-labelledby="def-h" className="mb-6">
-          <h2 id="def-h" className="mb-1 text-lg font-semibold text-fg">
-            {translate('dict.definition')}
-          </h2>
-          <p className="text-fg">{word.definition}</p>
-        </section>
-      )}
-
-      {word.exampleSentence && (
-        <section aria-labelledby="ex-h" className="mb-6">
-          <h2 id="ex-h" className="mb-1 text-lg font-semibold text-fg">
-            {translate('dict.example')}
-          </h2>
-          <p className="text-fg-muted">{word.exampleSentence}</p>
-        </section>
-      )}
-
-      {attributes.length > 0 && (
-        <section aria-labelledby="attr-h" className="mb-6">
-          <h2 id="attr-h" className="mb-2 text-lg font-semibold text-fg">
-            {translate('dict.attributes')}
-          </h2>
-          <ul className="flex flex-wrap gap-3">
-            {attributes.map((a, i) => (
-              <li
-                key={`${a.id}-${i}`}
-                className="flex w-24 flex-col items-center gap-1 rounded-lg border border-border bg-surface p-2 text-center"
-              >
-                <span className="flex h-16 w-full items-center justify-center overflow-hidden rounded-md bg-surface-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={a.imageUrl ?? ''} alt={a.label ?? ''} className="h-full w-full object-contain" />
-                </span>
-                <span className="text-[11px] leading-tight text-fg-subtle">{a.group}</span>
-                <span className="text-xs font-medium leading-tight text-fg">{a.label}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {word.variants.length > 0 && (
-        <section aria-labelledby="var-h">
-          <h2 id="var-h" className="mb-2 text-lg font-semibold text-fg">
-            {translate('dict.variants')}
-          </h2>
-          <ul className="space-y-2">
-            {word.variants.map((v) => (
-              <li key={v.id}>
-                <Card>
-                  <CardBody>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-fg">{v.label}</span>
-                      {v.isPrimary && <Badge tone="success">{translate('ds.variant')}</Badge>}
-                      {v.region && <span className="text-sm text-fg-subtle">{v.region}</span>}
-                    </div>
-                    {v.description && <p className="mt-1 text-fg-muted">{v.description}</p>}
-                  </CardBody>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   );
 }

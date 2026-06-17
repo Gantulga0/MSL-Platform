@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
@@ -11,6 +11,7 @@ import { logoutAction } from '@/lib/auth/actions';
 import { useAuthModal } from '@/components/auth/AuthModalProvider';
 import type { AuthView } from '@/components/auth/authModalTypes';
 import { NavDropdown } from '@/components/NavDropdown';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface NavItem {
   href: string;
@@ -52,6 +53,43 @@ export function AppShell({
   // Active when the path equals the item, or is nested under it (but '/' only on exact).
   const isActive = (href: string): boolean =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+  // A dropdown is active when its own path or any of its children match (children
+  // may live outside the parent's path, e.g. "Learn" → /alphabet, /number).
+  const isItemActive = (item: NavItem): boolean =>
+    isActive(item.href) || (item.children?.some((c) => isActive(c.href)) ?? false);
+
+  // ── Sliding glass nav pill (presentational) ────────────────────────────────
+  // The pill is positioned behind the active top-level desktop tab by reading
+  // that <li>'s offsetLeft/offsetWidth. Pure presentation — it does not change
+  // routing or which item is active (isItemActive above remains the source).
+  const listRef = useRef<HTMLUListElement>(null);
+  const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
+  const [pill, setPill] = useState<{ left: number; width: number; show: boolean }>({
+    left: 0,
+    width: 0,
+    show: false,
+  });
+
+  const measurePill = useCallback((): void => {
+    const activeIndex = navItems.findIndex((item) => isItemActive(item));
+    const el = activeIndex >= 0 ? itemRefs.current[activeIndex] : null;
+    if (!el) {
+      setPill((p) => (p.show ? { ...p, show: false } : p));
+      return;
+    }
+    setPill({ left: el.offsetLeft, width: el.offsetWidth, show: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navItems, pathname]);
+
+  // Re-measure on route change, viewport resize, and after web fonts settle
+  // (display font swap shifts tab widths).
+  useEffect(() => {
+    measurePill();
+    window.addEventListener('resize', measurePill);
+    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+    fonts?.ready?.then(measurePill).catch(() => undefined);
+    return () => window.removeEventListener('resize', measurePill);
+  }, [measurePill]);
 
   const logout = (
     <form action={logoutAction}>
@@ -69,10 +107,10 @@ export function AppShell({
   ];
 
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 z-30 border-b border-border bg-bg/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link href={'/' as Route} className="flex items-center gap-2 text-lg font-bold text-fg">
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-30 px-3 pt-3">
+        <div className="glass glass-nav mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
+          <Link href={'/' as Route} className="flex items-center gap-2 font-display text-lg font-extrabold text-fg">
             {/* <span aria-hidden className="text-2xl">
               🤟
             </span> */}
@@ -80,24 +118,46 @@ export function AppShell({
             <span>MSL</span>
           </Link>
 
-          <div className="hidden items-center gap-4 md:flex">
+          <div className="hidden items-center gap-3 md:flex">
             {/* Desktop nav */}
             <nav aria-label={translate(areaLabelKey)}>
-              <ul className="flex items-center gap-1">
-                {navItems.map((item) => {
-                  const active = isActive(item.href);
+              <ul ref={listRef} className="relative flex items-center gap-1">
+                {/* Sliding glass pill behind the active tab. */}
+                <span
+                  aria-hidden
+                  className="nav-pill"
+                  style={
+                    {
+                      '--px': `${pill.left}px`,
+                      '--pw': `${pill.width}px`,
+                      opacity: pill.show ? 1 : 0,
+                      zIndex: 0,
+                    } as React.CSSProperties
+                  }
+                />
+                {navItems.map((item, i) => {
+                  const active = isItemActive(item);
+                  // The pill supplies the active background, so the tab itself is
+                  // transparent; we only carry text weight/colour here.
                   const className = cn(
-                    'inline-flex min-h-touch items-center rounded-full px-4 text-base transition-colors',
+                    'inline-flex min-h-touch items-center rounded-[16px] px-4 text-base transition-colors',
                     active
-                      ? 'bg-surface-muted font-semibold text-fg'
+                      ? 'font-semibold text-fg'
                       : 'font-medium text-fg-muted hover:bg-surface-muted hover:text-fg',
                   );
                   return (
-                    <li key={item.href}>
+                    <li
+                      key={item.href}
+                      ref={(el) => {
+                        itemRefs.current[i] = el;
+                      }}
+                      className="relative z-10"
+                    >
                       {item.children ? (
                         <NavDropdown
                           label={translate(item.labelKey)}
                           active={active}
+                          triggerClassName={active ? 'bg-transparent hover:bg-transparent font-semibold text-fg' : undefined}
                           items={item.children.map((c) => ({
                             key: c.href,
                             label: translate(c.labelKey),
@@ -126,20 +186,22 @@ export function AppShell({
                 })}
               </ul>
             </nav>
+            <ThemeToggle />
             {user ? (
-              <div className="flex items-center gap-3 border-l border-border pl-4">
+              <div className="flex items-center gap-3 border-l border-border pl-3">
                 <span className="text-sm font-medium text-fg">{user.displayName}</span>
                 {logout}
               </div>
             ) : (
-              <div className="flex items-center border-l border-border pl-4">
+              <div className="flex items-center border-l border-border pl-3">
                 <NavDropdown label={translate('nav.register')} align="end" items={authItems} />
               </div>
             )}
           </div>
 
           {/* Mobile toggle */}
-          <div className="md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
             <IconButton
               label={menuOpen ? translate('common.close') : translate('common.openMenu')}
               icon={menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -156,11 +218,11 @@ export function AppShell({
           <nav
             id="mobile-nav"
             aria-label={translate(areaLabelKey)}
-            className="border-t border-border md:hidden"
+            className="glass mx-auto mt-2 max-w-7xl md:hidden"
           >
-            <ul className="mx-auto flex max-w-6xl flex-col px-4 py-2">
+            <ul className="flex flex-col px-3 py-2">
               {navItems.map((item) => {
-                const active = isActive(item.href);
+                const active = isItemActive(item);
                 const className = cn(
                   'flex min-h-touch items-center rounded-full px-4 text-base hover:bg-surface-muted',
                   active ? 'bg-surface-muted font-semibold text-fg' : 'font-medium text-fg',

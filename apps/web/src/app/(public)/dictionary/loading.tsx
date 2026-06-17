@@ -4,7 +4,7 @@ import { translate } from '@/i18n';
 /** Route-level loading state for the dictionary (NFR-01: SR status + skeletons). */
 export default function DictionaryLoading(): React.ReactElement {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
       <p role="status" aria-live="polite" className="sr-only">
         {translate('common.loading')}
       </p>

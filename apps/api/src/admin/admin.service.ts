@@ -1,13 +1,10 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { isURL } from 'class-validator';
 import type { Paginated } from '@msl/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { StorageService } from '../media/storage.service';
 import { paginate, toSkipTake } from '../common/dto/pagination.dto';
 import { normalizeLemma } from '../common/normalize';
 import type {
@@ -17,7 +14,6 @@ import type {
 } from '../submissions/review.dto';
 import type { CreateWordDto, UpdateWordDto, AdminWordsQueryDto } from './dto';
 
-/** Best-effort MIME from a video URL's extension; defaults to mp4. */
 function mimeFromUrl(url: string): string {
   return /\.webm(?:$|[?#])/i.test(url) ? 'video/webm' : 'video/mp4';
 }
@@ -27,7 +23,16 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly storage: StorageService,
   ) {}
+
+  private mediaPublicUrl(m: { id: string; storageProvider: string; storageKey: string }): string {
+    if (m.storageProvider === 'r2') {
+      const cdn = this.storage.publicUrl(m.storageKey);
+      if (cdn) return cdn;
+    }
+    return `/api/v1/media/${m.id}/blob`;
+  }
 
   async dashboard(): Promise<Record<string, number>> {
     const [totalWords, approvedWords, pending, duplicates, rejected, activeUsers, gameSessions] =
@@ -106,7 +111,6 @@ export class AdminService {
     return paginate(data, total, query.page, query.limit);
   }
 
-  /** Paginated word list for admin management. */
   async listWords(query: AdminWordsQueryDto): Promise<Paginated<unknown>> {
     const where: Prisma.WordWhereInput = {
       deletedAt: null,
@@ -142,14 +146,11 @@ export class AdminService {
     return paginate(data, total, query.page, query.limit);
   }
 
-  /** Direct word creation — bypasses submission flow. */
   async createWord(dto: CreateWordDto, actorId: string): Promise<{ id: string }> {
-    // Every word must have a sign video (FR-01 here): validate the uploaded media
-    // BEFORE creating the word so we never leave a videoless word behind.
     const media = dto.mediaIds?.length
       ? await this.prisma.mediaAsset.findMany({
           where: { id: { in: dto.mediaIds }, ownerType: 'word', uploadedBy: actorId },
-          select: { id: true, type: true },
+          select: { id: true, type: true, storageProvider: true, storageKey: true },
         })
       : [];
     if (!media.some((m) => m.type === 'video')) {
@@ -173,12 +174,11 @@ export class AdminService {
         approvedAt: new Date(),
       },
     });
-    // Re-parent the pre-uploaded media onto the new word — same MediaAsset
-    // relation the submission-approval flow uses.
+
     for (const m of media) {
       await this.prisma.mediaAsset.update({
         where: { id: m.id },
-        data: { ownerId: word.id, publicUrl: `/api/v1/media/${m.id}/blob` },
+        data: { ownerId: word.id, publicUrl: this.mediaPublicUrl(m) },
       });
     }
 
@@ -242,9 +242,10 @@ export class AdminService {
     return { id };
   }
 
-  /** Submission review queue, oldest-first. */
   async submissionQueue(status: string, page: number, limit: number): Promise<Paginated<unknown>> {
-    const where: Prisma.SubmissionWhereInput = { status: status as Prisma.SubmissionWhereInput['status'] };
+    const where: Prisma.SubmissionWhereInput = {
+      status: status as Prisma.SubmissionWhereInput['status'],
+    };
     const { skip, take } = toSkipTake(page, limit);
     const [data, total] = await this.prisma.$transaction([
       this.prisma.submission.findMany({
@@ -277,7 +278,12 @@ export class AdminService {
         ageGroup: { select: { id: true, label: true } },
         submitter: { select: { displayName: true, isMinor: true } },
         reviews: {
-          select: { action: true, comment: true, createdAt: true, reviewer: { select: { displayName: true } } },
+          select: {
+            action: true,
+            comment: true,
+            createdAt: true,
+            reviewer: { select: { displayName: true } },
+          },
           orderBy: { createdAt: 'desc' },
         },
         duplicateChecks: {
@@ -306,8 +312,6 @@ export class AdminService {
   ): Promise<{ wordId: string }> {
     const submission = await this.requireReviewable(id);
 
-    // The reviewer must classify the word fully before it can be approved (FR-04):
-    // topic, age, level, hand count, ≥1 handshape, position and movement.
     const topicId = dto.topicId ?? submission.topicId;
     const levelId = dto.levelId ?? submission.levelId;
     const ageGroupId = dto.ageGroupId ?? submission.ageGroupId;
@@ -322,7 +326,6 @@ export class AdminService {
     }
 
     const lemma = dto.lemma ?? submission.proposedLemma;
-    // Definition is optional everywhere now; store null when blank.
     const definition = (dto.definition ?? submission.proposedDefinition)?.trim() || null;
     const normalizedLemma = normalizeLemma(lemma);
 
@@ -347,12 +350,12 @@ export class AdminService {
 
       const media = await tx.mediaAsset.findMany({
         where: { ownerType: 'submission', ownerId: id },
-        select: { id: true },
+        select: { id: true, storageProvider: true, storageKey: true },
       });
       for (const m of media) {
         await tx.mediaAsset.update({
           where: { id: m.id },
-          data: { ownerType: 'word', ownerId: word.id, publicUrl: `/api/v1/media/${m.id}/blob` },
+          data: { ownerType: 'word', ownerId: word.id, publicUrl: this.mediaPublicUrl(m) },
         });
       }
 
@@ -402,7 +405,11 @@ export class AdminService {
         data: {
           userId: submission.submittedBy,
           type: 'rejected',
-          payload: { submissionId: id, lemma: submission.proposedLemma, comment: dto.comment ?? null },
+          payload: {
+            submissionId: id,
+            lemma: submission.proposedLemma,
+            comment: dto.comment ?? null,
+          },
         },
       }),
       // The submission is decided — clear the admins' "review pending" notifications.
@@ -419,12 +426,18 @@ export class AdminService {
     return { id };
   }
 
-  async editSubmission(id: string, dto: EditSubmissionDto, reviewerId: string): Promise<{ id: string }> {
+  async editSubmission(
+    id: string,
+    dto: EditSubmissionDto,
+    reviewerId: string,
+  ): Promise<{ id: string }> {
     const before = await this.requireReviewable(id);
     const after = await this.prisma.submission.update({
       where: { id },
       data: {
-        ...(dto.proposedLemma ? { proposedLemma: dto.proposedLemma, normalizedLemma: normalizeLemma(dto.proposedLemma) } : {}),
+        ...(dto.proposedLemma
+          ? { proposedLemma: dto.proposedLemma, normalizedLemma: normalizeLemma(dto.proposedLemma) }
+          : {}),
         ...(dto.proposedDefinition ? { proposedDefinition: dto.proposedDefinition } : {}),
         ...(dto.exampleSentence !== undefined ? { exampleSentence: dto.exampleSentence } : {}),
         ...(dto.topicId ? { topicId: dto.topicId } : {}),

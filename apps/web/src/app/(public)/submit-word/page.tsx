@@ -3,7 +3,7 @@ import { translate } from '@/i18n';
 import { SubmitForm } from '@/components/submissions/SubmitForm';
 import { AuthTrigger } from '@/components/auth/AuthTrigger';
 import { getSession } from '@/lib/auth/session';
-import { apiGetSafe } from '@/lib/api/server';
+import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
 export const metadata: Metadata = { title: 'Үг санал болгох' };
@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: 'Үг санал болгох' };
 export default async function SubmitWordPage(): Promise<React.ReactElement> {
   const [session, topics, ageGroups, handednesses] = await Promise.all([
     getSession(),
-    apiGetSafe<TopicNode[]>('/topics'),
-    apiGetSafe<TaxoRef[]>('/age-groups'),
-    apiGetSafe<TaxoRef[]>('/handedness'),
+    apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/handedness', TAXONOMY_READ),
   ]);
 
   return (

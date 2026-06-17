@@ -1,13 +1,9 @@
 import type { PrismaService } from '../prisma/prisma.service';
 import type { AuditService } from '../audit/audit.service';
+import type { StorageService } from '../media/storage.service';
 import { normalizeLemma } from '../common/normalize';
 import { AdminService } from './admin.service';
 
-/**
- * Builds a Prisma mock for bulkImport: topic lookup, the duplicate pre-load
- * (`word.findMany`), a `$transaction` that runs its callback against a tx with
- * `word.create` + `mediaAsset.create`, and `importJob.create`.
- */
 function makePrisma(existing: { topicId: string; normalizedLemma: string }[]) {
   let n = 0;
   const wordCreate = jest.fn(async () => ({ id: `w${++n}` }));
@@ -26,11 +22,12 @@ function makePrisma(existing: { topicId: string; normalizedLemma: string }[]) {
 }
 
 const audit = { record: jest.fn() } as unknown as AuditService;
+const storage = { provider: 'local', publicUrl: () => null } as unknown as StorageService;
 
 describe('AdminService.bulkImport', () => {
   it('imports rows with a videoUrl and flags duplicate/missing-video rows', async () => {
     const { prisma, wordCreate, mediaCreate } = makePrisma([]);
-    const service = new AdminService(prisma, audit);
+    const service = new AdminService(prisma, audit, storage);
 
     const result = await service.bulkImport(
       {
@@ -38,8 +35,8 @@ describe('AdminService.bulkImport', () => {
         words: [
           { lemma: 'Ээж', topicSlug: 'family', videoUrl: 'https://cdn.example.com/eej.mp4' },
           { lemma: 'Аав', topicSlug: 'family', videoUrl: 'https://cdn.example.com/aav.mp4' },
-          { lemma: 'Ээж', topicSlug: 'family', videoUrl: 'https://cdn.example.com/eej2.mp4' }, // dup of row 1
-          { lemma: 'Эгч', topicSlug: 'family' }, // no video
+          { lemma: 'Ээж', topicSlug: 'family', videoUrl: 'https://cdn.example.com/eej2.mp4' },
+          { lemma: 'Эгч', topicSlug: 'family' },
         ],
       },
       'admin-1',
@@ -68,14 +65,18 @@ describe('AdminService.bulkImport', () => {
 
   it('flags a row with an invalid videoUrl', async () => {
     const { prisma, wordCreate } = makePrisma([]);
-    const service = new AdminService(prisma, audit);
+    const service = new AdminService(prisma, audit, storage);
 
     const result = await service.bulkImport(
       { status: 'pending', words: [{ lemma: 'Ном', topicSlug: 'family', videoUrl: 'not-a-url' }] },
       'admin-1',
     );
 
-    expect(result).toEqual({ total: 1, success: 0, errors: [{ row: 1, reason: 'invalid videoUrl' }] });
+    expect(result).toEqual({
+      total: 1,
+      success: 0,
+      errors: [{ row: 1, reason: 'invalid videoUrl' }],
+    });
     expect(wordCreate).not.toHaveBeenCalled();
   });
 
@@ -83,7 +84,7 @@ describe('AdminService.bulkImport', () => {
     const { prisma, wordCreate } = makePrisma([
       { topicId: 'topic-family', normalizedLemma: normalizeLemma('Ээж') },
     ]);
-    const service = new AdminService(prisma, audit);
+    const service = new AdminService(prisma, audit, storage);
 
     const result = await service.bulkImport(
       {
@@ -102,13 +103,15 @@ describe('AdminService.createWord', () => {
   it('requires a sign video and re-parents it onto the new word', async () => {
     const mediaUpdate = jest.fn().mockResolvedValue({ id: 'media-1' });
     const prisma = {
-      word: { create: jest.fn().mockResolvedValue({ id: 'word-1', lemma: 'Ээж', status: 'approved' }) },
+      word: {
+        create: jest.fn().mockResolvedValue({ id: 'word-1', lemma: 'Ээж', status: 'approved' }),
+      },
       mediaAsset: {
         findMany: jest.fn().mockResolvedValue([{ id: 'media-1', type: 'video' }]),
         update: mediaUpdate,
       },
     } as unknown as PrismaService;
-    const service = new AdminService(prisma, audit);
+    const service = new AdminService(prisma, audit, storage);
 
     const result = await service.createWord(
       { lemma: 'Ээж', topicId: 'topic-1', mediaIds: ['media-1'] },
@@ -128,7 +131,7 @@ describe('AdminService.createWord', () => {
       word: { create: wordCreate },
       mediaAsset: { findMany: jest.fn().mockResolvedValue([]), update: jest.fn() },
     } as unknown as PrismaService;
-    const service = new AdminService(prisma, audit);
+    const service = new AdminService(prisma, audit, storage);
 
     await expect(
       service.createWord({ lemma: 'Ээж', topicId: 'topic-1' }, 'admin-1'),
@@ -151,7 +154,9 @@ describe('AdminService.approveSubmission', () => {
   };
 
   function makePrisma() {
-    const wordCreate = jest.fn().mockResolvedValue({ id: 'word-1', lemma: 'Ээж', status: 'approved' });
+    const wordCreate = jest
+      .fn()
+      .mockResolvedValue({ id: 'word-1', lemma: 'Ээж', status: 'approved' });
     const tx = {
       word: { create: wordCreate },
       mediaAsset: { findMany: jest.fn().mockResolvedValue([]), update: jest.fn() },
@@ -175,16 +180,16 @@ describe('AdminService.approveSubmission', () => {
 
   it('rejects approval until every required attribute is set', async () => {
     const { prisma, wordCreate } = makePrisma();
-    const service = new AdminService(prisma, audit);
-    await expect(service.approveSubmission('sub-1', { topicId: 'topic-1' }, 'admin-1')).rejects.toThrow(
-      'Missing required attributes',
-    );
+    const service = new AdminService(prisma, audit, storage);
+    await expect(
+      service.approveSubmission('sub-1', { topicId: 'topic-1' }, 'admin-1'),
+    ).rejects.toThrow('Missing required attributes');
     expect(wordCreate).not.toHaveBeenCalled();
   });
 
   it('creates an approved word carrying all attributes', async () => {
     const { prisma, wordCreate } = makePrisma();
-    const service = new AdminService(prisma, audit);
+    const service = new AdminService(prisma, audit, storage);
 
     const result = await service.approveSubmission('sub-1', fullDto, 'admin-1');
 

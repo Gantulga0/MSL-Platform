@@ -7,18 +7,382 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Liquid Glass theme tokens. The raw palette (--ink/--paper/--sky…) is the
+   design language; the semantic --c-* layer maps it onto the Tailwind colour
+   names the components already use (bg-bg, text-fg, …), so re-theming is a pure
+   token swap. `[data-theme="night"]` flips the whole palette.
+   Contrast (NFR-01, WCAG 2.2 AA): muted/subtle inks and border-strong are kept
+   ≥ the AA threshold against their surface — they intentionally do NOT track the
+   lower-contrast --ink-faint.
+   ────────────────────────────────────────────────────────────────────────── */
 :root {
-  --msl-focus: #3e5224;
+  /* Raw Liquid Glass palette — day */
+  --ink: #15163a;
+  --ink-soft: #4a4c78;
+  --ink-faint: #8689b4;
+  --paper: #f3f2fb;
+  --paper-2: #eceaf7;
+  --cloud: #ffffff;
+  --line: #e3e1f2;
+  --sky: #3a52ff;
+  --sky-ink: #2438c9;
+  --amber: #ff9f2e;
+  --amber-deep: #e07d00;
+  --jade: #0fbfa6;
+  --rose: #ff5d73;
+  --ring: #ffb86b;
+  --r: 22px;
+  --r-sm: 14px;
+  --shadow: 18px 24px 60px -28px rgba(21, 22, 58, 0.45);
+  --shadow-sm: 6px 10px 24px -16px rgba(21, 22, 58, 0.4);
+
+  /* Semantic layer consumed by Tailwind (--c-*) — day */
+  --c-bg: var(--paper);
+  --c-surface: var(--cloud);
+  --c-surface-muted: var(--paper-2);
+  --c-overlay: rgba(21, 22, 58, 0.5);
+  --c-fg: var(--ink);
+  --c-fg-muted: #4a4c78; /* 7.2:1 on paper */
+  --c-fg-subtle: #56587e; /* ~5.4:1 on paper (not --ink-faint, which fails AA) */
+  --c-fg-on-primary: #ffffff;
+  --c-border: var(--line);
+  --c-border-strong: #6d6f9c; /* ≥3:1 control edge on white */
+  --c-primary: var(--sky); /* white text ≈6.5:1 */
+  --c-primary-hover: var(--sky-ink);
+  --c-primary-active: #1d2fae;
+  --c-primary-subtle: var(--paper-2);
+  --c-accent: var(--jade);
+  --c-accent-ink: #0a6f60; /* teal text on light, AA */
+  --c-accent-strong: #0a8c79;
+  --c-accent-subtle: #d6f3ee;
+  --c-tint-sage: #e0efe1;
+  --c-tint-lav: #e8e7f7;
+  --c-tint-butter: #f3eecd;
+  --c-dark: var(--ink); /* deep-indigo contrast card */
+  --c-dark-hover: #20214f;
+  --c-success: #15803d;
+  --c-success-subtle: #e7f5ec;
+  --c-warning: #9a5b08;
+  --c-warning-subtle: #f8efdd;
+  --c-danger: #b91c1c;
+  --c-danger-subtle: #fbe9e9;
+  --c-info: #0369a1;
+  --c-info-subtle: #e7f1fb;
+  --c-focus: var(--sky-ink);
+
+  /* Focus ring colour for the @msl/ui base layer (strong on light). */
+  --msl-focus: var(--sky-ink);
+}
+
+[data-theme='night'] {
+  color-scheme: dark;
+
+  /* Raw Liquid Glass palette — night */
+  --ink: #f1f0ff;
+  --ink-soft: #b3b2e0;
+  --ink-faint: #7d7eb6;
+  --paper: #0c0d28;
+  --paper-2: #13153a;
+  --cloud: #1a1c46;
+  --line: #2b2d61;
+  --sky: #7d8cff;
+  --sky-ink: #aeb6ff;
+  --amber: #ffb24d;
+  --amber-deep: #ffc270;
+  --jade: #34d6bd;
+  --shadow: 18px 28px 70px -30px rgba(0, 0, 0, 0.7);
+  --shadow-sm: 6px 10px 30px -18px rgba(0, 0, 0, 0.7);
+
+  /* Semantic layer — night */
+  --c-bg: var(--paper);
+  --c-surface: var(--cloud);
+  --c-surface-muted: var(--paper-2);
+  --c-overlay: rgba(0, 0, 0, 0.6);
+  --c-fg: var(--ink);
+  --c-fg-muted: #b3b2e0;
+  --c-fg-subtle: #a6a5d6; /* lightened for contrast on the deep canvas */
+  --c-fg-on-primary: #0c0d28;
+  --c-border: var(--line);
+  --c-border-strong: #565a93;
+  --c-primary: var(--sky); /* lighter blue → dark text reads on it */
+  --c-primary-hover: #95a2ff;
+  --c-primary-active: #6473e6;
+  --c-primary-subtle: var(--paper-2);
+  --c-accent: var(--jade);
+  --c-accent-ink: #56e0c9;
+  --c-accent-strong: #34d6bd;
+  --c-accent-subtle: rgba(52, 214, 189, 0.16);
+  --c-tint-sage: rgba(52, 214, 189, 0.14);
+  --c-tint-lav: rgba(125, 140, 255, 0.16);
+  --c-tint-butter: rgba(255, 178, 77, 0.16);
+  --c-dark: #05061a;
+  --c-dark-hover: #0c0d28;
+  --c-success: #4ade80;
+  --c-success-subtle: rgba(34, 197, 94, 0.16);
+  --c-warning: #fbbf24;
+  --c-warning-subtle: rgba(251, 191, 36, 0.16);
+  --c-danger: #fb7185;
+  --c-danger-subtle: rgba(244, 63, 94, 0.18);
+  --c-info: #60a5fa;
+  --c-info-subtle: rgba(59, 130, 246, 0.18);
+  --c-focus: var(--ring);
+
+  --msl-focus: var(--ring); /* amber ring reads on the dark canvas */
 }
 
 html {
-  color-scheme: light;
+  /* Base paint so there is never a white flash before the gradient mounts. */
+  background: var(--paper);
 }
 
 body {
   color: theme('colors.fg');
-  background: theme('colors.bg');
+  /* Transparent so the fixed .bg-gradient (z-index:-1) shows through. */
+  background: transparent;
   font-family: theme('fontFamily.sans');
+}
+
+/* ── Liquid Glass material ────────────────────────────────────────────────
+   Translucent, blurred surface with a specular top sheen + inner rim. Do NOT
+   apply to opaque media (image/video frames). */
+.glass {
+  background: color-mix(in srgb, var(--cloud) 44%, transparent);
+  backdrop-filter: blur(34px) saturate(210%) brightness(1.06);
+  -webkit-backdrop-filter: blur(34px) saturate(210%) brightness(1.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    var(--shadow),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -14px 28px -18px rgba(20, 20, 60, 0.22);
+  border-radius: var(--r);
+}
+/* Anchor the ::before/::after rim — but at ZERO specificity so an explicit
+   position utility (absolute/fixed on a dropdown/popover) still wins and the
+   panel floats out of flow instead of stretching its container. */
+:where(.glass) {
+  position: relative;
+}
+[data-theme='night'] .glass {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    var(--shadow),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -14px 28px -18px rgba(0, 0, 0, 0.4);
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 36%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  padding: 1.5px;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.85),
+    transparent 28%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.55)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.glass-sm {
+  border-radius: var(--r-sm);
+}
+
+/* Opaque-leaning glass for popovers/menus: keeps the blur + rim but raises the
+   fill so page text behind the panel doesn't read through (legibility). */
+.glass-strong {
+  background: color-mix(in srgb, var(--cloud) 95%, transparent);
+}
+[data-theme='night'] .glass-strong {
+  background: color-mix(in srgb, var(--cloud) 96%, transparent);
+}
+
+/* Glass treatment for form controls (inputs, search bars, dropdown panels):
+   the translucent blurred material WITHOUT the ::before/::after sheen+rim (which
+   don't apply to <input>) and WITHOUT forcing a radius, so Tailwind's rounded-*
+   still controls the shape. Theme-aware border. */
+.glass-field {
+  background: color-mix(in srgb, var(--cloud) 58%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme='night'] .glass-field {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Cursor-tracking ambient background (rendered by CursorGradient) ──────── */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  filter: saturate(1.12);
+  background:
+    radial-gradient(
+      48rem 48rem at var(--x, 50%) var(--y, 35%),
+      color-mix(in srgb, var(--sky) 58%, transparent),
+      transparent 56%
+    ),
+    radial-gradient(
+      42rem 42rem at calc(100% - var(--x, 50%)) calc(100% - var(--y, 35%)),
+      color-mix(in srgb, var(--amber) 56%, transparent),
+      transparent 56%
+    ),
+    radial-gradient(52rem 48rem at 16% 118%, color-mix(in srgb, #b14bff 52%, transparent), transparent 55%),
+    radial-gradient(46rem 42rem at 90% 6%, color-mix(in srgb, var(--jade) 34%, transparent), transparent 55%),
+    linear-gradient(160deg, var(--paper), var(--paper-2));
+  transition: background 0.12s linear;
+}
+
+/* ── Threads-style sliding glass nav pill ─────────────────────────────────── */
+.nav-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px) saturate(190%) brightness(1.28);
+  -webkit-backdrop-filter: blur(12px) saturate(190%) brightness(1.28);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 1),
+    0 8px 20px -8px rgba(0, 0, 0, 0.45);
+  transform: translateX(var(--px, 0));
+  width: var(--pw, 0);
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.5, 0.5, 1),
+    width 0.55s cubic-bezier(0.34, 1.5, 0.5, 1);
+}
+[data-theme='night'] .nav-pill {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Nav bar: thinner, softer edge than the default glass panels ──────────────
+   The sticky nav reads lighter than content cards, so it overrides the 1.5px
+   glass rim with a ~1px, lower-opacity border and a softened specular rim. */
+.glass-nav {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.32);
+}
+[data-theme='night'] .glass-nav {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.glass-nav::after {
+  opacity: 0.5;
+}
+
+/* ── Eyebrow (section kicker) ─────────────────────────────────────────────── */
+.eyebrow {
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--amber-deep);
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+}
+.eyebrow::before {
+  content: '';
+  width: 26px;
+  height: 2px;
+  background: var(--amber);
+  border-radius: 2px;
+}
+
+/* ── Meta tags (card + detail chips) ─────────────────────────────────────────
+   Token-based pill tags. Base is a neutral recessed fill; the topic/level
+   variants tint with the sky / jade brand colours (paired with their ink colour
+   so contrast holds in both themes). */
+.tagm {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.tagm-topic {
+  background: color-mix(in srgb, var(--sky) 14%, transparent);
+  color: var(--sky-ink);
+}
+.tagm-level {
+  background: color-mix(in srgb, var(--jade) 16%, transparent);
+  color: var(--jade);
+}
+
+/* ── Dark "stage" used by the hero sign-frame and the detail player ──────────
+   A deep night-blue field with sky/amber glows. Opaque on purpose (no glass
+   blur over media frames). */
+.sign-stage {
+  background:
+    radial-gradient(120% 90% at 20% 10%, color-mix(in srgb, var(--sky) 26%, transparent), transparent 60%),
+    radial-gradient(120% 110% at 90% 100%, color-mix(in srgb, var(--amber) 30%, transparent), transparent 55%),
+    linear-gradient(160deg, var(--ink), #23244f);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ── Gesture-trail: the path a hand traces in space (signature motion) ───────
+   `.trail` is the dotted guide; `.trail-draw` strokes itself in on activation;
+   `.hand-node` travels along its `offset-path`. All motion is gated behind
+   prefers-reduced-motion (NFR-01). */
+.trail {
+  fill: none;
+  stroke-linecap: round;
+}
+.trail-draw {
+  stroke-dasharray: var(--len, 600);
+  stroke-dashoffset: var(--len, 600);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .is-anim .trail-draw,
+  .group:hover .trail-draw {
+    animation: trail-draw 1.4s ease forwards;
+  }
+  .hand-node {
+    animation: trail-travel 4.8s ease-in-out infinite;
+  }
+}
+@keyframes trail-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes trail-travel {
+  0% {
+    offset-distance: 0%;
+  }
+  50% {
+    offset-distance: 100%;
+  }
+  100% {
+    offset-distance: 0%;
+  }
 }
 
 /* Skip link: visually hidden until focused (FR-27). */
@@ -111,7 +475,9 @@ body {
     @apply border-bg ring-blue-500/50; /* or whatever your border token is */
   }
   body {
-    @apply bg-bg text-fg;
+    /* No bg-bg here: the body stays transparent so the fixed .bg-gradient
+       (CursorGradient, z-index:-1) shows through. */
+    @apply text-fg;
   }
   html {
     @apply font-sans;

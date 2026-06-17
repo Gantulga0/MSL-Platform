@@ -7,6 +7,12 @@ export const RULES_NAV: NavItem[] = [
   { href: '/rules/mouthing', labelKey: 'nav.rulesMouthing' },
 ];
 
+/** "Сурах" dropdown — alphabet & numbers sign references. */
+export const LEARN_NAV: NavItem[] = [
+  { href: '/alphabet', labelKey: 'nav.alphabet' },
+  { href: '/number', labelKey: 'nav.numbers' },
+];
+
 /**
  * Public site navigation (guests + signed-in users). Sign-in / sign-up are not
  * listed here — the shell renders a single "Бүртгүүлэх" auth dropdown for guests.
@@ -14,6 +20,7 @@ export const RULES_NAV: NavItem[] = [
 export const PUBLIC_NAV: NavItem[] = [
   { href: '/', labelKey: 'nav.home' },
   { href: '/dictionary', labelKey: 'nav.dictionary' },
+  { href: '/learn', labelKey: 'nav.learn', children: LEARN_NAV },
   { href: '/rules', labelKey: 'nav.rules', children: RULES_NAV },
   { href: '/submit-word', labelKey: 'nav.submitWord' },
   { href: '/games', labelKey: 'nav.games' },

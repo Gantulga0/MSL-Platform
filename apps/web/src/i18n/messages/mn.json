@@ -30,6 +30,20 @@
   "nav.register": "Бүртгүүлэх",
   "nav.dailyChallenge": "Өдрийн сорил",
   "nav.menu": "Цэс",
+  "nav.learn": "Сурах",
+  "nav.alphabet": "Цагаан толгой",
+  "nav.numbers": "Тоо",
+
+  "theme.toggle": "Өнгөний горим солих",
+  "theme.toLight": "Гэрэлтэй горимд шилжих",
+  "theme.toDark": "Харанхуй горимд шилжих",
+
+  "dict.play": "Тоглуулах",
+  "dict.pause": "Түр зогсоох",
+  "dict.speed": "Тоглуулах хурд",
+  "home.heroLiveTag": "Шууд үзүүлэлт",
+  "home.heroVisualCaption": "Дохио бол хөдөлгөөн",
+  "home.heroVisualLabel": "Дохионы хөдөлгөөний дүрслэл",
 
   "shell.public": "Нийтийн хэсэг",
   "shell.user": "Хэрэглэгчийн хэсэг",
@@ -58,6 +72,8 @@
 
   "home.searchPlaceholder": "Үг хайх...",
   "home.featuredTopics": "Онцлох сэдвүүд",
+  "search.resultsLabel": "Хайлтын илэрц",
+  "search.viewAll": "Бүх илэрцийг харах",
   "home.accessibilityStatement": "Хүртээмжийн мэдэгдэл",
   "status.healthy": "Систем хэвийн ажиллаж байна",
 
@@ -145,6 +161,22 @@
   "dict.resultCount": "Танд нийт {total} дохио байна, {from}–{to} харуулж байна",
   "dict.gridLabel": "Дохионы жагсаалт",
   "dict.openWord": "{lemma} — дэлгэрэнгүй үзэх",
+
+  "alphabet.title": "Кирилл цагаан толгой",
+  "alphabet.lead": "Кирилл үсэг бүрийн дохиог үзээрэй. Картыг дарж томоор харна уу.",
+  "alphabet.gridLabel": "Цагаан толгойн дохионы жагсаалт",
+  "alphabet.signOf": "{letter} үсгийн дохио",
+
+  "numbers.title": "Тоо ба тооны нэр",
+  "numbers.lead": "0–1000 хүртэлх тооны дохиог үзээрэй. Картыг дарж томоор харна уу.",
+  "numbers.gridLabel": "Тооны дохионы жагсаалт",
+  "numbers.signOf": "{value} тооны дохио",
+  "numbers.filterNav": "Ангиллын шүүлтүүр",
+
+  "signs.comingSoon": "Дохионы бичлэг удахгүй нэмэгдэнэ",
+  "signs.sign": "Дохио",
+  "signs.signOfLabel": "{label} дохио",
+  "signs.emptyCategory": "Энэ ангилалд видео удахгүй нэмэгдэнэ",
   "dict.signVideoAlt": "Дохио үзүүлж буй видео",
   "dict.filters": "Шүүлтүүр",
   "dict.filtersShow": "Шүүлтүүр харах",

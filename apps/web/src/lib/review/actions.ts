@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { apiSend, ApiClientError } from '@/lib/api/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { apiSend, ApiClientError, TAXONOMY_TAG } from '@/lib/api/server';
 
 export interface ReviewActionResult {
   error?: string;
@@ -30,6 +30,7 @@ export async function approveAction(formData: FormData): Promise<ReviewActionRes
       ...(comment ? { comment } : {}),
     });
     revalidatePath(REVIEW_PATH);
+    revalidateTag(TAXONOMY_TAG); // a new approved word changes topic counts
     return { ok: true };
   } catch (e) {
     return fail(e);

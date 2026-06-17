@@ -3,13 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 
-/**
- * Transactional email via SMTP (Mailtrap in dev, any SMTP in prod) — G-14.
- *
- * Credentials come only from env (NFR-04 §12): SMTP_HOST/PORT/USER/PASSWORD.
- * When no SMTP host is configured the service is "disabled": callers fall back
- * to dev behaviour (auto-verify) and tokens are logged instead of mailed.
- */
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
@@ -17,21 +10,16 @@ export class MailService {
 
   constructor(private readonly config: ConfigService) {}
 
-  /**
-   * True only when SMTP host + credentials are all present, so verification
-   * emails can actually be delivered. A half-configured SMTP (host but no
-   * credentials) stays disabled so accounts don't get stuck unverified.
-   */
   get enabled(): boolean {
     return Boolean(
       this.config.get<string>('SMTP_HOST') &&
-        this.config.get<string>('SMTP_USER') &&
-        this.config.get<string>('SMTP_PASSWORD'),
+      this.config.get<string>('SMTP_USER') &&
+      this.config.get<string>('SMTP_PASSWORD'),
     );
   }
 
   private get from(): string {
-    return this.config.get<string>('MAIL_FROM', 'no-reply@msl.example');
+    return this.config.get<string>('MAIL_FROM', 'gganaa190628@gmail.com');
   }
 
   private get webBaseUrl(): string {
@@ -54,7 +42,6 @@ export class MailService {
     return this.transporter;
   }
 
-  /** Send the account email-verification message (AUTH-02). Best-effort. */
   async sendVerificationEmail(to: string, token: string): Promise<void> {
     const link = `${this.webBaseUrl}/verify-email?token=${encodeURIComponent(token)}`;
     await this.send(
@@ -68,7 +55,6 @@ export class MailService {
     );
   }
 
-  /** Send the password-reset message (G-14). Best-effort. */
   async sendPasswordResetEmail(to: string, token: string): Promise<void> {
     const link = `${this.webBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
     await this.send(
@@ -92,7 +78,6 @@ export class MailService {
       await transporter.sendMail({ from: this.from, to, subject, html });
       this.logger.log(`Sent "${subject}" email to ${to}`);
     } catch (err) {
-      // Never block the request on a mail failure (G-14) — log and move on.
       this.logger.error(`Failed to send "${subject}" email to ${to}: ${(err as Error).message}`);
     }
   }

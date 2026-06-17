@@ -7,7 +7,6 @@ import { paginate, toSkipTake } from '../common/dto/pagination.dto';
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Current user's notifications, newest first (NFR-12). */
   async list(userId: string, page: number, limit: number): Promise<Paginated<unknown>> {
     const where = { userId };
     const { skip, take } = toSkipTake(page, limit);
@@ -22,15 +21,13 @@ export class NotificationsService {
       this.prisma.notification.count({ where }),
     ]);
 
-    // Hide "review pending" notifications whose submission was already decided
-    // (approved/rejected/duplicate) so a reviewer can't open a resolved item.
     const data = await this.dropResolvedReviewPending(rows);
     return paginate(data, total, page, limit);
   }
 
-  private async dropResolvedReviewPending<
-    T extends { type: string; payload: unknown },
-  >(rows: T[]): Promise<T[]> {
+  private async dropResolvedReviewPending<T extends { type: string; payload: unknown }>(
+    rows: T[],
+  ): Promise<T[]> {
     const subIds = rows
       .filter((r) => r.type === 'review_pending')
       .map((r) => (r.payload as { submissionId?: string } | null)?.submissionId)
@@ -50,12 +47,10 @@ export class NotificationsService {
     });
   }
 
-  /** Count of unread notifications — drives the nav badge. */
   unreadCount(userId: string): Promise<number> {
     return this.prisma.notification.count({ where: { userId, readAt: null } });
   }
 
-  /** Mark a single notification read; scoped to its owner (deny-by-default). */
   async markRead(id: string, userId: string): Promise<{ id: string }> {
     const found = await this.prisma.notification.findFirst({ where: { id, userId } });
     if (!found) throw new NotFoundException('Notification not found');
@@ -63,7 +58,6 @@ export class NotificationsService {
     return { id };
   }
 
-  /** Mark all of the user's notifications read. */
   async markAllRead(userId: string): Promise<{ count: number }> {
     const res = await this.prisma.notification.updateMany({
       where: { userId, readAt: null },

@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MSL — Монгол дохионы хэл</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   MSL Platform — design language
+   Thesis: "Дохио бол хөдөлгөөн" (a sign is motion).
+   Signature: gesture-trail — the path a hand traces in space.
+   ============================================================ */
+
+:root{
+  /* eternal-blue-sky day theme */
+  --ink:#15163a;          /* night-blue ink, near-black */
+  --ink-soft:#4a4c78;     /* secondary text */
+  --ink-faint:#8689b4;    /* tertiary */
+  --paper:#f3f2fb;        /* cool soft page */
+  --paper-2:#eceaf7;      /* recessed */
+  --cloud:#ffffff;        /* card surface */
+  --line:#e3e1f2;         /* hairlines */
+  --sky:#3a52ff;          /* electric sky — primary interactive */
+  --sky-ink:#2438c9;      /* darker sky for text-on-light */
+  --amber:#ff9f2e;        /* the sun / gesture highlight — SIGNATURE accent */
+  --amber-deep:#e07d00;   /* amber text on light */
+  --jade:#0fbfa6;         /* learned / progress */
+  --rose:#ff5d73;         /* alert / removed */
+  --ring:#ffb86b;
+  --shadow:18px 24px 60px -28px rgba(21,22,58,.45);
+  --shadow-sm:6px 10px 24px -16px rgba(21,22,58,.4);
+  --r:22px;
+  --r-sm:14px;
+  --maxw:1180px;
+  color-scheme:light;
+}
+
+[data-theme="night"]{
+  /* eternal-blue-sky night theme — same brand, dark */
+  --ink:#f1f0ff;
+  --ink-soft:#b3b2e0;
+  --ink-faint:#7d7eb6;
+  --paper:#0c0d28;
+  --paper-2:#13153a;
+  --cloud:#1a1c46;
+  --line:#2b2d61;
+  --sky:#7d8cff;
+  --sky-ink:#aeb6ff;
+  --amber:#ffb24d;
+  --amber-deep:#ffc270;
+  --jade:#34d6bd;
+  --shadow:18px 28px 70px -30px rgba(0,0,0,.7);
+  --shadow-sm:6px 10px 30px -18px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Golos Text",system-ui,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:17px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  transition:background .4s ease,color .4s ease;
+  overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:"Unbounded",sans-serif;letter-spacing:-.02em;line-height:1.04;margin:0}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--ring);outline-offset:3px;border-radius:6px}
+img,svg{display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-family:"Golos Text";font-weight:700;font-size:.74rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--amber-deep);display:inline-flex;gap:9px;align-items:center;
+}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--amber);border-radius:2px}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:60;
+  background:color-mix(in srgb,var(--paper) 82%,transparent);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.nav-in{display:flex;align-items:center;gap:20px;height:70px}
+.brand{display:flex;align-items:center;gap:11px;font-family:"Unbounded";font-weight:700;font-size:1.12rem}
+.brand .mark{width:38px;height:38px;flex:0 0 auto}
+.brand small{font-family:"Golos Text";font-weight:600;font-size:.66rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink-faint);display:block;margin-top:1px}
+.nav-links{display:flex;gap:4px;margin-left:14px}
+.nav-links a{
+  padding:9px 14px;border-radius:11px;font-weight:600;font-size:.95rem;color:var(--ink-soft);
+  transition:.18s;
+}
+.nav-links a:hover{background:var(--paper-2);color:var(--ink)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.rolepill{
+  display:flex;align-items:center;gap:0;background:var(--paper-2);border:1px solid var(--line);
+  border-radius:13px;padding:3px;
+}
+.rolepill button{
+  border:0;background:transparent;color:var(--ink-faint);font-weight:600;font-size:.82rem;
+  padding:6px 11px;border-radius:10px;cursor:pointer;transition:.16s;
+}
+.rolepill button[aria-pressed="true"]{background:var(--cloud);color:var(--ink);box-shadow:var(--shadow-sm)}
+
+.icon-btn{
+  width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--cloud);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:.18s;
+}
+.icon-btn:hover{border-color:var(--sky);color:var(--sky)}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer;font-weight:700;
+  padding:12px 20px;border-radius:13px;font-size:.95rem;transition:.18s;white-space:nowrap;
+}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.btn-amber{background:var(--amber);color:#3a2400}
+.btn-amber:hover{transform:translateY(-2px);box-shadow:0 14px 30px -14px var(--amber)}
+.btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--ink)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:74px 0 40px;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:50px;align-items:center}
+.hero h1{font-size:clamp(2.6rem,6vw,4.6rem);font-weight:800}
+.hero h1 .mv{color:var(--amber);position:relative;white-space:nowrap}
+.hero p.lead{font-size:1.2rem;color:var(--ink-soft);max-width:30ch;margin:22px 0 30px}
+.hero-cta{display:flex;gap:13px;flex-wrap:wrap}
+
+/* search */
+.search{
+  margin-top:34px;background:var(--cloud);border:1px solid var(--line);border-radius:18px;
+  padding:8px 8px 8px 18px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);max-width:480px;
+}
+.search svg{flex:0 0 auto;color:var(--ink-faint)}
+.search input{
+  border:0;background:transparent;flex:1;font-family:inherit;font-size:1.05rem;color:var(--ink);
+  padding:10px 0;
+}
+.search input:focus{outline:0}
+.search input::placeholder{color:var(--ink-faint)}
+.search .go{flex:0 0 auto;background:var(--sky);color:#fff;border:0;border-radius:13px;
+  padding:12px 18px;font-weight:700;cursor:pointer;font-size:.95rem}
+.search .go:hover{filter:brightness(1.07)}
+
+.hero-stats{display:flex;gap:30px;margin-top:30px;flex-wrap:wrap}
+.stat b{font-family:"Unbounded";font-weight:700;font-size:1.5rem;display:block}
+.stat span{font-size:.84rem;color:var(--ink-faint);font-weight:600}
+
+/* hero visual: a live "sign frame" with gesture trail */
+.signframe{
+  position:relative;aspect-ratio:4/5;border-radius:28px;overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 20% 10%, color-mix(in srgb,var(--sky) 26%,transparent), transparent 60%),
+    radial-gradient(120% 110% at 90% 100%, color-mix(in srgb,var(--amber) 30%,transparent), transparent 55%),
+    linear-gradient(160deg,var(--ink),#23244f);
+  box-shadow:var(--shadow);border:1px solid var(--line);
+}
+.signframe .tag{
+  position:absolute;left:16px;top:16px;z-index:3;background:rgba(255,255,255,.14);
+  color:#fff;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);
+  padding:6px 12px;border-radius:11px;font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:center;
+}
+.signframe .tag .dot{width:8px;height:8px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 4px rgba(255,93,115,.3)}
+.signframe .caption{
+  position:absolute;left:16px;right:16px;bottom:16px;z-index:3;color:#fff;
+  background:rgba(10,11,40,.4);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);
+  border-radius:15px;padding:13px 16px;
+}
+.signframe .caption b{font-family:"Unbounded";font-weight:700;font-size:1.25rem;display:block}
+.signframe .caption span{font-size:.85rem;color:#c9caf2}
+.signframe svg.scene{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+
+/* ---------- section shell ---------- */
+section.block{padding:60px 0}
+.block-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:30px;flex-wrap:wrap}
+.block-head h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:700;max-width:18ch}
+.block-head p{color:var(--ink-soft);max-width:42ch;margin:10px 0 0}
+
+/* ---------- dictionary ---------- */
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:26px}
+.chip{
+  border:1.5px solid var(--line);background:var(--cloud);color:var(--ink-soft);
+  padding:9px 16px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;transition:.16s;
+}
+.chip:hover{border-color:var(--sky);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.card{
+  background:var(--cloud);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  cursor:pointer;transition:.22s;display:flex;flex-direction:column;
+}
+.card:hover{transform:translateY(-5px);box-shadow:var(--shadow);border-color:transparent}
+.card:focus-visible{transform:translateY(-5px)}
+.card.dim{opacity:.28;filter:grayscale(.4);pointer-events:none}
+.card .frame{
+  position:relative;aspect-ratio:1/1;
+  background:linear-gradient(155deg,var(--paper-2),color-mix(in srgb,var(--sky) 10%,var(--cloud)));
+  overflow:hidden;
+}
+.card .frame svg.scene{position:absolute;inset:0;width:100%;height:100%}
+.card .play{
+  position:absolute;right:12px;bottom:12px;width:40px;height:40px;border-radius:50%;
+  background:var(--amber);color:#3a2400;display:grid;place-items:center;z-index:3;
+  box-shadow:0 8px 20px -8px var(--amber);transition:.2s;
+}
+.card:hover .play{transform:scale(1.12)}
+.card .hand-chip{
+  position:absolute;left:12px;top:12px;z-index:3;background:rgba(255,255,255,.82);
+  color:var(--ink);font-size:.72rem;font-weight:700;padding:5px 10px;border-radius:9px;
+  display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);
+}
+[data-theme="night"] .card .hand-chip{background:rgba(26,28,70,.85);color:var(--ink)}
+.card .body{padding:15px 16px 17px}
+.card .body .mn{font-family:"Unbounded";font-weight:700;font-size:1.18rem}
+.card .body .en{color:var(--ink-faint);font-size:.86rem;font-weight:500;margin-top:2px}
+.card .body .meta{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+.tagm{font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:8px;
+  background:var(--paper-2);color:var(--ink-soft)}
+.tagm.t-topic{background:color-mix(in srgb,var(--sky) 14%,transparent);color:var(--sky-ink)}
+.tagm.t-level{background:color-mix(in srgb,var(--jade) 16%,transparent);color:var(--jade)}
+
+/* ---------- detail split ---------- */
+.detail{
+  display:grid;grid-template-columns:1fr 1.05fr;gap:34px;align-items:stretch;
+  background:var(--cloud);border:1px solid var(--line);border-radius:30px;padding:14px;
+  box-shadow:var(--shadow);
+}
+.detail .player{
+  border-radius:22px;overflow:hidden;position:relative;min-height:380px;
+  background:linear-gradient(160deg,var(--ink),#23244f);
+}
+.detail .player svg.scene{position:absolute;inset:0;width:100%;height:100%}
+.detail .player .pbar{
+  position:absolute;left:16px;right:16px;bottom:16px;z-index:4;display:flex;align-items:center;gap:12px;
+  background:rgba(10,11,40,.45);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);
+  border-radius:14px;padding:10px 12px;
+}
+.detail .player .pbar .pp{width:38px;height:38px;border-radius:50%;background:var(--amber);
+  color:#3a2400;border:0;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.detail .player .pbar .track{flex:1;height:6px;background:rgba(255,255,255,.22);border-radius:4px;overflow:hidden}
+.detail .player .pbar .track i{display:block;height:100%;width:38%;background:var(--amber);border-radius:4px}
+.detail .player .pbar .spd{color:#fff;font-size:.8rem;font-weight:700;opacity:.9}
+.detail .player .region{position:absolute;left:16px;top:16px;z-index:4;background:rgba(255,255,255,.16);
+  color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 12px;border-radius:11px;font-size:.8rem;font-weight:600}
+
+.detail .info{padding:18px 16px 16px;display:flex;flex-direction:column}
+.detail .info h3{font-size:2.2rem;font-weight:800}
+.detail .info .gloss{color:var(--ink-faint);font-weight:600;margin-top:4px}
+.detail .info .chips{display:flex;gap:8px;margin:16px 0 4px;flex-wrap:wrap}
+
+.tabs{display:flex;gap:4px;margin-top:22px;background:var(--paper-2);padding:5px;border-radius:14px;width:fit-content}
+.tabs button{border:0;background:transparent;color:var(--ink-soft);font-weight:700;font-size:.88rem;
+  padding:9px 15px;border-radius:10px;cursor:pointer;transition:.16s}
+.tabs button[aria-selected="true"]{background:var(--cloud);color:var(--ink);box-shadow:var(--shadow-sm)}
+.tabpanel{margin-top:18px;color:var(--ink-soft);min-height:120px}
+.tabpanel.hidden{display:none}
+.variant{display:flex;align-items:center;gap:14px;padding:13px;border:1px solid var(--line);
+  border-radius:15px;margin-bottom:10px;background:var(--paper);transition:.16s;cursor:pointer}
+.variant:hover{border-color:var(--sky)}
+.variant .vthumb{width:54px;height:54px;border-radius:12px;flex:0 0 auto;
+  background:linear-gradient(150deg,var(--sky),var(--ink))}
+.variant b{color:var(--ink);font-family:"Golos Text";font-weight:700;display:block}
+.variant span{font-size:.85rem}
+.variant .best{margin-left:auto;font-size:.7rem;font-weight:800;color:var(--jade);
+  background:color-mix(in srgb,var(--jade) 16%,transparent);padding:4px 9px;border-radius:8px}
+.mouth{display:flex;gap:10px;align-items:center;margin-top:4px}
+.mouth .syl{font-family:"Unbounded";font-weight:700;font-size:1.4rem;color:var(--ink);
+  background:var(--paper-2);padding:6px 16px;border-radius:12px}
+.usage{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--amber);
+  border-radius:0 14px 14px 0;padding:14px 16px;color:var(--ink);font-size:1.05rem}
+
+.detail .info .act{display:flex;gap:10px;margin-top:auto;padding-top:20px}
+
+/* ---------- learn strip ---------- */
+.learn{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:18px}
+.lcard{background:var(--cloud);border:1px solid var(--line);border-radius:var(--r);padding:24px;
+  display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.lcard h3{font-size:1.25rem;font-weight:700}
+.lcard p{margin:0;color:var(--ink-soft);font-size:.95rem}
+.streak{display:flex;align-items:center;gap:20px}
+.ring{width:96px;height:96px;flex:0 0 auto;position:relative;display:grid;place-items:center}
+.ring b{font-family:"Unbounded";font-size:1.7rem;font-weight:700;line-height:1}
+.ring small{font-size:.62rem;color:var(--ink-faint);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.days{display:flex;gap:7px;margin-top:6px}
+.days i{width:26px;height:26px;border-radius:8px;background:var(--paper-2);display:grid;place-items:center;
+  font-size:.7rem;font-weight:700;color:var(--ink-faint)}
+.days i.on{background:var(--amber);color:#3a2400}
+.daily{background:linear-gradient(155deg,var(--ink),#26285a);color:#fff;border-color:transparent}
+.daily h3,.daily p{color:#fff}.daily p{opacity:.8}
+.daily .word{font-family:"Unbounded";font-weight:800;font-size:1.9rem;margin-top:auto}
+.badges{display:flex;gap:10px;flex-wrap:wrap}
+.badge{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
+.badge .b{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;
+  background:var(--paper-2);font-size:1.4rem}
+.badge .b.lit{background:linear-gradient(150deg,var(--amber),#ffcf7a);box-shadow:0 10px 22px -12px var(--amber)}
+.badge small{font-size:.68rem;color:var(--ink-faint);font-weight:600;text-align:center;line-height:1.2}
+
+/* ---------- contribute band ---------- */
+.band{
+  background:linear-gradient(135deg,var(--sky),var(--ink) 75%);color:#fff;border-radius:34px;
+  padding:48px;display:grid;grid-template-columns:1.3fr .7fr;gap:30px;align-items:center;position:relative;overflow:hidden;
+}
+.band h2{color:#fff;font-size:clamp(1.8rem,3.6vw,2.6rem);font-weight:800;max-width:16ch}
+.band p{color:#dfe2ff;max-width:40ch;margin:14px 0 0}
+.band .steps{display:flex;flex-direction:column;gap:12px}
+.bstep{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px 16px}
+.bstep .n{font-family:"Unbounded";font-weight:700;color:var(--amber)}
+.bstep b{display:block;font-weight:700}
+.bstep span{font-size:.85rem;color:#cfd3ff}
+.band-cta{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}
+
+/* ---------- a11y / tokens footer ---------- */
+.tokens{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:start}
+.swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sw{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--cloud)}
+.sw .c{height:64px}
+.sw .l{padding:9px 12px;font-size:.75rem;font-weight:700}
+.sw .l span{display:block;color:var(--ink-faint);font-weight:500;font-family:ui-monospace,monospace;font-size:.7rem}
+.a11y-list{list-style:none;padding:0;margin:0;display:grid;gap:11px}
+.a11y-list li{display:flex;gap:12px;align-items:flex-start;background:var(--cloud);
+  border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.a11y-list .ic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--jade) 16%,transparent);color:var(--jade)}
+.a11y-list b{display:block}.a11y-list span{font-size:.88rem;color:var(--ink-soft)}
+
+.foot{border-top:1px solid var(--line);margin-top:50px;padding:30px 0 60px;color:var(--ink-faint);font-size:.9rem}
+.foot-in{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+
+/* type spec inline */
+.typebox{background:var(--cloud);border:1px solid var(--line);border-radius:20px;padding:24px}
+.typebox .d{font-family:"Unbounded";font-weight:800;font-size:2.4rem;line-height:1}
+.typebox .b{margin-top:14px;font-size:1.02rem;color:var(--ink-soft)}
+.typebox .meta{margin-top:18px;display:flex;gap:18px;font-size:.78rem;color:var(--ink-faint);font-weight:600;flex-wrap:wrap}
+
+/* gesture trail anim */
+.trail{fill:none;stroke-linecap:round}
+.trail.draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+@media (prefers-reduced-motion:no-preference){
+  .card:hover .trail.draw,.is-anim .trail.draw{animation:draw 1.4s ease forwards}
+  .hand-node{animation:travel 4.6s ease-in-out infinite}
+  .hero .hand-node{animation:travel 5.4s ease-in-out infinite}
+}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes travel{
+  0%{offset-distance:0%}50%{offset-distance:100%}100%{offset-distance:0%}
+}
+
+/* responsive */
+@media(max-width:980px){
+  .hero-grid{grid-template-columns:1fr;gap:30px}
+  .detail{grid-template-columns:1fr}
+  .learn{grid-template-columns:1fr}
+  .band{grid-template-columns:1fr;padding:34px}
+  .tokens{grid-template-columns:1fr}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
+}
+@media(max-width:560px){
+  .cards{grid-template-columns:1fr 1fr;gap:12px}
+  .hero-stats{gap:18px}
+  .rolepill{display:none}
+  .wrap{padding:0 16px}
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ===================================================================
+   LIQUID GLASS overlay — layout/design unchanged, material upgraded
+   + cursor-following gradient background
+   =================================================================== */
+body{background:transparent !important}
+
+/* ---- VIVID cursor-following gradient ---- */
+.bg{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(48rem 48rem at var(--x,50%) var(--y,35%),
+      color-mix(in srgb,var(--sky) 58%,transparent), transparent 56%),
+    radial-gradient(42rem 42rem at calc(100% - var(--x,50%)) calc(100% - var(--y,35%)),
+      color-mix(in srgb,var(--amber) 56%,transparent), transparent 56%),
+    radial-gradient(52rem 48rem at 16% 118%,
+      color-mix(in srgb,#b14bff 52%,transparent), transparent 55%),
+    radial-gradient(46rem 42rem at 90% 6%,
+      color-mix(in srgb,var(--jade) 34%,transparent), transparent 55%),
+    linear-gradient(160deg,var(--paper),var(--paper-2));
+  filter:saturate(1.12);
+  transition:background .12s linear;
+}
+
+/* ---- LIQUID GLASS material (strong) ---- */
+.nav,.search,.card,.chip,.detail,.lcard:not(.daily),.typebox,.sw,
+.a11y-list li,.icon-btn,.rolepill,.variant,.tabs,.btn-ghost,.usage{
+  background:color-mix(in srgb,var(--cloud) 44%,transparent) !important;   /* very translucent — gradient reads through */
+  -webkit-backdrop-filter:blur(34px) saturate(210%) brightness(1.06);
+  backdrop-filter:blur(34px) saturate(210%) brightness(1.06);
+  border:1.5px solid rgba(255,255,255,.55) !important;
+}
+[data-theme="night"] .nav,[data-theme="night"] .search,[data-theme="night"] .card,
+[data-theme="night"] .chip,[data-theme="night"] .detail,[data-theme="night"] .lcard:not(.daily),
+[data-theme="night"] .typebox,[data-theme="night"] .sw,[data-theme="night"] .a11y-list li,
+[data-theme="night"] .icon-btn,[data-theme="night"] .rolepill,[data-theme="night"] .variant,
+[data-theme="night"] .tabs,[data-theme="night"] .btn-ghost,[data-theme="night"] .usage{
+  border-color:rgba(255,255,255,.28) !important;
+}
+.nav{background:color-mix(in srgb,var(--paper) 38%,transparent) !important}
+
+/* bright rim + lifted shadow on the big panels */
+.card,.detail,.lcard:not(.daily),.typebox,.search{
+  position:relative;
+  box-shadow:var(--shadow),
+    inset 0 1.5px 0 rgba(255,255,255,.85),
+    inset 0 -14px 28px -18px rgba(20,20,60,.22) !important;
+}
+[data-theme="night"] .card,[data-theme="night"] .detail,[data-theme="night"] .lcard:not(.daily),
+[data-theme="night"] .typebox,[data-theme="night"] .search{
+  box-shadow:var(--shadow),inset 0 1.5px 0 rgba(255,255,255,.22),
+    inset 0 -14px 28px -18px rgba(0,0,0,.4) !important;
+}
+
+/* glass top-sheen — the reflective highlight that makes it read as glass */
+.card::before,.detail::before,.search::before,.typebox::before,.lcard:not(.daily)::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0) 36%);
+  mix-blend-mode:screen;opacity:.7}
+
+/* edge-refraction rim — a travelling light along the glass border */
+.card::after,.detail::after,.search::after,.nav::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;padding:1.5px;
+  background:linear-gradient(125deg,rgba(255,255,255,.85),transparent 28%,transparent 70%,rgba(255,255,255,.55));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude}
+.nav{position:relative}
+
+/* keep card content above the sheen */
+.card .body,.card .frame{position:relative;z-index:6}
+
+/* preserve selected/active states the glass rule would otherwise flatten */
+.chip[aria-pressed="true"]{
+  background:var(--ink) !important;backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-color:var(--ink) !important;color:var(--paper) !important;
+}
+.tabs button[aria-selected="true"],.rolepill button[aria-pressed="true"]{
+  background:color-mix(in srgb,var(--cloud) 90%,transparent) !important;
+}
+
+/* the dark visual frames keep their own surface — no blur bleed */
+.card .frame,.signframe,.detail .player{-webkit-backdrop-filter:none;backdrop-filter:none}
+/* ===================================================================
+   GLASS NAV (sliding pill) + SPA views
+   =================================================================== */
+.gnav{position:sticky;top:0;z-index:60;display:flex;justify-content:center;padding:16px 18px}
+.gbar{
+  width:100%;max-width:var(--maxw);display:flex;align-items:center;gap:14px;padding:8px;border-radius:24px;position:relative;
+  background:linear-gradient(118deg,
+     color-mix(in srgb,var(--sky) 58%,transparent),
+     color-mix(in srgb,#6a3df0 56%,transparent));
+  -webkit-backdrop-filter:blur(38px) saturate(200%) brightness(1.06);
+  backdrop-filter:blur(38px) saturate(200%) brightness(1.06);
+  border:1.5px solid rgba(255,255,255,.42);
+  box-shadow:0 28px 54px -22px rgba(18,18,70,.6),
+    inset 0 1.5px 0 rgba(255,255,255,.65),
+    inset 0 -10px 22px -14px rgba(0,0,0,.28);
+}
+.gbar::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),transparent 40%);mix-blend-mode:screen;opacity:.8}
+.gbar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6;padding:1.5px;
+  background:linear-gradient(125deg,rgba(255,255,255,.85),transparent 30%,transparent 70%,rgba(255,255,255,.5));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude}
+
+.gbrand{display:flex;align-items:center;gap:10px;padding:7px 16px 7px 8px;border-radius:17px;z-index:2;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.32);color:#fff;
+  font-family:"Unbounded";font-weight:700;font-size:1.05rem;white-space:nowrap}
+.gbrand .mark{width:32px;height:32px}
+.gbrand small{display:block;font-family:"Golos Text";font-weight:600;font-size:.58rem;letter-spacing:.16em;
+  text-transform:uppercase;color:rgba(255,255,255,.72);margin-top:1px}
+
+.gtabs{position:relative;display:flex;align-items:stretch;margin-left:auto;z-index:2}
+.gpill{position:absolute;top:0;left:0;height:100%;border-radius:16px;z-index:1;overflow:hidden;
+  background:rgba(255,255,255,.5);                                  /* bright frosted glass — not solid white */
+  -webkit-backdrop-filter:blur(12px) saturate(190%) brightness(1.28);
+  backdrop-filter:blur(12px) saturate(190%) brightness(1.28);
+  border:1px solid rgba(255,255,255,.85);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,1),inset 0 -6px 12px -6px rgba(0,0,0,.08),0 8px 20px -8px rgba(0,0,0,.45);
+  transform:translateX(var(--px,0));width:var(--pw,0);
+  transition:transform .55s cubic-bezier(.34,1.5,.5,1),width .55s cubic-bezier(.34,1.5,.5,1);will-change:transform,width}
+.gpill::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.7),transparent 55%);opacity:.7}
+.gtab{position:relative;z-index:2;border:0;background:transparent;cursor:pointer;display:flex;align-items:center;gap:9px;
+  padding:12px 18px;border-radius:16px;color:rgba(255,255,255,.86);font-family:inherit;font-weight:700;font-size:.97rem;
+  white-space:nowrap;transition:color .3s ease}
+.gtab svg{width:18px;height:18px;transition:transform .42s cubic-bezier(.34,1.56,.64,1)}
+.gtab[aria-selected="true"]{color:var(--ink)}
+.gtab[aria-selected="true"] svg{transform:scale(1.08)}
+.gcta{margin-left:10px;border:0;cursor:pointer;background:var(--amber);color:#3a2400;font-family:inherit;font-weight:800;
+  padding:12px 22px;border-radius:16px;z-index:2;transition:.18s;white-space:nowrap}
+.gcta:hover{transform:translateY(-2px);box-shadow:0 14px 28px -12px var(--amber)}
+
+/* night-mode toggle (glass) */
+.gtoggle{margin-left:8px;width:44px;height:44px;flex:0 0 auto;border-radius:14px;z-index:2;cursor:pointer;
+  display:grid;place-items:center;color:#fff;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);
+  -webkit-backdrop-filter:blur(10px) saturate(180%);backdrop-filter:blur(10px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);transition:.18s}
+.gtoggle:hover{background:rgba(255,255,255,.26);transform:translateY(-1px)}
+.gtoggle .moon{display:none}
+[data-theme="night"] .gtoggle .sun{display:none}
+[data-theme="night"] .gtoggle .moon{display:block}
+
+/* SPA views */
+.view{display:none}
+.view.show{display:block;animation:viewin .5s cubic-bezier(.22,1,.36,1)}
+@keyframes viewin{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.view.show{animation:none}}
+
+/* rules + profile page bits */
+.pagehead{padding:54px 0 0}
+.rulegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.profgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.statbig{background:color-mix(in srgb,var(--cloud) 44%,transparent);border:1.5px solid rgba(255,255,255,.55);
+  border-radius:var(--r);padding:24px;position:relative;
+  -webkit-backdrop-filter:blur(34px) saturate(200%) brightness(1.05);backdrop-filter:blur(34px) saturate(200%) brightness(1.05);
+  box-shadow:var(--shadow),inset 0 1.5px 0 rgba(255,255,255,.8)}
+.statbig b{font-family:"Unbounded";font-size:2.4rem;font-weight:800;display:block;line-height:1}
+.statbig span{color:var(--ink-soft);font-weight:600;font-size:.92rem}
+
+@media(max-width:860px){
+  .gtab .t{display:none}.gtab{padding:12px 13px}.gbrand small{display:none}
+  .rulegrid,.profgrid{grid-template-columns:1fr}
+}
+</style>
+
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<!-- ============ NAV ============ -->
+<header class="gnav">
+  <div class="gbar">
+    <a class="gbrand" href="#" aria-label="MSL нүүр">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect width="40" height="40" rx="12" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.4)"/>
+        <path d="M9 27 C 15 14, 25 14, 31 25" stroke="var(--amber)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6"/>
+        <circle cx="31" cy="25" r="4.5" fill="#fff"/><circle cx="9" cy="27" r="3" fill="var(--amber)"/>
+      </svg>
+      <span>MSL<small>дохионы хэл</small></span>
+    </a>
+
+    <nav class="gtabs" id="gtabs" role="tablist" aria-label="Үндсэн цэс">
+      <span class="gpill" id="gpill" aria-hidden="true"></span>
+      <!-- tabs injected -->
+    </nav>
+
+    <button class="gtoggle" id="themeBtn" aria-label="Өдөр / шөнө горим" title="Өдөр / шөнө">
+      <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/>
+      </svg>
+      <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>
+      </svg>
+    </button>
+    <button class="gcta" data-go="profile">Нэвтрэх</button>
+  </div>
+</header>
+
+<main id="app">
+<!-- ===== VIEW: ТОЛЬ БИЧИГ (нүүр) ===== -->
+<section class="view show" data-view="dict">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Монгол дохионы хэлний платформ</span>
+      <h1>Дохио бол <span class="mv">хөдөлгөөн</span>.</h1>
+      <p class="lead">Монгол дохионы хэлийг хайж, видеогоор үзэж, сурч, өөрөө шинэ дохио нэмэрлэ.</p>
+
+      <div class="search" role="search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>
+        </svg>
+        <input id="heroSearch" type="search" placeholder="Үг хайх — ж: «ээж», «баярлалаа»" aria-label="Толь бичгээс үг хайх"/>
+        <button class="go">Хайх</button>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat"><b id="s1">2 480</b><span>Бүртгэлтэй дохио</span></div>
+        <div class="stat"><b>340+</b><span>Орон нутгийн хувилбар</span></div>
+        <div class="stat"><b>17</b><span>Сэдэв ангилал</span></div>
+      </div>
+    </div>
+
+    <!-- live sign frame with gesture trail -->
+    <div class="signframe is-anim">
+      <span class="tag"><span class="dot"></span>Шууд үзүүлэлт</span>
+      <svg class="scene" viewBox="0 0 320 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <!-- abstract signer -->
+        <g opacity=".9">
+          <circle cx="160" cy="150" r="34" fill="rgba(255,255,255,.10)"/>
+          <rect x="116" y="196" width="88" height="120" rx="40" fill="rgba(255,255,255,.08)"/>
+        </g>
+        <!-- gesture trail -->
+        <path id="heroTrail" class="trail" d="M120 250 C 150 150, 210 150, 220 235 S 150 320, 200 300"
+              stroke="var(--amber)" stroke-width="4" stroke-dasharray="1 12" opacity=".9"/>
+        <!-- traveling hand node -->
+        <g class="hand-node" style="offset-path:path('M120 250 C 150 150, 210 150, 220 235 S 150 320, 200 300')">
+          <circle r="13" fill="var(--amber)"/>
+          <circle r="22" fill="none" stroke="var(--amber)" stroke-width="2" opacity=".5"/>
+        </g>
+      </svg>
+      <div class="caption"><b>Сайн уу</b><span>Мэндчилгээ · Нэг гар · Шинэ түвшин (A1)</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DICTIONARY ============ -->
+<section class="block" id="dict">
+  <div class="wrap">
+    <div class="block-head">
+      <div>
+        <span class="eyebrow">Толь бичиг</span>
+        <h2>Дохио бүр видео — нэг үг, олон хувилбар</h2>
+        <p>Сэдвээр шүүж, гарын тоо болон бүсээр ялган үз. Карт дээр хулганаа аваачихад замнал зурагдана.</p>
+      </div>
+      <a class="btn btn-ghost" href="#">Бүх 2 480 дохио →</a>
+    </div>
+
+    <div class="filters" role="group" aria-label="Сэдвээр шүүх">
+      <button class="chip" data-topic="all" aria-pressed="true">Бүгд</button>
+      <button class="chip" data-topic="Мэндчилгээ" aria-pressed="false">Мэндчилгээ</button>
+      <button class="chip" data-topic="Гэр бүл" aria-pressed="false">Гэр бүл</button>
+      <button class="chip" data-topic="Байгаль" aria-pressed="false">Байгаль</button>
+      <button class="chip" data-topic="Амьтан" aria-pressed="false">Амьтан</button>
+      <button class="chip" data-topic="Боловсрол" aria-pressed="false">Боловсрол</button>
+      <button class="chip" data-topic="Хоол хүнс" aria-pressed="false">Хоол хүнс</button>
+    </div>
+
+    <div class="cards" id="cards"><!-- injected --></div>
+  </div>
+</section>
+
+<!-- ============ DETAIL / RULES ============ -->
+<section class="block" id="detail">
+  <div class="wrap">
+    <div class="block-head">
+      <div>
+        <span class="eyebrow">Дохионы дэлгэрэнгүй</span>
+        <h2>Хувилбар, аман хэлбэр, хэрэглээ — нэг дороос</h2>
+      </div>
+    </div>
+
+    <div class="detail">
+      <div class="player">
+        <span class="region" id="dRegion">Улаанбаатар хувилбар</span>
+        <svg class="scene" viewBox="0 0 360 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g opacity=".92">
+            <circle cx="180" cy="150" r="40" fill="rgba(255,255,255,.10)"/>
+            <rect x="126" y="205" width="108" height="150" rx="46" fill="rgba(255,255,255,.08)"/>
+          </g>
+          <path class="trail" d="M150 270 C 120 180, 210 150, 240 230 S 150 330, 215 310"
+                stroke="var(--amber)" stroke-width="4" stroke-dasharray="1 13" opacity=".9"/>
+          <g class="hand-node" style="offset-path:path('M150 270 C 120 180, 210 150, 240 230 S 150 330, 215 310')">
+            <circle r="14" fill="var(--amber)"/>
+            <circle r="24" fill="none" stroke="var(--amber)" stroke-width="2" opacity=".45"/>
+          </g>
+        </svg>
+        <div class="pbar">
+          <button class="pp" aria-label="Тоглуулах">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="track"><i></i></div>
+          <span class="spd">0.5×</span>
+        </div>
+      </div>
+
+      <div class="info">
+        <h3 id="dWord">Ээж</h3>
+        <div class="gloss" id="dGloss">Mother · /ee-j/</div>
+        <div class="chips">
+          <span class="tagm t-topic" id="dTopic">Гэр бүл</span>
+          <span class="tagm" id="dHand">Хоёр гар</span>
+          <span class="tagm t-level">Шинэ A1</span>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Дохионы мэдээлэл">
+          <button role="tab" aria-selected="true"  data-tab="var">Хувилбар</button>
+          <button role="tab" aria-selected="false" data-tab="mouth">Аман хэлбэр</button>
+          <button role="tab" aria-selected="false" data-tab="use">Хэрэглээ</button>
+        </div>
+
+        <div class="tabpanel" id="tab-var" role="tabpanel">
+          <div class="variant"><div class="vthumb"></div>
+            <div><b>Улаанбаатар хувилбар</b><span>Хамгийн өргөн хэрэглээтэй стандарт</span></div>
+            <span class="best">Стандарт</span>
+          </div>
+          <div class="variant"><div class="vthumb" style="background:linear-gradient(150deg,var(--amber),var(--ink))"></div>
+            <div><b>Орон нутгийн хувилбар</b><span>Баруун бүсэд тохиолддог хэлбэр</span></div>
+          </div>
+        </div>
+
+        <div class="tabpanel hidden" id="tab-mouth" role="tabpanel">
+          <p>Дохиотой зэрэг уруулаар үгийн хэлбэрийг чимээгүй давтана:</p>
+          <div class="mouth"><span class="syl">ээ</span><span class="syl">ж</span></div>
+          <p style="margin-top:14px">Аман хэлбэр (mouthing) нь ижил дохиотой үгсийг ялгахад тусална.</p>
+        </div>
+
+        <div class="tabpanel hidden" id="tab-use" role="tabpanel">
+          <div class="usage">«Миний <b>ээж</b> их эелдэг.» — энэ өгүүлбэрт дохиог хэрхэн оруулахыг видеогоор үзүүлэв.</div>
+          <p style="margin-top:12px">Холбоотой: <a href="#" style="color:var(--sky);font-weight:600">аав</a>, <a href="#" style="color:var(--sky);font-weight:600">гэр бүл</a>, <a href="#" style="color:var(--sky);font-weight:600">эмээ</a></p>
+        </div>
+
+        <div class="act">
+          <button class="btn btn-primary">＋ Жагсаалтад нэмэх</button>
+          <button class="btn btn-ghost">Хувилбар санал болгох</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</section><!-- /view dict -->
+
+<!-- ===== VIEW: ТОГЛООМ ===== -->
+<section class="view" data-view="games">
+<!-- ============ LEARN / GAMES ============ -->
+<section class="block" id="learn">
+  <div class="wrap">
+    <div class="block-head">
+      <div>
+        <span class="eyebrow">Тоглоомоор сурах</span>
+        <h2>Өдөр бүр бага зэрэг — цуваагаа таслахгүй</h2>
+      </div>
+    </div>
+
+    <div class="learn">
+      <div class="lcard">
+        <h3>Таны цуваа</h3>
+        <div class="streak">
+          <div class="ring">
+            <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+              <circle cx="48" cy="48" r="42" fill="none" stroke="var(--paper-2)" stroke-width="9"/>
+              <circle cx="48" cy="48" r="42" fill="none" stroke="var(--amber)" stroke-width="9"
+                stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="74" transform="rotate(-90 48 48)"/>
+            </svg>
+            <div style="position:absolute;text-align:center"><b>12</b><small>хоног</small></div>
+          </div>
+          <div>
+            <p>Энэ долоо хоног гайхалтай байна 👏</p>
+            <div class="days">
+              <i class="on">Да</i><i class="on">Мя</i><i class="on">Лх</i><i class="on">Пү</i><i class="on">Ба</i><i>Бя</i><i>Ня</i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lcard daily">
+        <span class="eyebrow" style="color:var(--amber)">Өдрийн сорил</span>
+        <p>Өнөөдрийн дохиог тааварла. 3 оролдлогоос хэд нь зөв бэ?</p>
+        <div class="word">Талархал</div>
+        <button class="btn btn-amber" style="align-self:flex-start">Сорилт эхлүүлэх →</button>
+      </div>
+
+      <div class="lcard">
+        <h3>Цуглуулсан тэмдэг</h3>
+        <p>Сурснаа тэмдгээр баталгаажуул.</p>
+        <div class="badges">
+          <div class="badge"><div class="b lit">🔥</div><small>7 хоног</small></div>
+          <div class="badge"><div class="b lit">🖐</div><small>100 дохио</small></div>
+          <div class="badge"><div class="b lit">🏔</div><small>Байгаль</small></div>
+          <div class="badge"><div class="b">⭐</div><small>Мастер</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</section><!-- /view games -->
+
+<!-- ===== VIEW: НЭМЭРЛЭХ ===== -->
+<section class="view" data-view="add">
+<!-- ============ CONTRIBUTE ============ -->
+<section class="block" id="contribute">
+  <div class="wrap">
+    <div class="band">
+      <div>
+        <span class="eyebrow" style="color:var(--amber)">Хамтдаа баяжуулъя</span>
+        <h2>Толь бичгийг иргэд өөрсдөө бүтээдэг</h2>
+        <p>Чамд мэдэх дохио толинд алга уу? Видеогоо илгээ — багш нар хянаад нийтэлнэ. Бүх илгээлт зөвшөөрлийн дагуу хадгалагдана.</p>
+        <div class="band-cta">
+          <a class="btn btn-amber" href="#">Шинэ дохио илгээх</a>
+          <a class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.4)" href="#">Хяналтын дараалал</a>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="bstep"><span class="n">01</span><div><b>Бичиж илгээ</b><span>Үг + видео + сэдэв</span></div></div>
+        <div class="bstep"><span class="n">02</span><div><b>Давхардал шалгана</b><span>Систем ижил дохиог олно</span></div></div>
+        <div class="bstep"><span class="n">03</span><div><b>Багш хянана</b><span>Зөвшөөрвөл толинд нэмэгдэнэ</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TOKENS / A11Y ============ -->
+<section class="block">
+  <div class="wrap">
+    <div class="block-head">
+      <div>
+        <span class="eyebrow">Дизайн систем</span>
+        <h2>Хүртээмж нь чимэг биш — суурь</h2>
+        <p>Дохионы хэл бол хараат бус нийгмийн хэл. Тиймээс контраст, фокус, хөдөлгөөний хяналт эхэндээ.</p>
+      </div>
+    </div>
+
+    <div class="tokens">
+      <div>
+        <div class="swatches" style="margin-bottom:22px">
+          <div class="sw"><div class="c" style="background:var(--ink)"></div><div class="l">Ink<span>--ink</span></div></div>
+          <div class="sw"><div class="c" style="background:var(--sky)"></div><div class="l">Sky<span>--sky</span></div></div>
+          <div class="sw"><div class="c" style="background:var(--amber)"></div><div class="l">Amber<span>--amber</span></div></div>
+          <div class="sw"><div class="c" style="background:var(--jade)"></div><div class="l">Jade<span>--jade</span></div></div>
+          <div class="sw"><div class="c" style="background:var(--paper)"></div><div class="l">Paper<span>--paper</span></div></div>
+          <div class="sw"><div class="c" style="background:var(--rose)"></div><div class="l">Rose<span>--rose</span></div></div>
+        </div>
+        <div class="typebox">
+          <div class="d">Аа Бб Вв Гг 0123</div>
+          <div class="b">Unbounded — гарчиг · Golos Text — бие. Хоёулаа кирилл үсгийг бүрэн дэмжинэ.</div>
+          <div class="meta"><span>Display · Unbounded 800</span><span>Body · Golos Text 400–700</span></div>
+        </div>
+      </div>
+
+      <ul class="a11y-list">
+        <li><span class="ic">✓</span><div><b>Контраст ≥ AA</b><span>Бүх текст WCAG 2.1 AA түвшинд. Шөнийн горим нэг товчоор.</span></div></li>
+        <li><span class="ic">✓</span><div><b>Хөдөлгөөн хянагдана</b><span>prefers-reduced-motion-ийг хүндэтгэж замналын анимацийг зогсооно.</span></div></li>
+        <li><span class="ic">✓</span><div><b>Гарын фокус харагдана</b><span>Tab дарж бүх элемент рүү тод хүрээтэйгээр шилжинэ.</span></div></li>
+        <li><span class="ic">✓</span><div><b>Видео эхэнд</b><span>Дохио бол видео — карт болгон тоглуулах affordance-тай, 0.5× удаашруулна.</span></div></li>
+        <li><span class="ic">✓</span><div><b>Role-aware UI</b><span>Сурагч / багш / админ бүрд тохирсон хэсэг. Хамгаалалт сервер тал дээр.</span></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</section><!-- /view add -->
+
+<!-- ===== VIEW: ДҮРЭМ ===== -->
+<section class="view" data-view="rules">
+  <div class="wrap pagehead">
+    <span class="eyebrow">Дүрэм</span>
+    <h2 style="font-family:'Unbounded';font-weight:700;font-size:clamp(1.8rem,3.6vw,2.6rem);max-width:18ch">
+      Гарын байрлал, чиглэл, аман хэлбэрийн жишиг</h2>
+    <p style="color:var(--ink-soft);max-width:46ch;margin-top:10px">Монгол дохионы хэлний бичих дүрмийг гурван үндсэн бүлэгт ангилав.</p>
+  </div>
+  <div class="wrap" style="padding-top:26px;padding-bottom:60px">
+    <div class="rulegrid">
+      <div class="card" style="cursor:default"><div class="body" style="position:relative;z-index:6">
+        <div class="tagm t-topic" style="display:inline-block">01 · Стандарт</div>
+        <div class="mn" style="font-family:'Unbounded';font-weight:700;font-size:1.3rem;margin-top:12px">Үндсэн дүрэм</div>
+        <p style="color:var(--ink-soft);font-size:.95rem;margin:8px 0 0">Тэмдэгтийн нэгдсэн стандарт, бичих чиглэл, томьёолол.</p>
+      </div></div>
+      <div class="card" style="cursor:default"><div class="body" style="position:relative;z-index:6">
+        <div class="tagm t-topic" style="display:inline-block">02 · Бүтэц</div>
+        <div class="mn" style="font-family:'Unbounded';font-weight:700;font-size:1.3rem;margin-top:12px">Гарын зохион байгуулалт</div>
+        <p style="color:var(--ink-soft);font-size:.95rem;margin:8px 0 0">Гарын хэлбэр, байрлал, хөдөлгөөний чиглэл хэрхэн уялдах.</p>
+      </div></div>
+      <div class="card" style="cursor:default"><div class="body" style="position:relative;z-index:6">
+        <div class="tagm t-topic" style="display:inline-block">03 · Аман хэлбэр</div>
+        <div class="mn" style="font-family:'Unbounded';font-weight:700;font-size:1.3rem;margin-top:12px">Mouthing</div>
+        <p style="color:var(--ink-soft);font-size:.95rem;margin:8px 0 0">Уруулын хэлбэрээр ижил дохиог хэрхэн ялган таних.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: ПРОФАЙЛ ===== -->
+<section class="view" data-view="profile">
+  <div class="wrap pagehead">
+    <span class="eyebrow">Миний</span>
+    <h2 style="font-family:'Unbounded';font-weight:800;font-size:clamp(1.9rem,4vw,2.8rem)">Сайн уу 👋</h2>
+    <p style="color:var(--ink-soft);max-width:42ch;margin-top:10px">Сурсан үгс, цуглуулсан тэмдэг, илгээсэн дохионуудаа нэг дороос харна.</p>
+  </div>
+  <div class="wrap" style="padding-top:26px;padding-bottom:60px">
+    <div class="profgrid">
+      <div class="statbig"><b>148</b><span>Сурсан дохио</span></div>
+      <div class="statbig"><b>12</b><span>Цувааны хоног 🔥</span></div>
+      <div class="statbig"><b>6</b><span>Илгээсэн дохио ✓</span></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div class="brand"><svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <rect width="40" height="40" rx="12" fill="var(--ink)"/>
+      <path d="M9 27 C 15 14, 25 14, 31 25" stroke="var(--amber)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6"/>
+      <circle cx="31" cy="25" r="4.5" fill="var(--sky)"/><circle cx="9" cy="27" r="3" fill="var(--amber)"/>
+    </svg><span>MSL<small>дохионы хэл</small></span></div>
+    <span>Дизайн чиглэл · «Дохио бол хөдөлгөөн» · Монгол дохионы хэлний интерактив платформ</span>
+  </div>
+</footer>
+
+<script>
+/* ---- glass nav: tabs, sliding pill, page switching ---- */
+const NAV=[
+  {v:'dict',   t:'Толь бичиг', ic:'<path d="M5 4h11a2 2 0 0 1 2 2v13a1 1 0 0 1-1 1H7a2 2 0 0 0-2 2V4z"/><path d="M5 4a2 2 0 0 0-2 2v13a3 3 0 0 1 3-3h12"/>'},
+  {v:'rules',  t:'Дүрэм',      ic:'<path d="M5 5h14M5 10h10M5 15h14M5 20h8"/>'},
+  {v:'games',  t:'Тоглоом',    ic:'<path d="M12 3l1.9 4.6L19 8l-3.5 3.4.8 5L12 14.5 7.7 16.4l.8-5L5 8l5.1-.4L12 3z"/>'},
+  {v:'profile',t:'Профайл',    ic:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'},
+  {v:'add',    t:'Нэмэрлэх',   ic:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>'},
+];
+const gtabs=document.getElementById('gtabs'), gpill=document.getElementById('gpill');
+let activeView='dict';
+NAV.forEach(n=>{
+  const b=document.createElement('button');
+  b.className='gtab';b.setAttribute('role','tab');b.dataset.go=n.v;
+  b.setAttribute('aria-selected', n.v===activeView?'true':'false');
+  b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+    stroke-linecap="round" stroke-linejoin="round">${n.ic}</svg><span class="t">${n.t}</span>`;
+  b.addEventListener('click',()=>goView(n.v));
+  b.addEventListener('keydown',e=>{const ts=[...gtabs.querySelectorAll('.gtab')];const i=ts.indexOf(b);
+    if(e.key==='ArrowRight'){e.preventDefault();ts[(i+1)%ts.length].focus();}
+    if(e.key==='ArrowLeft'){e.preventDefault();ts[(i-1+ts.length)%ts.length].focus();}});
+  gtabs.appendChild(b);
+});
+function movePill(animate){
+  const el=[...gtabs.querySelectorAll('.gtab')].find(t=>t.dataset.go===activeView);
+  if(!el)return;
+  if(!animate)gpill.style.transition='none';
+  gpill.style.setProperty('--pw',el.offsetWidth+'px');
+  gpill.style.setProperty('--px',el.offsetLeft+'px');
+  if(!animate)requestAnimationFrame(()=>gpill.style.transition='');
+}
+function goView(v){
+  if(!NAV.some(n=>n.v===v))return;
+  activeView=v;
+  gtabs.querySelectorAll('.gtab').forEach(t=>t.setAttribute('aria-selected',t.dataset.go===v?'true':'false'));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('show',s.dataset.view===v));
+  movePill(true);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+/* any element with data-go (CTA, in-page buttons) switches page */
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g && !g.classList.contains('gtab')){e.preventDefault();goView(g.dataset.go);}
+});
+movePill(false);
+window.addEventListener('load',()=>movePill(false));
+window.addEventListener('resize',()=>movePill(false));
+
+/* ---- night mode ---- */
+const themeBtn=document.getElementById('themeBtn');
+if(themeBtn){themeBtn.addEventListener('click',()=>{
+  const root=document.documentElement;
+  root.dataset.theme = root.dataset.theme==='night' ? 'light' : 'night';
+});}
+
+/* ---- dictionary data ---- */
+const WORDS=[
+  {mn:'Ээж',en:'Mother',topic:'Гэр бүл',hand:'Хоёр гар',gloss:'/ee-j/'},
+  {mn:'Баярлалаа',en:'Thank you',topic:'Мэндчилгээ',hand:'Нэг гар',gloss:'/ba-yar-laa/'},
+  {mn:'Ус',en:'Water',topic:'Хоол хүнс',hand:'Нэг гар',gloss:'/us/'},
+  {mn:'Сурах',en:'To learn',topic:'Боловсрол',hand:'Хоёр гар',gloss:'/su-rakh/'},
+  {mn:'Найз',en:'Friend',topic:'Гэр бүл',hand:'Хоёр гар',gloss:'/naiz/'},
+  {mn:'Нар',en:'Sun',topic:'Байгаль',hand:'Нэг гар',gloss:'/nar/'},
+  {mn:'Морь',en:'Horse',topic:'Амьтан',hand:'Хоёр гар',gloss:'/mor/'},
+  {mn:'Сайн уу',en:'Hello',topic:'Мэндчилгээ',hand:'Нэг гар',gloss:'/sain-uu/'},
+];
+const trails=[
+  'M40 130 C 70 50, 150 50, 160 120 S 80 200, 150 175',
+  'M50 100 C 100 40, 130 150, 175 90',
+  'M40 160 C 90 60, 140 120, 170 60',
+  'M40 110 C 90 60, 110 160, 170 110 S 90 60, 160 150',
+  'M50 150 C 60 60, 150 70, 160 140',
+  'M40 70 C 100 60, 110 160, 175 150',
+  'M40 150 C 80 70, 150 90, 170 150 S 90 190, 150 160',
+  'M50 90 C 110 50, 120 160, 170 120',
+];
+function frameSVG(i){
+  const p=trails[i%trails.length];
+  return `<svg class="scene" viewBox="0 0 210 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g opacity=".5"><circle cx="105" cy="78" r="22" fill="color-mix(in srgb,var(--ink) 14%,transparent)"/>
+      <rect x="76" y="106" width="58" height="80" rx="26" fill="color-mix(in srgb,var(--ink) 11%,transparent)"/></g>
+    <path class="trail draw" style="--len:420" d="${p}" stroke="var(--amber)" stroke-width="3.4"/>
+    <g class="hand-node" style="offset-path:path('${p}')"><circle r="8" fill="var(--amber)"/>
+      <circle r="14" fill="none" stroke="var(--amber)" stroke-width="1.6" opacity=".5"/></g>
+  </svg>`;
+}
+const cards=document.getElementById('cards');
+function render(filter='all'){
+  cards.innerHTML=WORDS.map((w,i)=>{
+    const dim = (filter!=='all'&&w.topic!==filter)?' dim':'';
+    return `<article class="card${dim}" tabindex="0" data-i="${i}">
+      <div class="frame">${frameSVG(i)}
+        <span class="hand-chip">${w.hand==='Нэг гар'?'☝':'🙌'} ${w.hand}</span>
+        <span class="play"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+      </div>
+      <div class="body">
+        <div class="mn">${w.mn}</div><div class="en">${w.en}</div>
+        <div class="meta"><span class="tagm t-topic">${w.topic}</span><span class="tagm">${w.hand}</span></div>
+      </div>
+    </article>`;
+  }).join('');
+  bindCards();
+}
+function bindCards(){
+  document.querySelectorAll('.card').forEach(c=>{
+    const open=()=>openDetail(+c.dataset.i);
+    c.addEventListener('click',open);
+    c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+  });
+}
+render();
+
+/* ---- filters ---- */
+document.querySelectorAll('.chip').forEach((ch,_,all)=>{
+  ch.addEventListener('click',()=>{
+    all.forEach(x=>x.setAttribute('aria-pressed','false'));ch.setAttribute('aria-pressed','true');
+    render(ch.dataset.topic);
+  });
+});
+
+/* ---- detail open ---- */
+function openDetail(i){
+  const w=WORDS[i];
+  document.getElementById('dWord').textContent=w.mn;
+  document.getElementById('dGloss').textContent=`${w.en} · ${w.gloss}`;
+  document.getElementById('dTopic').textContent=w.topic;
+  document.getElementById('dHand').textContent=w.hand;
+  document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ---- detail tabs ---- */
+document.querySelectorAll('.tabs button').forEach((t,_,all)=>{
+  t.addEventListener('click',()=>{
+    all.forEach(x=>x.setAttribute('aria-selected','false'));t.setAttribute('aria-selected','true');
+    ['var','mouth','use'].forEach(k=>document.getElementById('tab-'+k).classList.add('hidden'));
+    document.getElementById('tab-'+t.dataset.tab).classList.remove('hidden');
+  });
+});
+
+/* ---- animated stat count ---- */
+const s1=document.getElementById('s1');
+let n=0;const tgt=2480;const iv=setInterval(()=>{n+=80;if(n>=tgt){n=tgt;clearInterval(iv);}
+  s1.textContent=n.toLocaleString('mn-MN').replace(/,/g,' ');},20);
+</script>
+<script>
+/* cursor-following gradient background */
+(function(){
+  const r=document.documentElement.style;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let tx=innerWidth*.5, ty=innerHeight*.38, cx=tx, cy=ty;
+  addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;},{passive:true});
+  function loop(){
+    cx+=(tx-cx)*.08; cy+=(ty-cy)*.08;           /* eased trail — the "follow" feel */
+    r.setProperty('--x',cx+'px'); r.setProperty('--y',cy+'px');
+    requestAnimationFrame(loop);
+  }
+  if(!reduce){loop();} else {r.setProperty('--x','50%');r.setProperty('--y','38%');}
+  /* gentle auto-drift on touch devices */
+  if(matchMedia('(hover:none)').matches && !reduce){
+    let a=0;setInterval(()=>{a+=.03;
+      tx=innerWidth*(.5+.3*Math.cos(a));ty=innerHeight*(.42+.28*Math.sin(a*1.3));},40);
+  }
+})();
+</script>
+</body>
+</html>

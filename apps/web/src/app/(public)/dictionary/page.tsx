@@ -3,8 +3,8 @@ import { Search } from 'lucide-react';
 import type { Paginated } from '@msl/types';
 import { EmptyState } from '@msl/ui';
 import { translate } from '@/i18n';
-import { apiGetSafe } from '@/lib/api/server';
-import { SearchBar } from '@/components/dictionary/SearchBar';
+import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
+import { LiveSearch } from '@/components/LiveSearch';
 import { FilterPanel } from '@/components/dictionary/FilterPanel';
 import { SignCard } from '@/components/dictionary/SignCard';
 import { Pager } from '@/components/dictionary/Pager';
@@ -38,9 +38,9 @@ export default async function DictionaryPage({
   qs.set('page', String(page));
 
   const [topics, levels, ageGroups, words] = await Promise.all([
-    apiGetSafe<TopicNode[]>('/topics'),
-    apiGetSafe<TaxoRef[]>('/levels'),
-    apiGetSafe<TaxoRef[]>('/age-groups'),
+    apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/levels', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),
     apiGetSafe<Paginated<WordListItem>>(`/words?${qs.toString()}`),
   ]);
 
@@ -50,7 +50,7 @@ export default async function DictionaryPage({
   const to = meta ? Math.min(meta.page * meta.limit, meta.total) : 0;
 
   return (
-    <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+    <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
           {translate('dict.title')}
@@ -61,11 +61,11 @@ export default async function DictionaryPage({
           </p>
         )}
         <div className="mt-6">
-          <SearchBar initial={sp.q ?? ''} />
+          <LiveSearch initial={sp.q ?? ''} />
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         {/* Results */}
         <div className="order-2 lg:order-1">
           {items.length === 0 ? (
@@ -78,7 +78,7 @@ export default async function DictionaryPage({
             <>
               <ul
                 aria-label={translate('dict.gridLabel')}
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
               >
                 {items.map((w, i) => (
                   <li key={w.id}>

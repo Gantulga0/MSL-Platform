@@ -1,8 +1,8 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { API_BASE_URL } from '@/lib/api';
-import { apiSend, ApiClientError } from '@/lib/api/server';
+import { apiSend, ApiClientError, TAXONOMY_TAG } from '@/lib/api/server';
 import { getAccessToken } from '@/lib/auth/session';
 
 export interface AdminActionResult {
@@ -67,6 +67,7 @@ export async function createWordAction(formData: FormData): Promise<AdminActionR
       ...(handCount ? { handCount: Number(handCount) } : {}),
     });
     revalidatePath('/admin/words');
+    revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -86,6 +87,7 @@ export async function updateWordAction(formData: FormData): Promise<AdminActionR
       ...(status ? { status } : {}),
     });
     revalidatePath('/admin/words');
+    revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -96,6 +98,7 @@ export async function deleteWordAction(id: string): Promise<AdminActionResult> {
   try {
     await apiSend('DELETE', `/admin/words/${id}`);
     revalidatePath('/admin/words');
+    revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
     return { ok: true };
   } catch (e) {
     return fail(e);

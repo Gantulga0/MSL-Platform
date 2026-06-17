@@ -4,59 +4,110 @@ import styled from 'styled-components';
 
 /**
  * Shared visual shell for the auth modals (login / register / forgot-password).
- * The `.container / .heading / .input / .forgot-password / .login-button` rules are
- * the exact styles from the original standalone login (`Form.tsx`) — kept verbatim
- * so the design does not change. Only small, non-visual additions are made for the
- * modal context: a close (`×`) button and `<button>`-based view-switch links that
- * reuse the existing link colour/size. All three views import this one wrapper so
- * the design language stays identical (only fields and copy differ).
+ * Re-skinned to the Liquid Glass language: the `.container` is the translucent,
+ * blurred glass material (top sheen + edge rim), and every colour resolves to a
+ * design token (`--ink/--cloud/--sky/--line/--rose` …) so it themes with the rest
+ * of the app, including `[data-theme="night"]`. The class names and markup are
+ * unchanged — the three views import this one wrapper, so only the look differs.
+ * Accessibility is preserved: visible focus, ≥44px close target, and invalid
+ * fields keep BOTH a colour border and an inline text error (never colour alone).
  */
 export const AuthFormWrapper = styled.div`
   .container {
     position: relative;
     max-width: 350px;
-    background: #f8f9fd;
-    background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(244, 247, 251) 100%);
-    border-radius: 40px;
-    padding: 25px 35px;
-    border: 5px solid rgb(255, 255, 255);
-    box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 30px 30px -20px;
     margin: 20px;
+    padding: 28px 32px;
+    border-radius: 28px;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--cloud) 44%, transparent);
+    -webkit-backdrop-filter: blur(34px) saturate(210%) brightness(1.06);
+    backdrop-filter: blur(34px) saturate(210%) brightness(1.06);
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      var(--shadow),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -14px 28px -18px rgba(20, 20, 60, 0.22);
+  }
+  [data-theme='night'] & .container {
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+      var(--shadow),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -14px 28px -18px rgba(0, 0, 0, 0.4);
+  }
+  /* Glass top-sheen + edge rim (decorative, never intercept pointer events). */
+  .container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 4;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 36%);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+  }
+  .container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 5;
+    padding: 1.5px;
+    background: linear-gradient(125deg, rgba(255, 255, 255, 0.85), transparent 28%, transparent 70%, rgba(255, 255, 255, 0.55));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
 
   .heading {
+    position: relative;
+    z-index: 6;
     text-align: center;
-    font-weight: 900;
-    font-size: 30px;
-    color: rgb(16, 137, 211);
+    font-family: var(--font-display), sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
   }
 
   .form {
+    position: relative;
+    z-index: 6;
     margin-top: 20px;
   }
 
   .form .input {
     width: 100%;
-    background: white;
-    border: none;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--cloud) 60%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
     padding: 15px 20px;
-    border-radius: 20px;
+    border-radius: 16px;
     margin-top: 15px;
-    box-shadow: #cff0ff 0px 10px 10px -5px;
-    border-inline: 2px solid transparent;
+    box-shadow: var(--shadow-sm);
   }
 
   .form .input::-moz-placeholder {
-    color: rgb(170, 170, 170);
+    color: var(--ink-faint);
   }
 
   .form .input::placeholder {
-    color: rgb(170, 170, 170);
+    color: var(--ink-faint);
   }
 
   .form .input:focus {
     outline: none;
-    border-inline: 2px solid #12b1d1;
+    border-color: var(--sky);
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 3px color-mix(in srgb, var(--sky) 28%, transparent);
   }
 
   .form .forgot-password {
@@ -68,7 +119,7 @@ export const AuthFormWrapper = styled.div`
   .form .forgot-password a,
   .form .forgot-password .switch-link {
     font-size: 11px;
-    color: #0099ff;
+    color: var(--sky-ink);
     text-decoration: none;
   }
 
@@ -76,24 +127,22 @@ export const AuthFormWrapper = styled.div`
     display: block;
     width: 100%;
     font-weight: bold;
-    background: linear-gradient(45deg, rgb(16, 137, 211) 0%, rgb(18, 177, 209) 100%);
-    color: white;
+    background: linear-gradient(45deg, var(--sky) 0%, var(--sky-ink) 100%);
+    color: #fff;
     padding-block: 15px;
     margin: 20px auto;
-    border-radius: 20px;
-    box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;
+    border-radius: 16px;
+    box-shadow: 0 18px 28px -16px color-mix(in srgb, var(--sky) 80%, transparent);
     border: none;
     transition: all 0.2s ease-in-out;
   }
 
   .form .login-button:hover {
-    transform: scale(1.03);
-    box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 23px 10px -20px;
+    transform: translateY(-2px) scale(1.02);
   }
 
   .form .login-button:active {
-    transform: scale(0.95);
-    box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 15px 10px -10px;
+    transform: scale(0.97);
   }
 
   .form .login-button:disabled {
@@ -102,46 +151,50 @@ export const AuthFormWrapper = styled.div`
     transform: none;
   }
 
-  /* ── Modal-only additions (no change to the original design) ──────────── */
+  /* ── Modal-only additions (no change to the original behaviour) ───────────── */
 
   /* Top-right close (×). 44px touch target (NFR-01); keyboard-focusable. */
   .modal-close {
     position: absolute;
     top: 14px;
     right: 14px;
+    z-index: 7;
     width: 44px;
     height: 44px;
     display: grid;
     place-content: center;
     border: none;
     background: transparent;
-    color: rgb(16, 137, 211);
+    color: var(--ink-soft);
     border-radius: 50%;
     cursor: pointer;
     transition: background 0.2s ease-in-out;
   }
 
   .modal-close:hover {
-    background: #eaf6ff;
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
+    color: var(--ink);
   }
 
   .modal-close:focus-visible {
-    outline: 2px solid #12b1d1;
+    outline: 2px solid var(--sky);
     outline-offset: 2px;
   }
 
   /* In-modal view switch ("Register" / "Back to login") — link look, button role. */
   .switch-line {
+    position: relative;
+    z-index: 6;
     display: block;
     text-align: center;
     margin-top: 15px;
     font-size: 11px;
-    color: rgb(120, 120, 120);
+    color: var(--ink-faint);
   }
 
   .switch-line .switch-link {
     font-size: 11px;
-    color: #0099ff;
+    color: var(--sky-ink);
     background: none;
     border: none;
     padding: 0;
@@ -150,7 +203,7 @@ export const AuthFormWrapper = styled.div`
   }
 
   .switch-line .switch-link:focus-visible {
-    outline: 2px solid #12b1d1;
+    outline: 2px solid var(--sky);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -163,7 +216,7 @@ export const AuthFormWrapper = styled.div`
     margin-top: 15px;
     margin-left: 10px;
     font-size: 12px;
-    color: rgb(90, 90, 90);
+    color: var(--ink-soft);
     text-align: left;
   }
 
@@ -172,7 +225,7 @@ export const AuthFormWrapper = styled.div`
     width: 18px;
     height: 18px;
     flex-shrink: 0;
-    accent-color: #1089d3;
+    accent-color: var(--sky);
   }
 
   /* Inline FormAlert spacing inside the card. */
@@ -182,7 +235,10 @@ export const AuthFormWrapper = styled.div`
 
   /* Invalid field outline + inline, text-based error (NFR-01: not colour alone). */
   .form .input.invalid {
-    border-inline: 2px solid #e5484d;
+    border-color: var(--rose);
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 3px color-mix(in srgb, var(--rose) 26%, transparent);
   }
 
   .field-error {
@@ -191,5 +247,8 @@ export const AuthFormWrapper = styled.div`
     margin-left: 10px;
     font-size: 11px;
     color: #c62828;
+  }
+  [data-theme='night'] & .field-error {
+    color: #ff9aa6;
   }
 `;

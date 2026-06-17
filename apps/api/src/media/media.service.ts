@@ -20,7 +20,6 @@ const EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
 };
 
-/** Validates a media upload against the allowed MIME list + size cap (G-7). */
 export function assertAllowedMedia(
   mime: string,
   sizeBytes: number,
@@ -55,7 +54,6 @@ export class MediaService {
     return this.config.get<number>('MEDIA_MAX_BYTES', 52_428_800);
   }
 
-  /** S3-style descriptor (production direct-to-bucket). Local dev uploads via POST /media. */
   createUploadDescriptor(dto: UploadUrlDto): {
     storageKey: string;
     uploadUrl: string;
@@ -71,13 +69,13 @@ export class MediaService {
     if (!file) throw new BadRequestException('No file provided');
     assertAllowedMedia(file.mimetype, file.size, this.allowedMime(), this.maxBytes());
     const key = `${dto.ownerType}/${randomUUID()}.${EXT[file.mimetype] ?? 'bin'}`;
-    await this.storage.save(key, file.buffer);
+    await this.storage.save(key, file.buffer, file.mimetype);
     return this.prisma.mediaAsset.create({
       data: {
         ownerType: dto.ownerType,
         ownerId: dto.ownerId ?? '',
         type: dto.type,
-        storageProvider: 'local',
+        storageProvider: this.storage.provider,
         storageKey: key,
         mime: file.mimetype,
         sizeBytes: file.size,
@@ -87,18 +85,37 @@ export class MediaService {
     });
   }
 
-  /** Role-aware URL (AUTH-09): public for approved content, signed otherwise. */
-  async getForRole(id: string, user?: AuthenticatedUser): Promise<{ id: string; type: string; mime: string; url: string }> {
+  async getForRole(
+    id: string,
+    user?: AuthenticatedUser,
+  ): Promise<{ id: string; type: string; mime: string; url: string }> {
     const media = await this.requireMedia(id);
     const isPublic = await this.isPublic(media);
     if (!isPublic) await this.assertCanViewPrivate(media, user);
-    const url = isPublic
-      ? `/api/v1/media/${id}/blob`
-      : `/api/v1/media/${id}/blob?token=${await this.signToken(id)}`;
+    const url = await this.resolveUrl(media, isPublic);
     return { id: media.id, type: media.type, mime: media.mime, url };
   }
 
-  async serveBlob(id: string, token: string | undefined): Promise<{ buffer: Buffer; mime: string }> {
+  private async resolveUrl(media: MediaAsset, isPublic: boolean): Promise<string> {
+    if (media.storageProvider === 'r2') {
+      if (isPublic) {
+        const cdn = this.storage.publicUrl(media.storageKey);
+        if (cdn) return cdn;
+      } else {
+        const ttl = this.config.get<number>('SIGNED_URL_TTL_SECONDS', 900);
+        const signed = await this.storage.presignGet(media.storageKey, ttl);
+        if (signed) return signed;
+      }
+    }
+    return isPublic
+      ? `/api/v1/media/${media.id}/blob`
+      : `/api/v1/media/${media.id}/blob?token=${await this.signToken(media.id)}`;
+  }
+
+  async serveBlob(
+    id: string,
+    token: string | undefined,
+  ): Promise<{ buffer: Buffer; mime: string }> {
     const media = await this.requireMedia(id);
     const isPublic = await this.isPublic(media);
     if (!isPublic) {
@@ -127,7 +144,6 @@ export class MediaService {
     });
   }
 
-  // ── internals ──────────────────────────────────────────────────────────────
   private async requireMedia(id: string): Promise<MediaAsset> {
     const media = await this.prisma.mediaAsset.findUnique({ where: { id } });
     if (!media) throw new NotFoundException('Media not found');
@@ -149,7 +165,7 @@ export class MediaService {
       });
       return v?.word.status === 'approved';
     }
-    return false; // submission media is never public
+    return false;
   }
 
   private async assertCanViewPrivate(media: MediaAsset, user?: AuthenticatedUser): Promise<void> {

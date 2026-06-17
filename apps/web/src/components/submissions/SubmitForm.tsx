@@ -13,7 +13,7 @@ import {
   type CheckResult,
   type SubmitResult,
 } from '@/lib/submissions/actions';
-import { TopicSelect } from '@/components/admin/TopicSelect';
+import { TopicSelect } from '@/components/dictionary/TopicSelect';
 import { ImagePicker, type PickerOption } from '@/components/admin/ImagePicker';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 import { VideoCapture } from './VideoCapture';

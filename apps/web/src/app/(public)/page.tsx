@@ -1,46 +1,36 @@
 import { translate } from '@/i18n';
-import { fetchApiHealth } from '@/lib/api';
+import { LiveSearch } from '@/components/LiveSearch';
+import { SignFrame } from '@/components/signs/SignFrame';
 
-export default async function HomePage(): Promise<React.ReactElement> {
+export default function HomePage(): React.ReactElement {
   return (
-    <main id="main" className="mx-auto max-w-3xl px-4 py-12">
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight text-fg">{translate('app.title')}</h1>
-        <p className="mt-2 text-lg text-fg-muted">{translate('app.tagline')}</p>
-      </header>
+    <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
+      {/* Hero: search on the LEFT, the sign-motion visual on the RIGHT. */}
+      <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+        <div>
+          <span className="eyebrow">{translate('app.shortTitle')}</span>
+          <h1
+            className="mt-4 text-4xl text-fg sm:text-5xl"
+            style={{ fontFamily: 'var(--font-pacifico), var(--font-display), cursive', lineHeight: 1.2 }}
+          >
+            {translate('app.title')}
+          </h1>
+          <p className="mt-4 max-w-prose text-lg text-fg-muted">{translate('app.tagline')}</p>
 
-      <section aria-labelledby="search-heading" className="mb-10">
-        <h2 id="search-heading" className="sr-only">
-          {translate('home.searchPlaceholder')}
-        </h2>
-        <label htmlFor="word-search" className="block text-sm font-medium text-fg">
-          {translate('nav.dictionary')}
-        </label>
-        <input
-          id="word-search"
-          type="search"
-          placeholder={translate('home.searchPlaceholder')}
-          className="mt-1 h-control-sm w-full rounded-md border border-border-strong px-3 text-base"
-        />
-      </section>
-      {/* 
-      <Card>
-        <CardBody>
-          <p aria-live="polite" className="text-sm">
-            <span className="font-medium text-fg">API:</span>{' '}
-            {apiOnline ? (
-              <span className="text-success">● {translate('status.healthy')}</span>
-            ) : (
-              <span className="text-fg-subtle">○ offline (dev)</span>
-            )}
-          </p>
-          <p className="mt-3 text-sm text-fg-muted">
-            <Link href={'/design-system' as Route} className="font-medium text-primary underline">
-              {translate('ds.title')}
-            </Link>
-          </p>
-        </CardBody>
-      </Card> */}
+          <section aria-labelledby="search-heading" className="mt-8">
+            <h2 id="search-heading" className="sr-only">
+              {translate('home.searchPlaceholder')}
+            </h2>
+            {/* Live results as you type; Enter → /dictionary?q=… full results. */}
+            <LiveSearch />
+          </section>
+        </div>
+
+        {/* Decorative gesture-trail visual (presentational). */}
+        <div className="mx-auto w-full max-w-sm lg:max-w-none">
+          <SignFrame />
+        </div>
+      </div>
     </main>
   );
 }

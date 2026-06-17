@@ -8,7 +8,7 @@ import { translate as t } from '@/i18n';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { approveAction, editAction, rejectAction } from '@/lib/review/actions';
 import { ImagePicker, type PickerOption } from '@/components/admin/ImagePicker';
-import { TopicSelect } from '@/components/admin/TopicSelect';
+import { TopicSelect } from '@/components/dictionary/TopicSelect';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
 interface Props {

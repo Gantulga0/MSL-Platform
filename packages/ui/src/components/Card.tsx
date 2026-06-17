@@ -13,9 +13,10 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   tone?: CardTone;
 }
 
-// Tints carry no border (they read as soft fills); white keeps a hairline.
-const TONES: Record<CardTone, string> = {
-  white: 'bg-surface text-fg border-border',
+// Tinted/dark tones read as soft solid fills (keep their hairline shape). The
+// default `white` tone is the Liquid Glass material — translucent, blurred,
+// with a specular rim — so it carries its own border/shadow/radius via `.glass`.
+const TONES: Record<Exclude<CardTone, 'white'>, string> = {
   sage: 'bg-tint-sage text-fg border-transparent',
   lavender: 'bg-tint-lav text-fg border-transparent',
   butter: 'bg-tint-butter text-fg border-transparent',
@@ -29,11 +30,11 @@ export function Card({
   children,
   ...rest
 }: CardProps): React.ReactElement {
+  const isGlass = tone === 'white';
   return (
     <div
       className={cn(
-        'rounded-xl border shadow-sm',
-        TONES[tone],
+        isGlass ? 'glass text-fg' : cn('rounded-xl border shadow-sm', TONES[tone]),
         interactive &&
           'transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-within:shadow-md motion-reduce:transform-none motion-reduce:transition-none',
         className,

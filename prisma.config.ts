@@ -8,6 +8,8 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? '',
+    // CLI commands (migrate/introspect) use the direct/session connection;
+    // fall back to DATABASE_URL when DIRECT_URL is not set.
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? '',
   },
 });

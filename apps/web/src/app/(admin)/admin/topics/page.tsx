@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { translate } from '@/i18n';
-import { apiGetSafe } from '@/lib/api/server';
+import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
 import {
   TaxonomyManager,
   type AgeGroup,
@@ -12,9 +12,9 @@ export const metadata: Metadata = { title: 'Сэдэв ба ангилал' };
 
 export default async function AdminTopicsPage(): Promise<React.ReactElement> {
   const [topics, levels, ageGroups] = await Promise.all([
-    apiGetSafe<TopicNode[]>('/topics'),
-    apiGetSafe<Level[]>('/levels'),
-    apiGetSafe<AgeGroup[]>('/age-groups'),
+    apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
+    apiGetSafe<Level[]>('/levels', TAXONOMY_READ),
+    apiGetSafe<AgeGroup[]>('/age-groups', TAXONOMY_READ),
   ]);
 
   return (

@@ -30,6 +30,20 @@
   "nav.register": "Register",
   "nav.dailyChallenge": "Daily challenge",
   "nav.menu": "Menu",
+  "nav.learn": "Learn",
+  "nav.alphabet": "Alphabet",
+  "nav.numbers": "Numbers",
+
+  "theme.toggle": "Toggle colour theme",
+  "theme.toLight": "Switch to light theme",
+  "theme.toDark": "Switch to dark theme",
+
+  "dict.play": "Play",
+  "dict.pause": "Pause",
+  "dict.speed": "Playback speed",
+  "home.heroLiveTag": "Live demo",
+  "home.heroVisualCaption": "A sign is motion",
+  "home.heroVisualLabel": "Sign motion illustration",
 
   "shell.public": "Public area",
   "shell.user": "User area",
@@ -58,6 +72,8 @@
 
   "home.searchPlaceholder": "Search a word...",
   "home.featuredTopics": "Featured topics",
+  "search.resultsLabel": "Search results",
+  "search.viewAll": "View all results",
   "home.accessibilityStatement": "Accessibility statement",
   "status.healthy": "System is operating normally",
 
@@ -145,6 +161,22 @@
   "dict.resultCount": "{total} signs in total — showing {from}–{to}",
   "dict.gridLabel": "Sign list",
   "dict.openWord": "View details for {lemma}",
+
+  "alphabet.title": "Cyrillic alphabet",
+  "alphabet.lead": "See the sign for each Cyrillic letter. Tap a card to view it larger.",
+  "alphabet.gridLabel": "Alphabet sign list",
+  "alphabet.signOf": "Sign for the letter {letter}",
+
+  "numbers.title": "Numbers & number expressions",
+  "numbers.lead": "See the signs for numbers 0–1000. Tap a card to view it larger.",
+  "numbers.gridLabel": "Number sign list",
+  "numbers.signOf": "Sign for the number {value}",
+  "numbers.filterNav": "Category filter",
+
+  "signs.comingSoon": "Sign video coming soon",
+  "signs.sign": "Sign",
+  "signs.signOfLabel": "Sign for {label}",
+  "signs.emptyCategory": "Videos for this category are coming soon",
   "dict.signVideoAlt": "Video of the sign being shown",
   "dict.filters": "Filters",
   "dict.filtersShow": "Show filters",

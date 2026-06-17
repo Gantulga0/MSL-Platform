@@ -56,8 +56,6 @@ export class AuthService {
 
     const passwordHash = await argon2.hash(dto.password);
 
-    // With SMTP configured we require real email verification (AUTH-02). Without
-    // it (local dev), auto-verify so the flow stays usable offline.
     const autoVerify = !this.mail.enabled;
 
     const user = await this.prisma.user.create({

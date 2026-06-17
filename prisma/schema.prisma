@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -232,9 +233,6 @@ model AgeGroup {
   @@map("age_groups")
 }
 
-/// One- vs two-handed sign, as an image-backed option. `handCount` maps the
-/// selection onto Word.handCount (1 or 2) so the existing dictionary filter is
-/// unchanged.
 model Handedness {
   id        String  @id @default(uuid())
   code      String  @unique

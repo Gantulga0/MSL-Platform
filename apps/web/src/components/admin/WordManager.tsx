@@ -10,7 +10,7 @@ import { FormAlert } from '@/components/auth/FormAlert';
 import { createWordAction, deleteWordAction, updateWordAction } from '@/lib/admin/word-actions';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 import { ImagePicker, type PickerOption } from './ImagePicker';
-import { TopicSelect } from './TopicSelect';
+import { TopicSelect } from '@/components/dictionary/TopicSelect';
 
 export interface WordRow {
   id: string;

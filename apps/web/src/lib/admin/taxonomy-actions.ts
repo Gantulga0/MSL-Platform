@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { apiSend, ApiClientError } from '@/lib/api/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { apiSend, ApiClientError, TAXONOMY_TAG } from '@/lib/api/server';
 
 export interface ActionResult {
   error?: string;
@@ -11,13 +11,19 @@ function fail(e: unknown): ActionResult {
   return { error: e instanceof ApiClientError ? e.message : 'Request failed' };
 }
 
+/** Refresh the editor page AND purge every cached taxonomy read app-wide. */
+function invalidateTaxonomy(): void {
+  revalidatePath('/admin/topics');
+  revalidateTag(TAXONOMY_TAG);
+}
+
 export async function createTopicAction(formData: FormData): Promise<ActionResult> {
   const name = String(formData.get('name') ?? '').trim();
   const slug = String(formData.get('slug') ?? '').trim();
   const parentId = String(formData.get('parentId') ?? '').trim();
   try {
     await apiSend('POST', '/topics', { name, slug, ...(parentId ? { parentId } : {}) });
-    revalidatePath('/admin/topics');
+    invalidateTaxonomy();
     return {};
   } catch (e) {
     return fail(e);
@@ -28,7 +34,7 @@ export async function deleteTopicAction(formData: FormData): Promise<ActionResul
   const id = String(formData.get('id') ?? '');
   try {
     await apiSend('DELETE', `/topics/${id}`);
-    revalidatePath('/admin/topics');
+    invalidateTaxonomy();
     return {};
   } catch (e) {
     return fail(e);
@@ -40,7 +46,7 @@ export async function createLevelAction(formData: FormData): Promise<ActionResul
   const label = String(formData.get('label') ?? '').trim();
   try {
     await apiSend('POST', '/levels', { code, label });
-    revalidatePath('/admin/topics');
+    invalidateTaxonomy();
     return {};
   } catch (e) {
     return fail(e);
@@ -59,7 +65,7 @@ export async function createAgeGroupAction(formData: FormData): Promise<ActionRe
       ...(minAge ? { minAge: Number(minAge) } : {}),
       ...(maxAge ? { maxAge: Number(maxAge) } : {}),
     });
-    revalidatePath('/admin/topics');
+    invalidateTaxonomy();
     return {};
   } catch (e) {
     return fail(e);

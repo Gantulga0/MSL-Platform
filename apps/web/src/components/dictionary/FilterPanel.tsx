@@ -6,6 +6,7 @@ import type { Route } from 'next';
 import { SlidersHorizontal } from 'lucide-react';
 import { Button, Dialog, cn } from '@msl/ui';
 import { translate as t } from '@/i18n';
+import { TopicSelect } from '@/components/dictionary/TopicSelect';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
 interface Props {
@@ -15,16 +16,6 @@ interface Props {
 }
 
 const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'hands'] as const;
-
-/** Flatten the topic tree into an indented, ordered list for a flat picker. */
-function flattenTopics(nodes: TopicNode[], depth = 0): Array<{ id: string; label: string }> {
-  const out: Array<{ id: string; label: string }> = [];
-  for (const node of nodes) {
-    out.push({ id: node.id, label: `${'— '.repeat(depth)}${node.name}` });
-    if (node.children?.length) out.push(...flattenTopics(node.children, depth + 1));
-  }
-  return out;
-}
 
 /**
  * Dictionary filters (FR-08, S-06). Sticky white card on desktop; an accessible
@@ -131,24 +122,19 @@ function FilterSections({
     'h-control-sm w-full rounded-md border border-border-strong bg-surface px-3 text-base text-fg';
   const levelLabel = t('dict.filterLevel').replace(/:$/, '');
   const ageLabel = t('dict.filterAge').replace(/:$/, '');
-  const flatTopics = flattenTopics(topics);
 
   return (
     <div className="space-y-6">
       <Section title={t('dict.topics')}>
-        <select
-          className={selectCls}
-          aria-label={t('dict.topics')}
+        <TopicSelect
+          topics={topics}
           value={params.get('topic') ?? ''}
-          onChange={(e) => setParam('topic', e.target.value)}
-        >
-          <option value="">{t('dict.allTopics')}</option>
-          {flatTopics.map((tp) => (
-            <option key={tp.id} value={tp.id}>
-              {tp.label}
-            </option>
-          ))}
-        </select>
+          onChange={(id) => setParam('topic', id)}
+          ariaLabel={t('dict.topics')}
+          placeholder={t('dict.allTopics')}
+          className={selectCls}
+          showCounts
+        />
       </Section>
 
       <Section title={levelLabel}>

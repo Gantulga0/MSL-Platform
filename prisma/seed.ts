@@ -100,46 +100,186 @@ const TOPICS: TopicSeed[] = [
     ],
   },
   {
-    slug: 'daily',
-    name: 'Өдөр тутам',
+    slug: 'greeting',
+    name: 'Мэндчилгээ ба хүн',
     children: [
-      { slug: 'greetings', name: 'Мэндчилгээ' },
+      { slug: 'greetings', name: 'Мэндчилгээ, баяр ёслол' },
       { slug: 'family', name: 'Гэр бүл' },
-      { slug: 'food', name: 'Хоол хүнс' },
-      { slug: 'time', name: 'Цаг хугацаа' },
-      { slug: 'emotions', name: 'Сэтгэл хөдлөл' },
+      { slug: 'person', name: 'Хүн' },
     ],
   },
   {
-    slug: 'school',
-    name: 'Сургууль',
+    slug: 'education',
+    name: 'боловсрол',
     children: [
-      { slug: 'classroom', name: 'Анги танхим' },
-      { slug: 'subjects', name: 'Хичээлүүд' },
-      { slug: 'stationery', name: 'Бичгийн хэрэгсэл' },
+      { slug: 'school', name: 'Сургууль' },
+      { slug: 'school-supplies', name: 'Хичээлийн хэрэгсэл' },
+      { slug: 'education-signs', name: 'Боловсролтой холбоотой дохио' },
     ],
   },
   {
-    slug: 'science',
-    name: 'Шинжлэх ухаан',
+    slug: 'employment',
+    name: 'хөдөлмөр эрхлэлт',
     children: [
-      { slug: 'chemistry', name: 'Хими' },
-      { slug: 'physics', name: 'Физик' },
-      { slug: 'biology', name: 'Биологи' },
-      { slug: 'math', name: 'Математик' },
-      { slug: 'ai-tech', name: 'Хиймэл оюун / Технологи' },
+      { slug: 'profession', name: 'Ажил, мэргэжил' },
+      { slug: 'workplace', name: 'Ажилтай холбоотой үгс' },
+      { slug: 'business-work', name: 'Бизнес, хөдөлмөр эрхлэлттэй холбоотой дохио' },
+    ],
+  },
+  {
+    slug: 'health',
+    name: 'эрүүл мэнд',
+    children: [
+      { slug: 'body-parts', name: 'Бие эрхтэн' },
+      { slug: 'health-signs', name: 'Эмчилгээ, эрүүл мэндтэй холбоотой дохио' },
+    ],
+  },
+  {
+    slug: 'emotions',
+    name: 'сэтгэл хөдлөл',
+  },
+  {
+    slug: 'living-environment',
+    name: 'амьдрах орчин',
+    children: [
+      { slug: 'home-items', name: 'Гэр орон, гэрийн эд зүйлс' },
+      { slug: 'furniture', name: 'Гэрийн тавилга' },
+      { slug: 'kitchenware', name: 'Гал тогооны хэрэгсэл' },
+      { slug: 'appliances', name: 'Цахилгаан хэрэгсэл' },
+      { slug: 'hygiene-items', name: 'Ариун цэврийн хэрэгсэл' },
+    ],
+  },
+  {
+    slug: 'clothing',
+    name: 'хувцас хэрэглэл',
+    children: [
+      { slug: 'clothes', name: 'Хувцас' },
+      { slug: 'accessories', name: 'Эдлэл хэрэгсэл' },
+      { slug: 'cosmetics', name: 'Гоо сайхны бараа' },
+    ],
+  },
+  {
+    slug: 'food',
+    name: 'хоол хүнсний бүтээгдэхүүн',
+    children: [
+      { slug: 'vegetables', name: 'Хүнсний ногоо' },
+      { slug: 'fruits', name: 'Жимс, жимсгэнэ' },
+      { slug: 'dairy', name: 'Сүү , сүүн бүтээгдэхүүн' },
+      { slug: 'sweets', name: 'Амттан' },
+      { slug: 'drinks', name: 'Уух зүйлс' },
+      { slug: 'meat', name: 'Мах, махан бүтээгдэхүүн' },
+      { slug: 'grains', name: 'Үр тарианы бүтээгдэхүүн' },
+      { slug: 'meals-snacks', name: 'Хоол зууш' },
+      { slug: 'food-signs', name: 'Хүнсний бүтээгдэхүүн, хоол хүнстэй холбоотой дохио' },
+    ],
+  },
+  {
+    slug: 'color-shape-size',
+    name: 'өнгө ба хэлбэр дүрс,хэмжээ',
+    children: [
+      { slug: 'colors', name: 'Өнгө' },
+      { slug: 'shapes', name: 'Хэлбэр дүрс' },
+      { slug: 'size-units', name: 'Хэмжээ ба хэмжих нэгж' },
+    ],
+  },
+  {
+    slug: 'animals',
+    name: 'ан амьтан',
+    children: [
+      { slug: 'wild-animals', name: 'Ан амьтан' },
+      { slug: 'livestock', name: 'Таван хошуу мал' },
+      { slug: 'birds', name: 'Жигүүртэн шувуу' },
+      { slug: 'aquatic-animals', name: 'Усны амьтан' },
+      { slug: 'insects', name: 'Хорхой шавж' },
     ],
   },
   {
     slug: 'nature',
-    name: 'Байгаль',
+    name: 'байгаль',
     children: [
-      { slug: 'animals', name: 'Амьтад' },
-      { slug: 'weather', name: 'Цаг агаар' },
-      { slug: 'plants', name: 'Ургамал' },
+      { slug: 'nature-general', name: 'Байгаль' },
+      { slug: 'natural-phenomena', name: 'Байгалийн үзэгдэл' },
     ],
   },
-  { slug: 'numbers', name: 'Тоо ба хурууны үсэг' },
+  {
+    slug: 'time-space',
+    name: 'цаг хугацаа, орон зай',
+    children: [
+      { slug: 'time', name: 'Цаг хугацаа' },
+      { slug: 'space', name: 'Орон зай' },
+      { slug: 'seasons', name: 'Улирал' },
+    ],
+  },
+  {
+    slug: 'technology',
+    name: 'техник технологи',
+    children: [
+      { slug: 'equipment', name: 'Тоног төхөөрөмж' },
+      { slug: 'social-media', name: 'Нийгмийн сүлжээ' },
+      { slug: 'technology-signs', name: 'Техник технологитой холбоотой дохио' },
+    ],
+  },
+  {
+    slug: 'sport',
+    name: 'спорт',
+    children: [
+      { slug: 'sport-types', name: 'Спортын төрөл' },
+      { slug: 'sport-equipment', name: 'Спортын хэрэгсэл' },
+      { slug: 'sport-signs', name: 'Спорттой холбоотой дохио' },
+    ],
+  },
+  {
+    slug: 'games',
+    name: 'тоглоом',
+  },
+  {
+    slug: 'art',
+    name: 'урлаг,урлал',
+    children: [
+      { slug: 'art-culture', name: 'Урлаг соёл' },
+      { slug: 'handicraft', name: 'Гар урлал, уран бүтээл' },
+      { slug: 'music', name: 'Хөгжим, хөгжмийн зэвсэг' },
+    ],
+  },
+  {
+    slug: 'transport',
+    name: 'тээврийн хэрэгсэл',
+    children: [
+      { slug: 'vehicles', name: 'Тээврийн хэрэгсэл' },
+      { slug: 'traffic-signs', name: 'Зам тээвэртэй холбоотой дохио' },
+    ],
+  },
+  {
+    slug: 'social-environment',
+    name: 'нийгмийн орчин',
+    children: [
+      { slug: 'politics-law', name: 'Улс төр, хууль эрх зүй, нийгэм' },
+      { slug: 'religion', name: 'Шашин шүтлэг' },
+      { slug: 'organizations', name: 'Аж ахуйн нэгж, байгууллага' },
+      { slug: 'documents', name: 'Дүрэм журам, баримт бичиг' },
+    ],
+  },
+  {
+    slug: 'place-names',
+    name: 'газрийн нэр',
+    children: [
+      { slug: 'countries', name: 'Улс орон' },
+      { slug: 'cities', name: 'Хотууд' },
+      { slug: 'provinces-districts', name: 'Аймаг, дүүрэг, сум' },
+      { slug: 'location-signs', name: 'Байршил, газрын нэрийг илэрхийлсэн дохио' },
+    ],
+  },
+  {
+    slug: 'science',
+    name: 'шинжлэх ухаан',
+    children: [
+      { slug: 'math', name: 'Математик' },
+      { slug: 'physics', name: 'Физик' },
+      { slug: 'chemistry', name: 'Хими' },
+      { slug: 'biology', name: 'Биологи' },
+      { slug: 'artificial-intelligence', name: 'Хиймэл оюун ухаан' },
+    ],
+  },
 ];
 
 async function seedTopics(): Promise<void> {

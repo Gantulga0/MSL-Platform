@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Badge, Skeleton } from '@msl/ui';
+import { Skeleton } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import type { WordListItem } from '@/lib/dictionary/types';
 import { SignCardVideo } from './SignCardVideo';
@@ -25,18 +25,22 @@ export function SignCard({
     <Link
       href={`/dictionary/${word.id}` as Route}
       aria-label={t('dict.openWord', undefined, { lemma: word.lemma })}
-      className="group block rounded-xl border border-border bg-surface shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none"
+      className="glass group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
     >
-      {/* Sign-video thumbnail — plays on hover / when in view (touch). */}
-      <SignCardVideo src={word.video?.url ?? null} />
+      {/* Sign-video thumbnail — fixed aspect, plays on hover / when in view (touch). */}
+      <SignCardVideo src={word.video?.url ?? null} handCount={word.handCount} />
 
-      <div className="flex items-start justify-between gap-2 px-4 py-3">
-        <h3 className="text-base font-semibold text-fg">
+      {/* Body grows to fill so every card in a row is the same height; the title
+          is clamped to one line and the tags to one row, keeping cards uniform. */}
+      <div className="relative z-[6] flex flex-1 flex-col px-4 pb-4 pt-3.5">
+        <h3 className="truncate font-display text-lg font-bold leading-tight text-fg">
           <span className="tabular-nums text-fg-subtle">{index}.</span> {word.lemma}
         </h3>
-        {word.level && <Badge tone="neutral">{word.level.label}</Badge>}
+        <div className="mt-2.5 flex flex-nowrap items-center gap-1.5 overflow-hidden">
+          {word.topic && <span className="tagm tagm-topic">{word.topic.name}</span>}
+          {word.level && <span className="tagm tagm-level">{word.level.label}</span>}
+        </div>
       </div>
-      {word.topic && <p className="px-4 pb-3 text-sm text-fg-muted">{word.topic.name}</p>}
     </Link>
   );
 }
@@ -44,9 +48,9 @@ export function SignCard({
 /** Loading placeholder mirroring SignCard's shape (paired with an SR status). */
 export function SignCardSkeleton(): React.ReactElement {
   return (
-    <div className="rounded-xl border border-border bg-surface shadow-sm">
-      <Skeleton className="aspect-video w-full rounded-b-none rounded-t-xl" />
-      <div className="space-y-2 px-4 py-3">
+    <div className="glass flex h-full flex-col overflow-hidden">
+      <Skeleton className="aspect-video w-full rounded-none" />
+      <div className="relative z-[6] flex-1 space-y-2 px-4 pb-4 pt-3.5">
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
       </div>

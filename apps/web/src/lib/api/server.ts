@@ -26,20 +26,52 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/** Cache tag for all taxonomy reads — invalidated by taxonomy mutations. */
+export const TAXONOMY_TAG = 'taxonomy';
+
+/**
+ * Read options for effectively-static taxonomy (topics/levels/age-groups/
+ * handedness). Served from Next's Data Cache instead of hitting the API+DB on
+ * every navigation; tagged so a taxonomy edit invalidates it immediately
+ * (revalidateTag), with a 5-minute backstop. Do NOT use for per-user or
+ * rapidly-changing data.
+ */
+export const TAXONOMY_READ: ApiGetOptions = { revalidate: 300, tags: [TAXONOMY_TAG] };
+
+/** Options for read requests. */
+export interface ApiGetOptions {
+  /**
+   * When set, the response is served from Next's Data Cache and only refetched
+   * every N seconds (ISR), instead of hitting the API on every render. Omit to
+   * keep `cache: 'no-store'`.
+   */
+  revalidate?: number;
+  /** Cache tags so the entry can be purged on demand via revalidateTag(). */
+  tags?: string[];
+}
+
 /** Authenticated GET against the API from a server component/action. */
-export async function apiGet<T>(path: string): Promise<T> {
+export async function apiGet<T>(path: string, opts: ApiGetOptions = {}): Promise<T> {
+  const cached = opts.revalidate !== undefined || opts.tags !== undefined;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: await authHeaders(),
-    cache: 'no-store',
+    ...(cached
+      ? {
+          next: {
+            ...(opts.revalidate !== undefined ? { revalidate: opts.revalidate } : {}),
+            ...(opts.tags ? { tags: opts.tags } : {}),
+          },
+        }
+      : { cache: 'no-store' }),
   });
   if (!res.ok) throw new ApiClientError(res.status, await parseError(res));
   return (await res.json()) as T;
 }
 
 /** GET that returns null instead of throwing (for optional/best-effort reads). */
-export async function apiGetSafe<T>(path: string): Promise<T | null> {
+export async function apiGetSafe<T>(path: string, opts: ApiGetOptions = {}): Promise<T | null> {
   try {
-    return await apiGet<T>(path);
+    return await apiGet<T>(path, opts);
   } catch {
     return null;
   }

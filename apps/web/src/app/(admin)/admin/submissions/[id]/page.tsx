@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Card, CardBody, CardTitle } from '@msl/ui';
 import { translate } from '@/i18n';
-import { apiGetSafe } from '@/lib/api/server';
+import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
 import { ReviewDecision } from '@/components/review/ReviewDecision';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
@@ -34,10 +34,10 @@ export default async function AdminSubmissionDetailPage({
   const { id } = await params;
   const [submission, topics, levels, ageGroups, handednesses] = await Promise.all([
     apiGetSafe<SubmissionDetail>(`/admin/submissions/${id}`),
-    apiGetSafe<TopicNode[]>('/topics'),
-    apiGetSafe<TaxoRef[]>('/levels'),
-    apiGetSafe<TaxoRef[]>('/age-groups'),
-    apiGetSafe<TaxoRef[]>('/handedness'),
+    apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/levels', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/handedness', TAXONOMY_READ),
   ]);
   if (!submission) notFound();
 

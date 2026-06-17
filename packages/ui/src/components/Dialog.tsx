@@ -45,7 +45,7 @@ export function Dialog({
         <RDialog.Content
           className={cn(
             'msl-dialog fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2',
-            'rounded-lg border border-border bg-bg p-6 shadow-lg focus:outline-none',
+            'glass p-6 focus:outline-none',
             className,
           )}
         >

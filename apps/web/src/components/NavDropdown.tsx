@@ -146,13 +146,13 @@ export function NavDropdown({
           aria-label={label}
           onKeyDown={onMenuKeyDown}
           className={cn(
-            'absolute top-full z-40 mt-2 min-w-60 rounded-xl border border-border bg-bg p-1 shadow-lg',
+            'glass glass-sm glass-strong absolute top-full z-40 mt-2 min-w-60 p-1',
             align === 'end' ? 'right-0' : 'left-0',
           )}
         >
           {items.map((item, i) => {
             const className =
-              'flex min-h-touch w-full items-center rounded-lg px-3 text-left text-base text-fg transition-colors hover:bg-surface-muted focus:bg-surface-muted';
+              'relative z-[6] flex min-h-touch w-full items-center rounded-lg px-3 text-left text-base text-fg transition-colors hover:bg-surface-muted focus:bg-surface-muted';
             if (item.onSelect) {
               return (
                 <button
