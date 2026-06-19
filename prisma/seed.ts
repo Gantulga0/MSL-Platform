@@ -1,16 +1,50 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
-// Option images live in the SAME storage as videos (apps/api/storage), under
-// options/<kind>/. The API serves them at /api/v1/options/images/<kind>/<file>.
+// Option images live in the SAME storage as videos, under options/<kind>/. With
+// STORAGE_DRIVER=r2 they go straight to the R2 bucket (mirrors StorageService);
+// otherwise they land on local disk at apps/api/storage. Either way the API
+// serves them at /api/v1/options/images/<kind>/<file>, and when an R2 public CDN
+// base is configured the seed records that absolute URL instead.
 const API_DIR = resolve(__dirname, '..', 'apps', 'api');
 const STORAGE_DIR = resolve(API_DIR, process.env.STORAGE_LOCAL_DIR ?? './storage');
 const SEED_IMAGES_DIR = resolve(API_DIR, 'seed', 'option-images');
 const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'svg'] as const;
+
+const STORAGE_DRIVER = (process.env.STORAGE_DRIVER ?? 'local').toLowerCase();
+const R2_PUBLIC_BASE = process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, '') || null;
+const MIME_BY_EXT: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+};
+
+let r2Client: S3Client | null = null;
+/** Lazily build the R2 (S3-compatible) client, validating the required env. */
+function r2(): S3Client {
+  if (r2Client) return r2Client;
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey || !process.env.R2_BUCKET) {
+    throw new Error(
+      'STORAGE_DRIVER=r2 requires R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY and R2_BUCKET',
+    );
+  }
+  r2Client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  return r2Client;
+}
 
 /** Minimal labelled SVG placeholder used when no real artwork is supplied. */
 function placeholderSvg(label: string, kind: string): Buffer {
@@ -27,7 +61,7 @@ function placeholderSvg(label: string, kind: string): Buffer {
  * the public imageUrl. Real artwork dropped at
  * apps/api/seed/option-images/<kind>/<code>.<ext> takes precedence.
  */
-function materializeOptionImage(kind: string, code: string, label: string): string {
+async function materializeOptionImage(kind: string, code: string, label: string): Promise<string> {
   let ext = 'svg';
   let bytes: Buffer | null = null;
   for (const e of IMAGE_EXTS) {
@@ -40,21 +74,48 @@ function materializeOptionImage(kind: string, code: string, label: string): stri
   }
   if (!bytes) bytes = placeholderSvg(label, kind);
 
+  const key = `options/${kind}/${code}.${ext}`;
+  const apiUrl = `/api/v1/options/images/${kind}/${code}.${ext}`;
+
+  if (STORAGE_DRIVER === 'r2') {
+    await r2().send(
+      new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET!,
+        Key: key,
+        Body: bytes,
+        ContentType: MIME_BY_EXT[ext] ?? 'application/octet-stream',
+      }),
+    );
+    // Serve straight from the CDN when configured, else via the API (which reads R2).
+    return R2_PUBLIC_BASE ? `${R2_PUBLIC_BASE}/${key}` : apiUrl;
+  }
+
   const destDir = resolve(STORAGE_DIR, 'options', kind);
   mkdirSync(destDir, { recursive: true });
   writeFileSync(resolve(destDir, `${code}.${ext}`), bytes);
-  return `/api/v1/options/images/${kind}/${code}.${ext}`;
+  return apiUrl;
 }
 
 async function seedLevels(): Promise<void> {
   const levels = [
     { code: 'beginner', label: 'Анхан', sortOrder: 1 },
-    { code: 'elementary', label: 'Бага', sortOrder: 2 },
     { code: 'intermediate', label: 'Дунд', sortOrder: 3 },
     { code: 'advanced', label: 'Ахисан', sortOrder: 4 },
   ];
   for (const lvl of levels) {
     await prisma.level.upsert({ where: { code: lvl.code }, update: lvl, create: lvl });
+  }
+  // Remove levels no longer in the canonical set (e.g. the retired "Бага").
+  // upsert never deletes, so prune stale rows — detaching any words first.
+  const codes = levels.map((l) => l.code);
+  const stale = await prisma.level.findMany({
+    where: { code: { notIn: codes } },
+    select: { id: true },
+  });
+  if (stale.length) {
+    const ids = stale.map((s) => s.id);
+    await prisma.word.updateMany({ where: { levelId: { in: ids } }, data: { levelId: null } });
+    await prisma.level.deleteMany({ where: { id: { in: ids } } });
   }
 }
 
@@ -76,7 +137,7 @@ async function seedHandedness(): Promise<void> {
     { code: 'two', label: 'Хоёр гар', handCount: 2, sortOrder: 2 },
   ];
   for (const h of items) {
-    const data = { ...h, imageUrl: materializeOptionImage('handedness', h.code, h.label) };
+    const data = { ...h, imageUrl: await materializeOptionImage('handedness', h.code, h.label) };
     await prisma.handedness.upsert({ where: { code: h.code }, update: data, create: data });
   }
 }

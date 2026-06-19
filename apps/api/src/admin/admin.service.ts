@@ -5,6 +5,8 @@ import type { Paginated } from '@msl/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { StorageService } from '../media/storage.service';
+import { MediaService } from '../media/media.service';
+import type { UploadedFile } from '../media/dto';
 import { paginate, toSkipTake } from '../common/dto/pagination.dto';
 import { normalizeLemma } from '../common/normalize';
 import type {
@@ -24,6 +26,7 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly storage: StorageService,
+    private readonly media: MediaService,
   ) {}
 
   private mediaPublicUrl(m: { id: string; storageProvider: string; storageKey: string }): string {
@@ -157,10 +160,21 @@ export class AdminService {
       throw new BadRequestException('A sign video is required to create a word');
     }
 
+    // Store every lemma lowercased; the normalized form drives duplicate checks.
+    const lemma = dto.lemma.trim().toLowerCase();
+    const normalizedLemma = normalizeLemma(lemma);
+    const duplicate = await this.prisma.word.findFirst({
+      where: { normalizedLemma, topicId: dto.topicId, deletedAt: null },
+      select: { id: true },
+    });
+    if (duplicate) {
+      throw new BadRequestException('Энэ сэдэвт ижил үг аль хэдийн бүртгэгдсэн байна.');
+    }
+
     const word = await this.prisma.word.create({
       data: {
-        lemma: dto.lemma,
-        normalizedLemma: normalizeLemma(dto.lemma),
+        lemma,
+        normalizedLemma,
         definition: dto.definition ?? null,
         exampleSentence: dto.exampleSentence ?? null,
         topicId: dto.topicId,
@@ -325,7 +339,7 @@ export class AdminService {
       throw new BadRequestException(`Missing required attributes: ${missing.join(', ')}`);
     }
 
-    const lemma = dto.lemma ?? submission.proposedLemma;
+    const lemma = (dto.lemma ?? submission.proposedLemma).trim().toLowerCase();
     const definition = (dto.definition ?? submission.proposedDefinition)?.trim() || null;
     const normalizedLemma = normalizeLemma(lemma);
 
@@ -481,6 +495,33 @@ export class AdminService {
     return { approved, failed };
   }
 
+  /** Resolve a batch of topic slugs to ids, plus a fallback (first) topic. */
+  private async resolveImportTopics(
+    slugs: Array<string | undefined>,
+  ): Promise<{ bySlug: Map<string, string>; fallbackId: string | undefined }> {
+    const uniq = [...new Set(slugs.filter(Boolean) as string[])];
+    const topics = await this.prisma.topic.findMany({
+      where: { slug: { in: uniq } },
+      select: { id: true, slug: true },
+    });
+    const bySlug = new Map(topics.map((t) => [t.slug, t.id]));
+    const fallback = await this.prisma.topic.findFirst({
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true },
+    });
+    return { bySlug, fallbackId: fallback?.id };
+  }
+
+  /** Pre-load existing (topic + normalized lemma) pairs to flag duplicates (Г4). */
+  private async loadSeenLemmas(lemmas: Array<string | undefined>): Promise<Set<string>> {
+    const norms = [...new Set(lemmas.filter(Boolean).map((l) => normalizeLemma(l as string)))];
+    const existing = await this.prisma.word.findMany({
+      where: { normalizedLemma: { in: norms }, deletedAt: null },
+      select: { topicId: true, normalizedLemma: true },
+    });
+    return new Set(existing.map((w) => `${w.topicId}::${w.normalizedLemma}`));
+  }
+
   async bulkImport(
     dto: {
       status: 'pending' | 'approved';
@@ -497,28 +538,14 @@ export class AdminService {
     const errors: { row: number; reason: string }[] = [];
     let success = 0;
 
-    const slugs = [...new Set(dto.words.map((w) => w.topicSlug).filter(Boolean) as string[])];
-    const topics = await this.prisma.topic.findMany({
-      where: { slug: { in: slugs } },
-      select: { id: true, slug: true },
-    });
-    const topicBySlug = new Map(topics.map((t) => [t.slug, t.id]));
-    const fallback = await this.prisma.topic.findFirst({
-      orderBy: { sortOrder: 'asc' },
-      select: { id: true },
-    });
-
-    // Pre-load existing (topic + normalized lemma) pairs to flag duplicates (Г4).
-    const norms = [...new Set(dto.words.map((w) => normalizeLemma(w.lemma)))];
-    const existing = await this.prisma.word.findMany({
-      where: { normalizedLemma: { in: norms }, deletedAt: null },
-      select: { topicId: true, normalizedLemma: true },
-    });
-    const seen = new Set(existing.map((w) => `${w.topicId}::${w.normalizedLemma}`));
+    const { bySlug: topicBySlug, fallbackId } = await this.resolveImportTopics(
+      dto.words.map((w) => w.topicSlug),
+    );
+    const seen = await this.loadSeenLemmas(dto.words.map((w) => w.lemma));
 
     for (let i = 0; i < dto.words.length; i++) {
       const w = dto.words[i];
-      const topicId = (w.topicSlug && topicBySlug.get(w.topicSlug)) || fallback?.id;
+      const topicId = (w.topicSlug && topicBySlug.get(w.topicSlug)) || fallbackId;
       if (!topicId) {
         errors.push({ row: i + 1, reason: 'No topic available' });
         continue;
@@ -593,6 +620,114 @@ export class AdminService {
     });
 
     return { total: dto.words.length, success, errors };
+  }
+
+  /**
+   * Bulk import where each word ships with an actual video file uploaded straight
+   * to object storage (R2), rather than an already-hosted URL. Manifest rows are
+   * matched to uploaded files by original filename; each video is stored + a Word
+   * is created in the same flow as the single-word path (MediaAsset, ownerType='word').
+   */
+  async bulkImportFiles(
+    files: UploadedFile[],
+    rows: Array<{
+      lemma: string;
+      definition?: string;
+      exampleSentence?: string;
+      topicSlug?: string;
+      file: string;
+    }>,
+    status: 'pending' | 'approved',
+    actorId: string,
+  ): Promise<{ total: number; success: number; errors: { row: number; reason: string }[] }> {
+    const errors: { row: number; reason: string }[] = [];
+    let success = 0;
+
+    // Multer/busboy decodes multipart filenames as latin1, which mangles
+    // non-ASCII (Cyrillic) names. Register both the raw and the latin1→utf8
+    // re-decoded name so the manifest (sent as UTF-8 JSON) matches either way.
+    const filesByName = new Map<string, UploadedFile>();
+    for (const f of files) {
+      filesByName.set(f.originalname, f);
+      const utf8 = Buffer.from(f.originalname, 'latin1').toString('utf8');
+      if (!filesByName.has(utf8)) filesByName.set(utf8, f);
+    }
+    const { bySlug: topicBySlug, fallbackId } = await this.resolveImportTopics(
+      rows.map((r) => r.topicSlug),
+    );
+    const seen = await this.loadSeenLemmas(rows.map((r) => r.lemma));
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r.lemma) {
+        errors.push({ row: i + 1, reason: 'lemma required' });
+        continue;
+      }
+      const topicId = (r.topicSlug && topicBySlug.get(r.topicSlug)) || fallbackId;
+      if (!topicId) {
+        errors.push({ row: i + 1, reason: 'No topic available' });
+        continue;
+      }
+      // Every word must ship with a video — match the manifest row to an upload.
+      const file = r.file ? filesByName.get(r.file) : undefined;
+      if (!file) {
+        errors.push({ row: i + 1, reason: `video file not found: ${r.file ?? '(none)'}` });
+        continue;
+      }
+      const normalizedLemma = normalizeLemma(r.lemma);
+      const key = `${topicId}::${normalizedLemma}`;
+      if (seen.has(key)) {
+        errors.push({ row: i + 1, reason: 'duplicate' });
+        continue;
+      }
+
+      let mediaId: string | null = null;
+      try {
+        // Upload + register the video (validates MIME/size, writes to R2), then
+        // create the word and re-parent the media onto it — same as createWord.
+        const media = await this.media.upload(file, { ownerType: 'word', type: 'video' }, actorId);
+        mediaId = media.id;
+        await this.prisma.$transaction(async (tx) => {
+          const word = await tx.word.create({
+            data: {
+              lemma: r.lemma,
+              normalizedLemma,
+              definition: r.definition ?? null,
+              exampleSentence: r.exampleSentence ?? null,
+              topicId,
+              status,
+              source: 'import',
+              createdBy: actorId,
+              ...(status === 'approved' ? { approvedBy: actorId, approvedAt: new Date() } : {}),
+            },
+          });
+          await tx.mediaAsset.update({
+            where: { id: media.id },
+            data: { ownerId: word.id, publicUrl: this.mediaPublicUrl(media) },
+          });
+        });
+        seen.add(key);
+        success++;
+      } catch (e) {
+        // Roll back the orphaned upload if the word never got created.
+        if (mediaId) await this.media.remove(mediaId).catch(() => undefined);
+        errors.push({ row: i + 1, reason: (e as Error).message });
+      }
+    }
+
+    await this.prisma.importJob.create({
+      data: {
+        createdBy: actorId,
+        sourceFilename: 'api-files',
+        totalRows: rows.length,
+        successRows: success,
+        errorRows: errors.length,
+        errors: errors.length ? errors : undefined,
+        status: errors.length === rows.length ? 'failed' : 'completed',
+      },
+    });
+
+    return { total: rows.length, success, errors };
   }
 
   private async requireReviewable(id: string) {

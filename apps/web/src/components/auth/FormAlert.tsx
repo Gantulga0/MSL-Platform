@@ -15,7 +15,7 @@ export function FormAlert({ tone, children }: FormAlertProps): React.ReactElemen
   const isError = tone === 'error';
   const Icon = isError ? AlertCircle : CheckCircle2;
   return (
-    <p
+    <div
       role="alert"
       className={`flex items-start gap-2 rounded-md border p-3 text-sm font-medium ${
         isError
@@ -24,7 +24,7 @@ export function FormAlert({ tone, children }: FormAlertProps): React.ReactElemen
       }`}
     >
       <Icon aria-hidden className="mt-0.5 h-5 w-5 shrink-0" />
-      <span>{children}</span>
-    </p>
+      <div className="min-w-0">{children}</div>
+    </div>
   );
 }

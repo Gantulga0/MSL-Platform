@@ -4,13 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
-import { LogOut, Menu, X } from 'lucide-react';
-import { Button, IconButton, cn } from '@msl/ui';
+import { Menu, X } from 'lucide-react';
+import { IconButton, cn } from '@msl/ui';
 import { translate } from '@/i18n';
 import { logoutAction } from '@/lib/auth/actions';
 import { useAuthModal } from '@/components/auth/AuthModalProvider';
 import type { AuthView } from '@/components/auth/authModalTypes';
-import { NavDropdown } from '@/components/NavDropdown';
+import { NavDropdown, type NavMenuItem } from '@/components/NavDropdown';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface NavItem {
@@ -50,9 +50,16 @@ export function AppShell({
   const [menuOpen, setMenuOpen] = useState(false);
   const { open: openAuth } = useAuthModal();
   const pathname = usePathname();
-  // Active when the path equals the item, or is nested under it (but '/' only on exact).
-  const isActive = (href: string): boolean =>
+  // Pick the single most-specific matching href across the whole nav so a parent
+  // route like "/admin" doesn't stay active on "/admin/words" (which kept the
+  // pill stuck on the dashboard tab). Longest matching href wins.
+  const matchesPath = (href: string): boolean =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+  const activeHref = navItems
+    .flatMap((item) => [item.href, ...(item.children?.map((c) => c.href) ?? [])])
+    .filter(matchesPath)
+    .sort((a, b) => b.length - a.length)[0];
+  const isActive = (href: string): boolean => href === activeHref;
   // A dropdown is active when its own path or any of its children match (children
   // may live outside the parent's path, e.g. "Learn" → /alphabet, /number).
   const isItemActive = (item: NavItem): boolean =>
@@ -91,19 +98,24 @@ export function AppShell({
     return () => window.removeEventListener('resize', measurePill);
   }, [measurePill]);
 
-  const logout = (
-    <form action={logoutAction}>
-      <Button type="submit" variant="secondary" size="sm">
-        <LogOut aria-hidden className="h-4 w-4" />
-        {translate('nav.logout')}
-      </Button>
-    </form>
-  );
-
   // Guests see a single "Бүртгүүлэх" dropdown that reveals register + login.
   const authItems = [
     { key: 'register', label: translate('nav.register'), onSelect: () => openAuth('register') },
     { key: 'login', label: translate('nav.login'), onSelect: () => openAuth('login') },
+  ];
+
+  // Signed-in users get an account dropdown under their display name: profile,
+  // password reset (the forgot-password modal), and logout.
+  const accountItems: NavMenuItem[] = [
+    { key: 'profile', label: translate('nav.profile'), href: '/profile' },
+    { key: 'reset', label: translate('auth.forgotTitle'), onSelect: () => openAuth('forgot') },
+    {
+      key: 'logout',
+      label: translate('nav.logout'),
+      onSelect: () => {
+        void logoutAction();
+      },
+    },
   ];
 
   return (
@@ -188,9 +200,8 @@ export function AppShell({
             </nav>
             <ThemeToggle />
             {user ? (
-              <div className="flex items-center gap-3 border-l border-border pl-3">
-                <span className="text-sm font-medium text-fg">{user.displayName}</span>
-                {logout}
+              <div className="flex items-center border-l border-border pl-3">
+                <NavDropdown label={user.displayName} align="end" items={accountItems} />
               </div>
             ) : (
               <div className="flex items-center border-l border-border pl-3">
@@ -281,11 +292,34 @@ export function AppShell({
                 );
               })}
               {user ? (
-                <li className="mt-2 border-t border-border pt-2">
-                  <span className="block px-3 py-1 text-sm font-medium text-fg-muted">
+                <li className="mt-2 flex flex-col gap-1 border-t border-border pt-2">
+                  <span className="block px-4 pb-1 pt-1 text-sm font-medium text-fg-muted">
                     {user.displayName}
                   </span>
-                  {logout}
+                  {accountItems.map((a) =>
+                    a.href ? (
+                      <Link
+                        key={a.key}
+                        href={a.href as Route}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex min-h-touch w-full items-center rounded-full px-4 text-left text-base font-medium text-fg hover:bg-surface-muted"
+                      >
+                        {a.label}
+                      </Link>
+                    ) : (
+                      <button
+                        key={a.key}
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          a.onSelect?.();
+                        }}
+                        className="flex min-h-touch w-full items-center rounded-full px-4 text-left text-base font-medium text-fg hover:bg-surface-muted"
+                      >
+                        {a.label}
+                      </button>
+                    ),
+                  )}
                 </li>
               ) : (
                 <li className="mt-2 flex flex-col gap-1 border-t border-border pt-2">

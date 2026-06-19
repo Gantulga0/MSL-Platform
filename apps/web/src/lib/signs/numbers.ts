@@ -1,3 +1,5 @@
+import { signAsset } from './cdn';
+
 export type NumberGroup = 'numbers' | 'expressions';
 
 export const GROUP_LABELS: Record<NumberGroup, string> = {
@@ -49,7 +51,7 @@ function withCommas(n: number): string {
 function numberRange(category: string, start: number, end: number, step: number): NumberSign[] {
   const out: NumberSign[] = [];
   for (let n = start; n <= end; n += step) {
-    out.push({ category, label: withCommas(n), src: `/signs/numbers/${n}.mp4` });
+    out.push({ category, label: withCommas(n), src: signAsset(`/signs/numbers/${n}.mp4`) });
   }
   return out;
 }
@@ -70,12 +72,12 @@ const ONES_WORDS = [
 const ONES: NumberSign[] = ONES_WORDS.map((word, n) => ({
   category: '0-10',
   label: `${n}. ${word}`,
-  src: `/signs/numbers/${n}.mp4`,
+  src: signAsset(`/signs/numbers/${n}.mp4`),
 }));
 
 const EXPRESSION_PLACEHOLDERS: NumberSign[] = CATEGORIES.filter(
   (c) => c.group === 'expressions',
-).map((c) => ({ category: c.key, label: c.label, src: `/signs/expressions/${c.key}.mp4` }));
+).map((c) => ({ category: c.key, label: c.label, src: signAsset(`/signs/expressions/${c.key}.mp4`) }));
 
 export const SIGNS: NumberSign[] = [
   ...ONES,

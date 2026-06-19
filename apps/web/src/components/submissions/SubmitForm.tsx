@@ -19,7 +19,7 @@ import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 import { VideoCapture } from './VideoCapture';
 
 /** Mongolian Cyrillic only (mirrors the API CYRILLIC_LEMMA_PATTERN). */
-const CYRILLIC_PATTERN = /^[А-Яа-яЁёӨөҮү\s-]+$/u;
+const CYRILLIC_PATTERN = /^[А-Яа-яЁёӨөҮү\s,-]+$/u;
 
 const selectCls =
   'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';

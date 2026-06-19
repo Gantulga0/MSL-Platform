@@ -24,10 +24,13 @@ export class WordsService {
 
   async list(query: WordsQueryDto): Promise<Paginated<unknown>> {
     const { page, limit, q, topic, level, age, hands } = query;
+    // Selecting a parent topic includes its whole subtree, so a category like
+    // "Гэр бүл" also returns words tagged to its child topics.
+    const topicIds = topic ? await this.topicWithDescendants(topic) : undefined;
     const where: Prisma.WordWhereInput = {
       status: 'approved',
       deletedAt: null,
-      ...(topic ? { topicId: topic } : {}),
+      ...(topicIds ? { topicId: { in: topicIds } } : {}),
       ...(level ? { levelId: level } : {}),
       ...(age ? { ageGroupId: age } : {}),
       ...(hands ? { handCount: hands } : {}),
@@ -67,6 +70,32 @@ export class WordsService {
       return { ...w, video: url ? { url } : null };
     });
     return paginate(withVideo, total, page, limit);
+  }
+
+  /**
+   * Resolve a topic id to itself plus every descendant id (any depth) so a
+   * parent-topic filter spans its whole subtree. One flat query; tree walked
+   * in memory (the taxonomy is small).
+   */
+  private async topicWithDescendants(rootId: string): Promise<string[]> {
+    const all = await this.prisma.topic.findMany({ select: { id: true, parentId: true } });
+    const childrenOf = new Map<string, string[]>();
+    for (const node of all) {
+      if (node.parentId) {
+        const siblings = childrenOf.get(node.parentId) ?? [];
+        siblings.push(node.id);
+        childrenOf.set(node.parentId, siblings);
+      }
+    }
+    const ids: string[] = [];
+    const stack = [rootId];
+    while (stack.length) {
+      const current = stack.pop() as string;
+      ids.push(current);
+      const kids = childrenOf.get(current);
+      if (kids) stack.push(...kids);
+    }
+    return ids;
   }
 
   async detail(id: string): Promise<unknown> {

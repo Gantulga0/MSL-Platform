@@ -1,3 +1,5 @@
+import { signAsset } from './cdn';
+
 export interface AlphabetSign {
   letter: string;
   src: string;
@@ -43,5 +45,5 @@ export const ALPHABET_LETTERS = [
 
 export const ALPHABET: AlphabetSign[] = ALPHABET_LETTERS.map((letter) => ({
   letter,
-  src: `/signs/alphabet/${letter.toLowerCase()}.mp4`,
+  src: signAsset(`/signs/alphabet/${letter.toLowerCase()}.mp4`),
 }));

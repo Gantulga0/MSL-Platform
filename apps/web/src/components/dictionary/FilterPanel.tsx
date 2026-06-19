@@ -90,7 +90,7 @@ export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactEl
       <aside aria-label={t('dict.filters')} className="hidden lg:block">
         <div className="sticky top-6 max-h-[calc(100dvh-3rem)] space-y-6 overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-fg">{t('dict.filters')}</h2>
+            <h2 className="text-lg font-normal text-fg">{t('dict.filters')}</h2>
             {activeCount > 0 && (
               <button
                 type="button"
@@ -186,7 +186,7 @@ function Section({
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">{title}</h3>
+        <h3 className="text-sm font-normal uppercase tracking-wide text-fg-muted">{title}</h3>
         {badge}
       </div>
       {children}

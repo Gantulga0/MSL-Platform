@@ -10,6 +10,7 @@ import { FormAlert } from '@/components/auth/FormAlert';
 import { createWordAction, deleteWordAction, updateWordAction } from '@/lib/admin/word-actions';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 import { ImagePicker, type PickerOption } from './ImagePicker';
+import { BulkWordImport } from './BulkWordImport';
 import { TopicSelect } from '@/components/dictionary/TopicSelect';
 
 export interface WordRow {
@@ -48,6 +49,7 @@ export function WordManager({
 }): React.ReactElement {
   const router = useRouter();
   const [error, setError] = useState<string>();
+  const [success, setSuccess] = useState(false);
   const [pending, start] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
   // Bumping this remounts the form so the image pickers reset after a create.
@@ -71,11 +73,27 @@ export function WordManager({
             onSubmit={(e) => {
               e.preventDefault();
               setError(undefined);
+              setSuccess(false);
               const fd = new FormData(e.currentTarget);
+              // Client-side required-field validation before the server round-trip.
+              const lemma = String(fd.get('lemma') ?? '').trim();
+              const topicId = String(fd.get('topicId') ?? '').trim();
+              const ageGroupId = String(fd.get('ageGroupId') ?? '').trim();
+              const video = fd.get('video');
+              if (
+                !lemma ||
+                !topicId ||
+                !ageGroupId ||
+                !(video instanceof File && video.size > 0)
+              ) {
+                setError(t('admin.words.validationRequired'));
+                return;
+              }
               start(async () => {
                 const res = await createWordAction(fd);
                 if (res.error) setError(res.error);
                 else {
+                  setSuccess(true);
                   setFormKey((k) => k + 1);
                   router.refresh();
                 }
@@ -85,6 +103,16 @@ export function WordManager({
             {error && (
               <div className="sm:col-span-2">
                 <FormAlert tone="error">{error}</FormAlert>
+              </div>
+            )}
+            {success && (
+              <div className="sm:col-span-2">
+                <FormAlert tone="success">
+                  <span className="inline-flex items-center gap-2">
+                    <Badge tone="success">{t('admin.words.createdBadge')}</Badge>
+                    {t('admin.words.created')}
+                  </span>
+                </FormAlert>
               </div>
             )}
             <Field label={t('submit.lemma')} required>
@@ -150,6 +178,8 @@ export function WordManager({
           </form>
         </CardBody>
       </Card>
+
+      <BulkWordImport topics={topics} />
 
       <section>
         <h2 className="mb-4 text-lg font-semibold text-fg">{t('admin.words.list')}</h2>

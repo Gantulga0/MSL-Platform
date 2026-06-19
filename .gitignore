@@ -37,3 +37,14 @@ Thumbs.db
 # media / local storage
 /storage/
 /uploads/
+
+# raw sign-language training recordings — large source clips, processed offline
+# into a committed templates JSON; never served or pushed.
+apps/web/public/signs/**/*.mov
+apps/web/public/signs/**/*.MOV
+
+# template-build scratch (transcoded clips, manifest) — regenerated on demand
+apps/web/scripts/templates/.work/
+# full-precision extractor output (~17MB) — the committed runtime copy is the
+# quantised apps/web/public/games/alphabet-templates.json
+apps/web/src/lib/games/alphabet-templates.json

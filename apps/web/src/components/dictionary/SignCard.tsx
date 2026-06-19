@@ -28,18 +28,14 @@ export function SignCard({
       className="glass group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
     >
       {/* Sign-video thumbnail — fixed aspect, plays on hover / when in view (touch). */}
-      <SignCardVideo src={word.video?.url ?? null} handCount={word.handCount} />
+      <SignCardVideo src={word.video?.url ?? null} />
 
       {/* Body grows to fill so every card in a row is the same height; the title
-          is clamped to one line and the tags to one row, keeping cards uniform. */}
+          is clamped to one line, keeping cards uniform. */}
       <div className="relative z-[6] flex flex-1 flex-col px-4 pb-4 pt-3.5">
         <h3 className="truncate font-display text-lg font-bold leading-tight text-fg">
           <span className="tabular-nums text-fg-subtle">{index}.</span> {word.lemma}
         </h3>
-        <div className="mt-2.5 flex flex-nowrap items-center gap-1.5 overflow-hidden">
-          {word.topic && <span className="tagm tagm-topic">{word.topic.name}</span>}
-          {word.level && <span className="tagm tagm-level">{word.level.label}</span>}
-        </div>
       </div>
     </Link>
   );

@@ -1,5 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Paginated } from '@msl/types';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -13,6 +26,16 @@ import {
   UpdateSettingDto,
   UpdateWordDto,
 } from './dto';
+import type { UploadedFile as MulterFile } from '../media/dto';
+
+/** A manifest row for file-based bulk import (video matched by `file` filename). */
+interface ImportFileRow {
+  lemma: string;
+  definition?: string;
+  exampleSentence?: string;
+  topicSlug?: string;
+  file: string;
+}
 import {
   ApproveSubmissionDto,
   BatchApproveDto,
@@ -67,12 +90,34 @@ export class AdminController {
   }
 
   @Post('imports')
-  @ApiOperation({ summary: 'Bulk word import' })
+  @ApiOperation({ summary: 'Bulk word import (videos referenced by URL)' })
   bulkImport(
     @Body() dto: BulkImportDto,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<{ total: number; success: number; errors: { row: number; reason: string }[] }> {
     return this.admin.bulkImport(dto, user.id);
+  }
+
+  @Post('imports/files')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiOperation({ summary: 'Bulk word import with uploaded videos (object storage / R2)' })
+  bulkImportFiles(
+    @UploadedFiles() files: MulterFile[],
+    @Body() body: { status?: string; manifest?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ total: number; success: number; errors: { row: number; reason: string }[] }> {
+    const status = body.status === 'approved' ? 'approved' : 'pending';
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(body.manifest ?? '[]');
+    } catch {
+      throw new BadRequestException('manifest must be valid JSON');
+    }
+    if (!Array.isArray(parsed)) {
+      throw new BadRequestException('manifest must be a JSON array');
+    }
+    return this.admin.bulkImportFiles(files ?? [], parsed as ImportFileRow[], status, user.id);
   }
 
   //ҮГ

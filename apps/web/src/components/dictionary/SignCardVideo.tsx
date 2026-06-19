@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Hand, Play } from 'lucide-react';
-import { translate as t } from '@/i18n';
+import { Play } from 'lucide-react';
 import { GestureScene } from '@/components/signs/GestureScene';
 
 /**
@@ -12,16 +11,13 @@ import { GestureScene } from '@/components/signs/GestureScene';
  * only the hovered/visible card ever plays — keeping many-card lists smooth.
  *
  * Overlays (all decorative / `aria-hidden`, the parent card link owns the name):
- * a hand-count chip (top-left), an amber play affordance (bottom-right). When
- * there is no media, a dark "sign stage" with the gesture-trail motif stands in.
+ * an amber play affordance (bottom-right). When there is no media, a dark "sign
+ * stage" with the gesture-trail motif stands in.
  */
 export function SignCardVideo({
   src,
-  handCount,
 }: {
   src?: string | null;
-  /** 1 or 2 — drives the hand-count chip. */
-  handCount?: number | null;
 }): React.ReactElement {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -60,9 +56,6 @@ export function SignCardVideo({
     return () => io.disconnect();
   }, [src]);
 
-  const handLabel =
-    handCount === 1 ? t('dict.handsOne') : handCount === 2 ? t('dict.handsTwo') : null;
-
   return (
     <div
       className="relative z-[6] aspect-video overflow-hidden rounded-t-[var(--r)]"
@@ -84,14 +77,6 @@ export function SignCardVideo({
         <div className="sign-stage relative h-full w-full">
           <GestureScene className="absolute inset-0 h-full w-full" />
         </div>
-      )}
-
-      {/* Hand-count chip. */}
-      {handLabel && (
-        <span className="absolute left-3 top-3 z-[3] inline-flex items-center gap-1.5 rounded-lg bg-surface/80 px-2.5 py-1 text-xs font-bold text-fg backdrop-blur">
-          <Hand aria-hidden className="h-3.5 w-3.5" />
-          {handLabel}
-        </span>
       )}
 
       {/* Amber play affordance — the card is deaf-first (video, never audio). */}

@@ -26,11 +26,6 @@ export const PUBLIC_NAV: NavItem[] = [
   { href: '/games', labelKey: 'nav.games' },
 ];
 
-/** Extra links shown when signed in (injected into public nav). */
-export const AUTHED_PUBLIC_NAV: NavItem[] = [
-  { href: '/profile', labelKey: 'nav.profile' },
-];
-
 /** Admin panel navigation. */
 export const ADMIN_NAV: NavItem[] = [
   { href: '/admin', labelKey: 'nav.adminDashboard' },
@@ -44,9 +39,8 @@ export const ADMIN_NAV: NavItem[] = [
 
 /** Build public nav for the current session. */
 export function navForSession(role: string): NavItem[] {
-  const authed = role !== 'guest';
+  // Profile now lives in the account dropdown (AppShell), not as a nav tab.
   let items = [...PUBLIC_NAV];
-  if (authed) items = [...items, ...AUTHED_PUBLIC_NAV];
   if (role === 'admin') {
     items = [...items, { href: '/admin', labelKey: 'nav.adminDashboard' }];
   }
