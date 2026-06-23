@@ -1,8 +1,8 @@
 import { translate, getTranslator, DEFAULT_LOCALE } from './index';
 
 describe('i18n translate', () => {
-  it('defaults to Mongolian', () => {
-    expect(DEFAULT_LOCALE).toBe('mn');
+  it('defaults to English', () => {
+    expect(DEFAULT_LOCALE).toBe('en');
   });
 
   it('returns the Mongolian string for a known key', () => {

@@ -26,12 +26,13 @@ describe('extractSetCookie', () => {
 });
 
 describe('localizeAuthError', () => {
-  it('maps a known API message to a Mongolian string', () => {
-    expect(localizeAuthError('Invalid credentials')).toBe('Имэйл эсвэл нууц үг буруу байна.');
+  // The default translator binds the default locale, which is now English.
+  it('maps a known API message to a localized string', () => {
+    expect(localizeAuthError('Invalid credentials')).toBe('Incorrect email or password.');
   });
 
   it('falls back to a generic message when none is given', () => {
-    expect(localizeAuthError(undefined)).toBe('Алдаа гарлаа. Дахин оролдоно уу.');
+    expect(localizeAuthError(undefined)).toBe('Something went wrong. Please try again.');
   });
 
   it('passes through an unknown message unchanged', () => {
