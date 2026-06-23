@@ -489,7 +489,7 @@ body {
     --sidebar-ring: oklch(0.556 0 0);
   }
   * {
-    @apply border-bg ring-blue-500/50; /* or whatever your border token is */
+    @apply border-border;
   }
   body {
     /* No bg-bg here: the body stays transparent so the fixed .bg-gradient

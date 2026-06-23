@@ -172,13 +172,13 @@ export default async function HomePage(): Promise<React.ReactElement> {
                 <div>
                   <p>{t('landing.learn.streakNote')}</p>
                   <div className="days">
-                    <i className="on">Да</i>
-                    <i className="on">Мя</i>
-                    <i className="on">Лх</i>
-                    <i className="on">Пү</i>
-                    <i className="on">Ба</i>
-                    <i>Бя</i>
-                    <i>Ня</i>
+                    {t('landing.learn.weekdays')
+                      .split(' ')
+                      .map((d, i) => (
+                        <i key={d} className={i < 5 ? 'on' : undefined}>
+                          {d}
+                        </i>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default async function HomePage(): Promise<React.ReactElement> {
             <figure className="glass quote">
               <p>{t('landing.testi.q1')}</p>
               <div className="who">
-                <div className="av">БО</div>
+                <div className="av">{t('landing.testi.q1.name').slice(0, 2).toUpperCase()}</div>
                 <div>
                   <b>{t('landing.testi.q1.name')}</b>
                   <span>{t('landing.testi.q1.role')}</span>
@@ -246,7 +246,7 @@ export default async function HomePage(): Promise<React.ReactElement> {
                   className="av"
                   style={{ background: 'linear-gradient(150deg,var(--amber),var(--ink))' }}
                 >
-                  Г
+                  {t('landing.testi.q2.name').slice(0, 1).toUpperCase()}
                 </div>
                 <div>
                   <b>{t('landing.testi.q2.name')}</b>

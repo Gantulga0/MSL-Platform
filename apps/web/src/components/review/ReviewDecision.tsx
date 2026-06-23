@@ -46,6 +46,8 @@ export function ReviewDecision({
   const [error, setError] = useState<string>();
   const [saved, setSaved] = useState(false);
   const [pending, start] = useTransition();
+  // Which action is in flight, so only the acting button shows its spinner.
+  const [action, setAction] = useState<null | 'approve' | 'save' | 'reject'>(null);
 
   const handCountOptions: PickerOption[] = handednesses.map((h) => ({
     id: String(h.handCount ?? ''),
@@ -64,10 +66,13 @@ export function ReviewDecision({
       setError(t('review.attrsRequired'));
       return;
     }
+    setAction('approve');
     start(async () => {
       const res = await approveAction(fd);
-      if (res?.error) setError(res.error);
-      else router.push('/admin/submissions' as Route);
+      if (res?.error) {
+        setError(res.error);
+        setAction(null);
+      } else router.push('/admin/submissions' as Route);
     });
   }
 
@@ -78,6 +83,7 @@ export function ReviewDecision({
     const form = formRef.current;
     if (!form) return;
     const fd = new FormData(form);
+    setAction('save');
     start(async () => {
       const res = await editAction(fd);
       if (res?.error) setError(res.error);
@@ -85,6 +91,7 @@ export function ReviewDecision({
         setSaved(true);
         router.refresh();
       }
+      setAction(null);
     });
   }
 
@@ -94,10 +101,13 @@ export function ReviewDecision({
     const fd = new FormData();
     fd.set('id', submissionId);
     fd.set('comment', form ? String(new FormData(form).get('comment') ?? '') : '');
+    setAction('reject');
     start(async () => {
       const res = await rejectAction(fd);
-      if (res?.error) setError(res.error);
-      else router.push('/admin/submissions' as Route);
+      if (res?.error) {
+        setError(res.error);
+        setAction(null);
+      } else router.push('/admin/submissions' as Route);
     });
   }
 
@@ -134,7 +144,7 @@ export function ReviewDecision({
         <Field label={t('submit.level')} required>
           <select name="levelId" className={selectCls} required defaultValue={defaultLevelId}>
             <option value="" disabled>
-              {t('submit.none')}
+              {t('submit.selectLevel')}
             </option>
             {levels.map((l) => (
               <option key={l.id} value={l.id}>
@@ -161,13 +171,25 @@ export function ReviewDecision({
       </Field>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending}>
+        <Button type="submit" loading={pending && action === 'approve'} disabled={pending && action !== 'approve'}>
           {t('review.approve')}
         </Button>
-        <Button type="button" variant="secondary" onClick={save} loading={pending}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={save}
+          loading={pending && action === 'save'}
+          disabled={pending && action !== 'save'}
+        >
           {t('review.save')}
         </Button>
-        <Button type="button" variant="danger" onClick={reject} loading={pending}>
+        <Button
+          type="button"
+          variant="danger"
+          onClick={reject}
+          loading={pending && action === 'reject'}
+          disabled={pending && action !== 'reject'}
+        >
           {t('review.reject')}
         </Button>
       </div>

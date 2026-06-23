@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Badge, Button, EmptyState } from '@msl/ui';
+import { Badge, EmptyState } from '@msl/ui';
 import { useT } from '@/i18n/client';
 
 export interface QueueItem {
@@ -40,8 +40,11 @@ export function QueueTable({ items }: { items: QueueItem[] }): React.ReactElemen
               {s.topic?.name} · {s.submitter?.displayName}
             </p>
           </div>
-          <Link href={`/admin/submissions/${s.id}` as Route}>
-            <Button size="sm">{t('review.view')}</Button>
+          <Link
+            href={`/admin/submissions/${s.id}` as Route}
+            className="inline-flex min-h-touch items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-fg-on-primary transition-colors hover:bg-primary-hover active:bg-primary-active focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            {t('review.view')}
           </Link>
         </li>
       ))}

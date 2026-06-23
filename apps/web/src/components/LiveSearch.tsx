@@ -145,6 +145,11 @@ export function LiveSearch({ initial = '' }: { initial?: string }): React.ReactE
         </button>
       </form>
 
+      {/* Announce the result count to screen readers as matches arrive. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {hits.length > 0 ? t('search.resultsCount', { n: hits.length }) : ''}
+      </p>
+
       {showDropdown && (
         <div className="glass glass-strong absolute z-20 mt-2 w-full overflow-hidden">
           {hits.length === 0 ? (

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardBody, Field, Input } from '@msl/ui';
+import { Button, Card, CardBody, EmptyState, Field, Input } from '@msl/ui';
 import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { updateSettingAction } from '@/lib/admin/user-actions';
@@ -50,6 +50,8 @@ function SettingForm({ row }: { row: SettingRow }): React.ReactElement {
 }
 
 export function SettingsManager({ settings }: { settings: SettingRow[] }): React.ReactElement {
+  const t = useT();
+  if (settings.length === 0) return <EmptyState title={t('admin.settings.empty')} />;
   return (
     <Card>
       <CardBody className="space-y-4">

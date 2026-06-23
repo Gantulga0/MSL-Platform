@@ -5,7 +5,7 @@ export const LOCALES = ['mn', 'en'] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale =
-  (process.env.NEXT_PUBLIC_DEFAULT_LOCALE as Locale | undefined) ?? 'mn';
+  (process.env.NEXT_PUBLIC_DEFAULT_LOCALE as Locale | undefined) ?? 'en';
 
 const MESSAGES: Record<Locale, Record<string, string>> = { mn, en };
 

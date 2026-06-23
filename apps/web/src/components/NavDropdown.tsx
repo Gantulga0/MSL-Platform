@@ -138,7 +138,7 @@ export function NavDropdown({
           </span>
         )}
         <span className="flex-1">
-          <span className="block font-medium">{item.label}</span>
+          <span className="block font-medium leading-snug">{item.label}</span>
           {item.description && <span className="block text-xs text-fg-muted">{item.description}</span>}
         </span>
         {item.active && <Check aria-hidden className="h-4 w-4 shrink-0 text-primary" />}
@@ -157,7 +157,9 @@ export function NavDropdown({
         onClick={() => setOpen((v) => !v)}
         onKeyDown={onTriggerKeyDown}
         className={cn(
-          'inline-flex min-h-touch items-center gap-1 rounded-full px-4 text-base transition-colors',
+          // rounded-[16px] matches the plain nav tabs' hover/active shape so the
+          // dropdown triggers (Learn / Rules) don't read as fuller pills.
+          'inline-flex min-h-touch items-center gap-1 rounded-[16px] px-4 text-base transition-colors',
           active || open
             ? 'bg-surface-muted font-semibold text-fg'
             : 'font-medium text-fg-muted hover:bg-surface-muted hover:text-fg',
@@ -181,7 +183,9 @@ export function NavDropdown({
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             style={{ transformOrigin: align === 'end' ? 'top right' : 'top left' }}
             className={cn(
-              'glass glass-sm glass-strong absolute top-full z-40 mt-2 min-w-64 p-1.5',
+              // Size to the widest item (so long Rules labels stay readable),
+              // floored at 16rem and capped so it never overflows the viewport.
+              'glass glass-sm glass-strong absolute top-full z-40 mt-2 w-max min-w-64 max-w-[min(24rem,calc(100vw-1.5rem))] p-1.5',
               align === 'end' ? 'right-0' : 'left-0',
             )}
           >

@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Card, CardBody, CardTitle } from '@msl/ui';
 import { getServerT } from '@/i18n/server';
-import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
+import { apiGet, apiGetSafe, ApiClientError, TAXONOMY_READ } from '@/lib/api/server';
 import { ReviewDecision } from '@/components/review/ReviewDecision';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
@@ -34,7 +34,12 @@ export default async function AdminSubmissionDetailPage({
   const t = await getServerT();
   const { id } = await params;
   const [submission, topics, levels, ageGroups, handednesses] = await Promise.all([
-    apiGetSafe<SubmissionDetail>(`/admin/submissions/${id}`),
+    // 404 → not-found; any other failure rethrows to error.tsx instead of
+    // masking an outage as a missing submission.
+    apiGet<SubmissionDetail>(`/admin/submissions/${id}`).catch((e: unknown) => {
+      if (e instanceof ApiClientError && e.status === 404) return null;
+      throw e;
+    }),
     apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
     apiGetSafe<TaxoRef[]>('/levels', TAXONOMY_READ),
     apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),

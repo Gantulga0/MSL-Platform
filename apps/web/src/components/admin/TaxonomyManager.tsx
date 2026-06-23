@@ -168,13 +168,17 @@ export function TaxonomyManager({ topics, levels, ageGroups }: Props): React.Rea
       <Card>
         <CardBody className="space-y-4">
           <CardTitle>{t('admin.tax.levels')}</CardTitle>
-          <ul className="space-y-1 text-fg">
-            {levels.map((l) => (
-              <li key={l.id}>
-                {l.label} <span className="text-fg-subtle">· {l.code}</span>
-              </li>
-            ))}
-          </ul>
+          {levels.length === 0 ? (
+            <p className="text-fg-muted">{t('admin.tax.noItems')}</p>
+          ) : (
+            <ul className="space-y-1 text-fg">
+              {levels.map((l) => (
+                <li key={l.id}>
+                  {l.label} <span className="text-fg-subtle">· {l.code}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <ActionForm action={createLevelAction} submitLabel={t('admin.tax.addLevel')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('admin.tax.code')} required>
@@ -192,13 +196,17 @@ export function TaxonomyManager({ topics, levels, ageGroups }: Props): React.Rea
       <Card>
         <CardBody className="space-y-4">
           <CardTitle>{t('admin.tax.ageGroups')}</CardTitle>
-          <ul className="space-y-1 text-fg">
-            {ageGroups.map((a) => (
-              <li key={a.id}>
-                {a.label} <span className="text-fg-subtle">· {a.code}</span>
-              </li>
-            ))}
-          </ul>
+          {ageGroups.length === 0 ? (
+            <p className="text-fg-muted">{t('admin.tax.noItems')}</p>
+          ) : (
+            <ul className="space-y-1 text-fg">
+              {ageGroups.map((a) => (
+                <li key={a.id}>
+                  {a.label} <span className="text-fg-subtle">· {a.code}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <ActionForm action={createAgeGroupAction} submitLabel={t('admin.tax.addAgeGroup')}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('admin.tax.code')} required>

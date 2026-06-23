@@ -64,7 +64,13 @@ export function SubmitForm({
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<string>();
+  // Per-field validation errors, rendered inline on each <Field> (not just as a
+  // single top banner) so the user sees exactly which control needs attention.
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [pending, start] = useTransition();
+
+  const clearFieldError = (key: string): void =>
+    setFieldErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
 
   const lemmaInvalid = lemma.trim().length > 0 && !CYRILLIC_PATTERN.test(lemma.trim());
 
@@ -129,25 +135,26 @@ export function SubmitForm({
   }
 
   // ── Per-step validation gate ────────────────────────────────────────────────
-  function validateStep(s: number): string | undefined {
+  // Populates per-field errors (rendered inline on each Field) and returns
+  // whether the step is valid.
+  function validateStep(s: number): boolean {
+    const fe: Record<string, string | undefined> = {};
     if (s === 0) {
-      if (!lemma.trim() || lemmaInvalid) return t('submit.lemmaInvalid');
-      if (!topicId) return t('submit.topicRequired');
-      if (!ageGroupId) return t('submit.ageRequired');
-      if (!handCount) return t('submit.handsRequired');
+      if (!lemma.trim()) fe.lemma = t('submit.lemmaRequired');
+      else if (lemmaInvalid) fe.lemma = t('submit.lemmaInvalid');
+      if (!topicId) fe.topic = t('submit.topicRequired');
+      if (!ageGroupId) fe.age = t('submit.ageRequired');
+      if (!handCount) fe.hands = t('submit.handsRequired');
     }
     // Guests can't record a video; let them reach the review step, where the
     // submit button prompts login instead (matches the guest "fill now" flow).
-    if (s === 1 && isAuthenticated && !video) return t('submit.videoRequired');
-    return undefined;
+    if (s === 1 && isAuthenticated && !video) fe.video = t('submit.videoRequired');
+    setFieldErrors(fe);
+    return Object.values(fe).every((v) => !v);
   }
 
   function next(): void {
-    const err = validateStep(step);
-    if (err) {
-      setError(err);
-      return;
-    }
+    if (!validateStep(step)) return;
     setError(undefined);
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
@@ -232,14 +239,17 @@ export function SubmitForm({
                 label={t('submit.lemma')}
                 required
                 description={t('submit.lemmaCyrillicHint')}
-                error={lemmaInvalid ? t('submit.lemmaInvalid') : undefined}
+                error={fieldErrors.lemma ?? (lemmaInvalid ? t('submit.lemmaInvalid') : undefined)}
               >
                 <Input
                   name="proposedLemma"
                   required
                   maxLength={120}
                   value={lemma}
-                  onChange={(e) => setLemma(e.target.value)}
+                  onChange={(e) => {
+                    setLemma(e.target.value);
+                    clearFieldError('lemma');
+                  }}
                   lang="mn"
                 />
               </Field>
@@ -267,25 +277,31 @@ export function SubmitForm({
                 </div>
               )}
 
-              <Field label={t('submit.topic')} required>
+              <Field label={t('submit.topic')} required error={fieldErrors.topic}>
                 <TopicSelect
                   name="topicId"
                   topics={topics}
                   value={topicId}
-                  onChange={setTopicId}
+                  onChange={(id) => {
+                    setTopicId(id);
+                    clearFieldError('topic');
+                  }}
                   required
                   ariaLabel={t('submit.topic')}
                   placeholder={t('submit.selectTopic')}
                 />
               </Field>
 
-              <Field label={t('submit.age')} required>
+              <Field label={t('submit.age')} required error={fieldErrors.age}>
                 <select
                   name="ageGroupId"
                   className={selectCls}
                   required
                   value={ageGroupId}
-                  onChange={(e) => setAgeGroupId(e.target.value)}
+                  onChange={(e) => {
+                    setAgeGroupId(e.target.value);
+                    clearFieldError('age');
+                  }}
                   aria-label={t('submit.age')}
                 >
                   <option value="" disabled>
@@ -299,13 +315,16 @@ export function SubmitForm({
                 </select>
               </Field>
 
-              <Field label={t('dict.hands')} required>
+              <Field label={t('dict.hands')} required error={fieldErrors.hands}>
                 <ImagePicker
                   name="handCount"
                   options={handCountOptions}
                   columns={2}
                   imageOnly
-                  onChange={(ids) => setHandCount(ids[0] ?? '')}
+                  onChange={(ids) => {
+                    setHandCount(ids[0] ?? '');
+                    clearFieldError('hands');
+                  }}
                 />
               </Field>
             </>
@@ -313,9 +332,14 @@ export function SubmitForm({
 
           {/* STEP 2 — video */}
           {step === 1 && (
-            <Field label={t('submit.video')} required>
+            <Field label={t('submit.video')} required error={fieldErrors.video}>
               {isAuthenticated ? (
-                <VideoCapture onChange={setVideo} />
+                <VideoCapture
+                  onChange={(f) => {
+                    setVideo(f);
+                    clearFieldError('video');
+                  }}
+                />
               ) : (
                 <p className="rounded-md border border-border bg-surface-muted p-3 text-sm text-fg-muted">
                   {t('submit.loginRequired')}
@@ -377,7 +401,7 @@ export function SubmitForm({
             <ArrowRight aria-hidden className="h-5 w-5" />
           </Button>
         ) : (
-          <Button onClick={submit} loading={pending} disabled={!isAuthenticated || !consent}>
+          <Button onClick={submit} loading={pending}>
             {isAuthenticated ? t('submit.button') : t('submit.loginToSubmit')}
           </Button>
         )}

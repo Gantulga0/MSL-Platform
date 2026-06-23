@@ -52,6 +52,9 @@ export function WordManager({
   const [error, setError] = useState<string>();
   const [success, setSuccess] = useState(false);
   const [pending, start] = useTransition();
+  // Which action is in flight ('create' | `edit:<id>` | `delete:<id>`) so only
+  // the acting button spins — not every row's Delete and the create button.
+  const [busy, setBusy] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   // Bumping this remounts the form so the image pickers reset after a create.
   const [formKey, setFormKey] = useState(0);
@@ -90,6 +93,7 @@ export function WordManager({
                 setError(t('admin.words.validationRequired'));
                 return;
               }
+              setBusy('create');
               start(async () => {
                 const res = await createWordAction(fd);
                 if (res.error) setError(res.error);
@@ -98,6 +102,7 @@ export function WordManager({
                   setFormKey((k) => k + 1);
                   router.refresh();
                 }
+                setBusy(null);
               });
             }}
           >
@@ -172,7 +177,7 @@ export function WordManager({
             </fieldset>
 
             <div className="sm:col-span-2">
-              <Button type="submit" loading={pending}>
+              <Button type="submit" loading={pending && busy === 'create'}>
                 {t('admin.words.create')}
               </Button>
             </div>
@@ -198,12 +203,14 @@ export function WordManager({
                         onSubmit={(e) => {
                           e.preventDefault();
                           const fd = new FormData(e.currentTarget);
+                          setBusy(`edit:${w.id}`);
                           start(async () => {
                             const res = await updateWordAction(fd);
                             if (!res.error) {
                               setEditingId(null);
                               router.refresh();
                             }
+                            setBusy(null);
                           });
                         }}
                       >
@@ -224,7 +231,7 @@ export function WordManager({
                           <Textarea name="definition" defaultValue={w.definition ?? ''} maxLength={2000} />
                         </Field>
                         <div className="flex gap-2 sm:col-span-2">
-                          <Button type="submit" size="sm" loading={pending}>
+                          <Button type="submit" size="sm" loading={pending && busy === `edit:${w.id}`}>
                             {t('admin.words.save')}
                           </Button>
                           <Button type="button" size="sm" variant="secondary" onClick={() => setEditingId(null)}>
@@ -256,13 +263,15 @@ export function WordManager({
                           <Button
                             size="sm"
                             variant="danger"
-                            loading={pending}
-                            onClick={() =>
+                            loading={pending && busy === `delete:${w.id}`}
+                            onClick={() => {
+                              setBusy(`delete:${w.id}`);
                               start(async () => {
                                 await deleteWordAction(w.id);
                                 router.refresh();
-                              })
-                            }
+                                setBusy(null);
+                              });
+                            }}
                           >
                             {t('admin.words.delete')}
                           </Button>

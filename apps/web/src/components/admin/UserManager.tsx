@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Card, CardBody, Field, Input } from '@msl/ui';
+import { Badge, Button, Card, CardBody, EmptyState, Field, Input } from '@msl/ui';
 import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { createUserAction } from '@/lib/admin/user-actions';
@@ -102,8 +102,11 @@ export function UserManager({ users }: { users: UserRow[] }): React.ReactElement
         </CardBody>
       </Card>
 
-      <ul className="space-y-2">
-        {users.map((u) => (
+      {users.length === 0 ? (
+        <EmptyState title={t('admin.users.empty')} />
+      ) : (
+        <ul className="space-y-2">
+          {users.map((u) => (
           <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3">
             <div>
               <span className="font-medium text-fg">{u.displayName}</span>{' '}
@@ -114,8 +117,9 @@ export function UserManager({ users }: { users: UserRow[] }): React.ReactElement
               <Badge tone={u.status === 'active' ? 'success' : 'warning'}>{u.status}</Badge>
             </div>
           </li>
-        ))}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

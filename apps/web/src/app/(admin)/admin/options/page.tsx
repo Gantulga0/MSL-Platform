@@ -27,22 +27,26 @@ export default async function AdminOptionsPage(): Promise<React.ReactElement> {
             <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
               {t(g.titleKey)}
             </h3>
-            <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-              {(lists[i] ?? []).map((o) => (
-                <li
-                  key={o.id}
-                  className="flex flex-col items-center gap-1 rounded-lg border border-border bg-surface p-2"
-                >
-                  <span className="flex h-16 w-full items-center justify-center overflow-hidden rounded-md bg-surface-muted">
-                    {o.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={o.imageUrl} alt={o.label ?? ''} className="h-full w-full object-contain" />
-                    ) : null}
-                  </span>
-                  <span className="text-xs text-fg-muted">{o.label}</span>
-                </li>
-              ))}
-            </ul>
+            {(lists[i] ?? []).length === 0 ? (
+              <p className="text-sm text-fg-muted">{t('admin.options.empty')}</p>
+            ) : (
+              <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+                {(lists[i] ?? []).map((o) => (
+                  <li
+                    key={o.id}
+                    className="flex flex-col items-center gap-1 rounded-lg border border-border bg-surface p-2"
+                  >
+                    <span className="flex h-16 w-full items-center justify-center overflow-hidden rounded-md bg-surface-muted">
+                      {o.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={o.imageUrl} alt={o.label ?? ''} className="h-full w-full object-contain" />
+                      ) : null}
+                    </span>
+                    <span className="text-xs text-fg-muted">{o.label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ))}
       </section>

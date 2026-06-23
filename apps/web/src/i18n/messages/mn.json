@@ -2,7 +2,6 @@
   "app.title": "Монгол дохионы хэлний интерактив платформ",
   "app.tagline": "Дохионы хэлний баталгаажсан толь бичиг ба тоглоомт сургалт",
   "app.shortTitle": "Дохионы хэл",
-
   "nav.home": "Нүүр",
   "nav.dictionary": "Толь бичиг",
   "nav.games": "Тоглоом",
@@ -33,25 +32,21 @@
   "nav.learn": "Сурах",
   "nav.alphabet": "Цагаан толгой",
   "nav.numbers": "Тоо",
-
   "theme.toggle": "Өнгөний горим солих",
   "theme.toLight": "Гэрэлтэй горимд шилжих",
   "theme.toDark": "Харанхуй горимд шилжих",
   "locale.switch": "Хэл солих",
-
   "dict.play": "Тоглуулах",
   "dict.pause": "Түр зогсоох",
   "dict.speed": "Тоглуулах хурд",
   "home.heroLiveTag": "Шууд үзүүлэлт",
   "home.heroVisualCaption": "Дохио бол хөдөлгөөн",
   "home.heroVisualLabel": "Дохионы хөдөлгөөний дүрслэл",
-
   "shell.public": "Нийтийн хэсэг",
   "shell.user": "Хэрэглэгчийн хэсэг",
   "shell.admin": "Удирдлагын хэсэг",
   "shell.forbiddenTitle": "Хандах эрхгүй",
   "shell.forbiddenBody": "Энэ хуудсыг үзэх эрх танд алга байна.",
-
   "common.skipToContent": "Үндсэн агуулга руу шилжих",
   "common.save": "Хадгалах",
   "common.cancel": "Цуцлах",
@@ -67,17 +62,14 @@
   "common.yes": "Тийм",
   "common.no": "Үгүй",
   "common.openMenu": "Цэс нээх",
-
   "pagination.nav": "Хуудаслалт",
   "pagination.page": "{page} / {total} хуудас",
-
   "home.searchPlaceholder": "Үг хайх...",
   "home.featuredTopics": "Онцлох сэдвүүд",
   "search.resultsLabel": "Хайлтын илэрц",
   "search.viewAll": "Бүх илэрцийг харах",
   "home.accessibilityStatement": "Хүртээмжийн мэдэгдэл",
   "status.healthy": "Систем хэвийн ажиллаж байна",
-
   "auth.loginTitle": "Нэвтрэх",
   "auth.loginSubtitle": "Бүртгэлдээ нэвтэрнэ үү",
   "auth.emailTab": "Имэйлээр нэвтрэх",
@@ -129,7 +121,6 @@
   "auth.registerValue1": "Баталгаажсан дохионы толь бичигт нэвтрэх",
   "auth.registerValue2": "Шинэ үг санал болгож, хувь нэмрээ оруулах",
   "auth.registerValue3": "Тоглоомт сургалтаар сурч, ахицаа хянах",
-
   "admin.tax.title": "Сэдэв ба ангилал",
   "admin.tax.subtitle": "Сэдэв (мод бүтэц), түвшин, насны ангиллыг удирдах",
   "admin.tax.topics": "Сэдвүүд",
@@ -148,7 +139,6 @@
   "admin.tax.addAgeGroup": "Насны ангилал нэмэх",
   "admin.tax.delete": "Устгах",
   "admin.tax.empty": "Бичлэг алга байна.",
-
   "dict.title": "Толь бичиг",
   "dict.browseByTopic": "Сэдвээр үзэх",
   "dict.topicTreeLabel": "Сэдвийн ангилал",
@@ -171,12 +161,10 @@
   "dict.resultCount": "Танд нийт {total} дохио байна, {from}–{to} харуулж байна",
   "dict.gridLabel": "Дохионы жагсаалт",
   "dict.openWord": "{lemma} — дэлгэрэнгүй үзэх",
-
   "alphabet.title": "Кирилл цагаан толгой",
   "alphabet.lead": "Кирилл үсэг бүрийн дохиог үзээрэй. Картыг дарж томоор харна уу.",
   "alphabet.gridLabel": "Цагаан толгойн дохионы жагсаалт",
   "alphabet.signOf": "{letter} үсгийн дохио",
-
   "game.alphabet.title": "Цагаан толгойн дохио тоглоом",
   "game.alphabet.lead": "Дэлгэцэд гарсан үсгийн дохиог камерт үзүүлээрэй. Зөв хийвэл оноо нэмэгдэнэ.",
   "game.alphabet.loading": "Эталон ачаалж байна…",
@@ -201,13 +189,11 @@
   "game.alphabet.recording": "Бичиж байна",
   "game.alphabet.cameraIdle": "Эхлэхэд камер энд гарч ирнэ. Дүрс серверт илгээгдэхгүй.",
   "game.alphabet.privacy": "Бүх боловсруулалт зөвхөн таны төхөөрөмж дээр хийгдэнэ. Камерын дүрс хадгалагдахгүй, серверт илгээгдэхгүй.",
-
   "numbers.title": "Тоо ба тооны нэр",
   "numbers.lead": "0–1000 хүртэлх тооны дохиог үзээрэй. Картыг дарж томоор харна уу.",
   "numbers.gridLabel": "Тооны дохионы жагсаалт",
   "numbers.signOf": "{value} тооны дохио",
   "numbers.filterNav": "Ангиллын шүүлтүүр",
-
   "signs.comingSoon": "Дохионы бичлэг удахгүй нэмэгдэнэ",
   "signs.sign": "Дохио",
   "signs.signOfLabel": "{label} дохио",
@@ -226,7 +212,6 @@
   "dict.handsTwo": "Хоёр гар",
   "dict.handshape": "Гарын хэлбэр",
   "dict.allHandshapes": "Бүх хэлбэр",
-
   "submit.title": "Үг илгээх",
   "submit.subtitle": "Шинэ үг санал болгох — админ хянаж баталгаажуулна",
   "submit.lemma": "Үг",
@@ -278,7 +263,6 @@
   "submit.step1": "Үг ба ангилал",
   "submit.step2": "Видео",
   "submit.step3": "Хянах ба илгээх",
-
   "mysub.title": "Миний илгээсэн үгс",
   "mysub.empty": "Та одоогоор үг илгээгээгүй байна.",
   "mysub.status.pending": "Хүлээгдэж буй",
@@ -287,7 +271,6 @@
   "mysub.status.needs_clarification": "Тодруулга шаардсан",
   "mysub.status.duplicate": "Давхардсан",
   "mysub.comment": "Админы тайлбар:",
-
   "review.title": "Хянах дараалал",
   "review.empty": "Хүлээгдэж буй санал алга байна.",
   "review.submittedBy": "Илгээсэн",
@@ -330,7 +313,6 @@
   "review.dashApproved": "Батлагдсан",
   "review.dashRejected": "Татгалзсан",
   "review.dashDuplicates": "Давхардсан",
-
   "admin.dash.title": "Удирдлагын самбар",
   "admin.dash.totalWords": "Нийт үг",
   "admin.dash.approvedWords": "Батлагдсан үг",
@@ -393,7 +375,6 @@
   "admin.options.upload": "Хадгалах",
   "admin.options.existing": "Одоо байгаа сонголтууд",
   "profile.loginRequired": "Профайл ба илгээсэн саналаа харахын тулд нэвтэрнэ үү.",
-
   "ds.title": "Дизайн систем",
   "ds.subtitle": "Бүх дэлгэцэд ашиглах нэгдсэн загвар, компонентууд",
   "ds.tokens": "Токенууд",
@@ -493,7 +474,6 @@
   "dict.attributes": "Дохионы шинж чанар",
   "dict.usefulTopics": "Хэрэгтэй сэдвүүд",
   "dict.allTopics": "Бүх сэдэв",
-
   "landing.hero.eyebrow": "Монгол дохионы хэлний платформ",
   "landing.hero.titleA": "Дохио бол",
   "landing.hero.titleHl": "хөдөлгөөн",
@@ -503,7 +483,6 @@
   "landing.hero.statWords": "Бүртгэлтэй дохио",
   "landing.hero.statVariants": "Орон нутгийн хувилбар",
   "landing.hero.statTopics": "Сэдэв ангилал",
-
   "landing.features.eyebrow": "Боломжууд",
   "landing.features.title": "Сурахад хэрэгтэй бүх зүйл нэг газар",
   "landing.features.lead": "Видео-тэргүүлсэн толь бичиг, орон нутгийн хувилбар, тоглоомоор суралцах, хүртээмжийг эхэнд тавьсан загвар.",
@@ -519,7 +498,6 @@
   "landing.features.f5.body": "WCAG AA контраст, гарын фокус, хөдөлгөөний хяналт, шөнийн горим — бүгд суурьдаа.",
   "landing.features.f6.title": "Иргэдийн оролцоо",
   "landing.features.f6.body": "Хэрэглэгчид дохиогоо илгээж, багш нар хянаад нийтэлдэг — толь бичиг хамтдаа ургана.",
-
   "landing.how.eyebrow": "Хэрхэн ажилладаг",
   "landing.how.title": "Гурван энгийн алхам",
   "landing.how.s1.title": "Хай",
@@ -528,7 +506,6 @@
   "landing.how.s2.body": "Удаашруулан үзэж, аман хэлбэрийг давтаж, тоглоомоор бататга.",
   "landing.how.s3.title": "Нэмэрлэ",
   "landing.how.s3.body": "Мэдэх дохиогоо илгээ — багш хянаад олон нийтийн толинд нэмнэ.",
-
   "landing.dict.eyebrow": "Толь бичиг",
   "landing.dict.title": "Дохио бүр видео — нэг үг, олон хувилбар",
   "landing.dict.lead": "Карт дээр хулганаа аваачихад гарын замнал зурагдана.",
@@ -537,11 +514,11 @@
   "landing.dict.allTopics": "Бүгд",
   "landing.dict.noResult": "тохирох дохио олдсонгүй. Өөр үг эсвэл сэдэв сонгоод үзээрэй.",
   "landing.dict.empty": "Толь бичигт дохио хараахан нэмэгдээгүй байна.",
-
   "landing.learn.eyebrow": "Сурах",
   "landing.learn.title": "Өдөр бүр бага зэрэг — цуваагаа таслахгүй",
   "landing.learn.streakTitle": "Таны цуваа",
   "landing.learn.streakDays": "хоног",
+  "landing.learn.weekdays": "Да Мя Лх Пү Ба Бя Ня",
   "landing.learn.streakNote": "Энэ долоо хоног гайхалтай 👏",
   "landing.learn.dailyEyebrow": "Өдрийн сорил",
   "landing.learn.dailyBody": "Өнөөдрийн дохиог тааварла. 3 оролдлогоос хэд нь зөв бэ?",
@@ -553,7 +530,6 @@
   "landing.learn.badge2": "100 дохио",
   "landing.learn.badge3": "Байгаль",
   "landing.learn.badge4": "Мастер",
-
   "landing.testi.eyebrow": "Хэрэглэгчид",
   "landing.testi.title": "Нийгэмлэг юу гэж байна вэ",
   "landing.testi.q1": "«Хүүхэдтэйгээ хамт орой бүр гурван шинэ дохио сурдаг болсон. Видео нь тодорхой, удаашруулдаг нь маш том дэмжлэг.»",
@@ -562,7 +538,6 @@
   "landing.testi.q2": "«Орон нутгийн хувилбаруудыг зэрэгцүүлж харуулдаг нь сурган хүмүүжүүлэхэд үнэлж баршгүй. Иргэдийн илгээлт хяналт сайтай.»",
   "landing.testi.q2.name": "Ганбат багш",
   "landing.testi.q2.role": "Дохионы хэлний багш",
-
   "landing.contribute.eyebrow": "Хамтдаа баяжуулъя",
   "landing.contribute.title": "Толь бичгийг иргэд өөрсдөө бүтээдэг",
   "landing.contribute.body": "Чамд мэдэх дохио толинд алга уу? Видеогоо илгээ — багш нар хянаад нийтэлнэ. Бүх илгээлт зөвшөөрлийн дагуу хадгалагдана.",
@@ -574,13 +549,11 @@
   "landing.contribute.s2.body": "Систем ижил дохиог олно",
   "landing.contribute.s3.title": "Багш хянана",
   "landing.contribute.s3.body": "Зөвшөөрвөл толинд нэмэгдэнэ",
-
   "landing.cta.eyebrow": "Өнөөдөр эхэл",
   "landing.cta.title": "Монгол дохионы хэлийг хөдөлгөөнөөр сур",
   "landing.cta.body": "Үнэгүй бүртгүүлээд толь бичиг, тоглоом, нийгэмлэгт нэгд. Ямар ч төхөөрөмжөөс.",
   "landing.cta.primary": "Үнэгүй бүртгүүлэх",
   "landing.cta.secondary": "Толь бичиг үзэх",
-
   "landing.foot.tagline": "«Дохио бол хөдөлгөөн». Монгол дохионы хэлний нээлттэй, иргэдийн оролцоотой платформ.",
   "landing.foot.product": "Бүтээгдэхүүн",
   "landing.foot.resources": "Нөөц",
@@ -592,5 +565,22 @@
   "landing.foot.contact": "Холбоо барих",
   "landing.foot.rights": "© 2026 MSL платформ. Бүх эрх хуулиар хамгаалагдсан.",
   "landing.foot.lang": "Монгол · English",
-  "landing.backToTop": "Дээш буцах"
+  "landing.backToTop": "Дээш буцах",
+  "error.title": "Алдаа гарлаа",
+  "error.body": "Гэнэтийн алдаа гарлаа. Дахин оролдоно уу.",
+  "error.retry": "Дахин оролдох",
+  "error.home": "Нүүр хуудас",
+  "notFound.title": "Хуудас олдсонгүй",
+  "notFound.body": "Таны хайж буй хуудас байхгүй эсвэл шилжсэн байна.",
+  "notFound.home": "Нүүр хуудас руу буцах",
+  "admin.users.empty": "Одоохондоо хэрэглэгч алга.",
+  "admin.settings.empty": "Тохируулах тохиргоо алга.",
+  "admin.tax.noItems": "Одоохондоо алга.",
+  "submit.selectLevel": "Түвшин сонгох",
+  "auth.pwMet": "биелсэн",
+  "auth.pwUnmet": "биелээгүй",
+  "search.resultsCount": "{n} илэрц",
+  "submit.lemmaRequired": "Үг оруулна уу.",
+  "admin.dash.loadError": "Самбарын мэдээллийг ачаалж чадсангүй. Үйлчилгээ түр боломжгүй байж магадгүй — дахин оролдоно уу.",
+  "admin.options.empty": "Одоохондоо зураг байршуулаагүй байна."
 }

@@ -42,16 +42,23 @@ export default async function AdminDashboardPage(): Promise<React.ReactElement> 
     <main id="main" className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold tracking-tight text-fg">{t('admin.dash.title')}</h1>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {kpis.map((k) => (
-          <Card key={k.label}>
-            <CardBody>
-              <p className={`text-3xl font-bold ${k.tone}`}>{k.value}</p>
-              <p className="mt-1 text-sm text-fg-muted">{k.label}</p>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
+      {dash ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {kpis.map((k) => (
+            <Card key={k.label}>
+              <CardBody>
+                <p className={`text-3xl font-bold ${k.tone}`}>{k.value}</p>
+                <p className="mt-1 text-sm text-fg-muted">{k.label}</p>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        // Don't fabricate zeros when the API is unreachable — say so.
+        <div role="alert" className="rounded-md border border-danger bg-danger-subtle p-4 text-sm text-fg">
+          {t('admin.dash.loadError')}
+        </div>
+      )}
 
       <nav aria-label={t('admin.dash.manage')} className="mt-8 flex flex-wrap gap-3">
         {links.map((l) => (

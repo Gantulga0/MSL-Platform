@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getServerT } from '@/i18n/server';
-import { apiGetSafe } from '@/lib/api/server';
+import { apiGet, ApiClientError } from '@/lib/api/server';
 import type { WordDetail } from '@/lib/dictionary/types';
 import { SignPlayer } from '@/components/dictionary/SignPlayer';
 import { WordDetailTabs } from '@/components/dictionary/WordDetailTabs';
@@ -18,7 +18,12 @@ export default async function WordDetailPage({
 }): Promise<React.ReactElement> {
   const t = await getServerT();
   const { id } = await params;
-  const word = await apiGetSafe<WordDetail>(`/words/${id}`);
+  // 404 → not-found page; any other failure → rethrow so error.tsx handles it
+  // (rather than masking an outage as "word doesn't exist").
+  const word = await apiGet<WordDetail>(`/words/${id}`).catch((e: unknown) => {
+    if (e instanceof ApiClientError && e.status === 404) return null;
+    throw e;
+  });
   if (!word) notFound();
 
   const video = word.media.find((m) => m.type === 'video' && m.publicUrl);

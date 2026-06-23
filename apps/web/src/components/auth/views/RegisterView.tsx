@@ -158,6 +158,7 @@ export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactE
                       )}
                     </motion.span>
                     <span className={c.ok ? 'font-medium text-fg' : 'text-fg-muted'}>{t(c.labelKey)}</span>
+                    <span className="sr-only">{t(c.ok ? 'auth.pwMet' : 'auth.pwUnmet')}</span>
                   </li>
                 ))}
               </ul>
