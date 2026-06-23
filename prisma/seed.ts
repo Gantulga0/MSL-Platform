@@ -6,11 +6,6 @@ import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
-// Option images live in the SAME storage as videos, under options/<kind>/. With
-// STORAGE_DRIVER=r2 they go straight to the R2 bucket (mirrors StorageService);
-// otherwise they land on local disk at apps/api/storage. Either way the API
-// serves them at /api/v1/options/images/<kind>/<file>, and when an R2 public CDN
-// base is configured the seed records that absolute URL instead.
 const API_DIR = resolve(__dirname, '..', 'apps', 'api');
 const STORAGE_DIR = resolve(API_DIR, process.env.STORAGE_LOCAL_DIR ?? './storage');
 const SEED_IMAGES_DIR = resolve(API_DIR, 'seed', 'option-images');
@@ -27,7 +22,6 @@ const MIME_BY_EXT: Record<string, string> = {
 };
 
 let r2Client: S3Client | null = null;
-/** Lazily build the R2 (S3-compatible) client, validating the required env. */
 function r2(): S3Client {
   if (r2Client) return r2Client;
   const accountId = process.env.R2_ACCOUNT_ID;
@@ -46,7 +40,6 @@ function r2(): S3Client {
   return r2Client;
 }
 
-/** Minimal labelled SVG placeholder used when no real artwork is supplied. */
 function placeholderSvg(label: string, kind: string): Buffer {
   const hue = [...kind].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
@@ -56,11 +49,6 @@ function placeholderSvg(label: string, kind: string): Buffer {
   return Buffer.from(svg, 'utf8');
 }
 
-/**
- * Copy a known option image into storage (or generate a placeholder), returning
- * the public imageUrl. Real artwork dropped at
- * apps/api/seed/option-images/<kind>/<code>.<ext> takes precedence.
- */
 async function materializeOptionImage(kind: string, code: string, label: string): Promise<string> {
   let ext = 'svg';
   let bytes: Buffer | null = null;
@@ -86,7 +74,6 @@ async function materializeOptionImage(kind: string, code: string, label: string)
         ContentType: MIME_BY_EXT[ext] ?? 'application/octet-stream',
       }),
     );
-    // Serve straight from the CDN when configured, else via the API (which reads R2).
     return R2_PUBLIC_BASE ? `${R2_PUBLIC_BASE}/${key}` : apiUrl;
   }
 
@@ -105,8 +92,6 @@ async function seedLevels(): Promise<void> {
   for (const lvl of levels) {
     await prisma.level.upsert({ where: { code: lvl.code }, update: lvl, create: lvl });
   }
-  // Remove levels no longer in the canonical set (e.g. the retired "Бага").
-  // upsert never deletes, so prune stale rows — detaching any words first.
   const codes = levels.map((l) => l.code);
   const stale = await prisma.level.findMany({
     where: { code: { notIn: codes } },
@@ -171,7 +156,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'education',
-    name: 'боловсрол',
+    name: 'Боловсрол',
     children: [
       { slug: 'school', name: 'Сургууль' },
       { slug: 'school-supplies', name: 'Хичээлийн хэрэгсэл' },
@@ -180,7 +165,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'employment',
-    name: 'хөдөлмөр эрхлэлт',
+    name: 'Хөдөлмөр эрхлэлт',
     children: [
       { slug: 'profession', name: 'Ажил, мэргэжил' },
       { slug: 'workplace', name: 'Ажилтай холбоотой үгс' },
@@ -189,7 +174,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'health',
-    name: 'эрүүл мэнд',
+    name: 'Эрүүл мэнд',
     children: [
       { slug: 'body-parts', name: 'Бие эрхтэн' },
       { slug: 'health-signs', name: 'Эмчилгээ, эрүүл мэндтэй холбоотой дохио' },
@@ -197,11 +182,11 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'emotions',
-    name: 'сэтгэл хөдлөл',
+    name: 'Сэтгэл хөдлөл',
   },
   {
     slug: 'living-environment',
-    name: 'амьдрах орчин',
+    name: 'Амьдрах орчин',
     children: [
       { slug: 'home-items', name: 'Гэр орон, гэрийн эд зүйлс' },
       { slug: 'furniture', name: 'Гэрийн тавилга' },
@@ -212,7 +197,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'clothing',
-    name: 'хувцас хэрэглэл',
+    name: 'Хувцас хэрэглэл',
     children: [
       { slug: 'clothes', name: 'Хувцас' },
       { slug: 'accessories', name: 'Эдлэл хэрэгсэл' },
@@ -221,11 +206,11 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'food',
-    name: 'хоол хүнсний бүтээгдэхүүн',
+    name: 'Хоол хүнсний бүтээгдэхүүн',
     children: [
       { slug: 'vegetables', name: 'Хүнсний ногоо' },
       { slug: 'fruits', name: 'Жимс, жимсгэнэ' },
-      { slug: 'dairy', name: 'Сүү , сүүн бүтээгдэхүүн' },
+      { slug: 'dairy', name: 'Сүү, сүүн бүтээгдэхүүн' },
       { slug: 'sweets', name: 'Амттан' },
       { slug: 'drinks', name: 'Уух зүйлс' },
       { slug: 'meat', name: 'Мах, махан бүтээгдэхүүн' },
@@ -236,7 +221,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'color-shape-size',
-    name: 'өнгө ба хэлбэр дүрс,хэмжээ',
+    name: 'Өнгө ба хэлбэр дүрс, хэмжээ',
     children: [
       { slug: 'colors', name: 'Өнгө' },
       { slug: 'shapes', name: 'Хэлбэр дүрс' },
@@ -245,7 +230,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'animals',
-    name: 'ан амьтан',
+    name: 'Ан амьтан',
     children: [
       { slug: 'wild-animals', name: 'Ан амьтан' },
       { slug: 'livestock', name: 'Таван хошуу мал' },
@@ -256,7 +241,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'nature',
-    name: 'байгаль',
+    name: 'Байгаль',
     children: [
       { slug: 'nature-general', name: 'Байгаль' },
       { slug: 'natural-phenomena', name: 'Байгалийн үзэгдэл' },
@@ -264,7 +249,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'time-space',
-    name: 'цаг хугацаа, орон зай',
+    name: 'Цаг хугацаа, орон зай',
     children: [
       { slug: 'time', name: 'Цаг хугацаа' },
       { slug: 'space', name: 'Орон зай' },
@@ -273,7 +258,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'technology',
-    name: 'техник технологи',
+    name: 'Техник технологи',
     children: [
       { slug: 'equipment', name: 'Тоног төхөөрөмж' },
       { slug: 'social-media', name: 'Нийгмийн сүлжээ' },
@@ -282,7 +267,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'sport',
-    name: 'спорт',
+    name: 'Спорт',
     children: [
       { slug: 'sport-types', name: 'Спортын төрөл' },
       { slug: 'sport-equipment', name: 'Спортын хэрэгсэл' },
@@ -291,11 +276,11 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'games',
-    name: 'тоглоом',
+    name: 'Тоглоом',
   },
   {
     slug: 'art',
-    name: 'урлаг,урлал',
+    name: 'Урлаг, урлал',
     children: [
       { slug: 'art-culture', name: 'Урлаг соёл' },
       { slug: 'handicraft', name: 'Гар урлал, уран бүтээл' },
@@ -304,7 +289,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'transport',
-    name: 'тээврийн хэрэгсэл',
+    name: 'Тээврийн хэрэгсэл',
     children: [
       { slug: 'vehicles', name: 'Тээврийн хэрэгсэл' },
       { slug: 'traffic-signs', name: 'Зам тээвэртэй холбоотой дохио' },
@@ -312,7 +297,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'social-environment',
-    name: 'нийгмийн орчин',
+    name: 'Нийгмийн орчин',
     children: [
       { slug: 'politics-law', name: 'Улс төр, хууль эрх зүй, нийгэм' },
       { slug: 'religion', name: 'Шашин шүтлэг' },
@@ -322,7 +307,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'place-names',
-    name: 'газрийн нэр',
+    name: 'Газрын нэр',
     children: [
       { slug: 'countries', name: 'Улс орон' },
       { slug: 'cities', name: 'Хотууд' },
@@ -332,7 +317,7 @@ const TOPICS: TopicSeed[] = [
   },
   {
     slug: 'science',
-    name: 'шинжлэх ухаан',
+    name: 'Шинжлэх ухаан',
     children: [
       { slug: 'math', name: 'Математик' },
       { slug: 'physics', name: 'Физик' },
