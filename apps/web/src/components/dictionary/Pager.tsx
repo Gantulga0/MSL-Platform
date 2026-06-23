@@ -3,10 +3,11 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { Route } from 'next';
 import { Pagination } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 /** URL-driven wrapper around the Pagination primitive (updates ?page=). */
 export function Pager({ page, totalPages }: { page: number; totalPages: number }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -26,7 +27,7 @@ export function Pager({ page, totalPages }: { page: number; totalPages: number }
         nav: t('pagination.nav'),
         previous: t('common.previous'),
         next: t('common.next'),
-        page: (p, total) => t('pagination.page', undefined, { page: p, total }),
+        page: (p, total) => t('pagination.page', { page: p, total }),
       }}
     />
   );

@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { CATEGORIES, SIGNS } from '@/lib/signs/numbers';
 import { NumbersExplorer } from '@/components/signs/NumbersExplorer';
 
-export const metadata: Metadata = { title: translate('numbers.title') };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerT();
+  return { title: t('numbers.title') };
+}
 
 export default function NumbersPage(): React.ReactElement {
   return (

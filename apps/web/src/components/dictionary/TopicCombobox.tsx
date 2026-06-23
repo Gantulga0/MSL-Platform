@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { cn } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import type { TopicNode } from '@/lib/dictionary/types';
 
 interface FlatTopic {
@@ -45,6 +45,7 @@ export function TopicCombobox({
   placeholder?: string;
   ariaLabel?: string;
 }): React.ReactElement {
+  const t = useT();
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');

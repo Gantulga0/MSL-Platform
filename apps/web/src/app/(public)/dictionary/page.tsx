@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Search } from 'lucide-react';
 import type { Paginated } from '@msl/types';
 import { EmptyState } from '@msl/ui';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
 import { LiveSearch } from '@/components/LiveSearch';
 import { FilterPanel } from '@/components/dictionary/FilterPanel';
@@ -26,6 +26,7 @@ export default async function DictionaryPage({
 }: {
   searchParams: Promise<SP>;
 }): Promise<React.ReactElement> {
+  const t = await getServerT();
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page ?? '1') || 1);
 
@@ -53,11 +54,11 @@ export default async function DictionaryPage({
     <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
-          {translate('dict.title')}
+          {t('dict.title')}
         </h1>
         {meta && meta.total > 0 && (
           <p className="mt-2 text-base text-fg-muted">
-            {translate('dict.resultCount', undefined, { total: meta.total, from, to })}
+            {t('dict.resultCount', { total: meta.total, from, to })}
           </p>
         )}
         <div className="mt-6">
@@ -71,13 +72,13 @@ export default async function DictionaryPage({
           {items.length === 0 ? (
             <EmptyState
               icon={<Search className="h-12 w-12" />}
-              title={translate('dict.noResults')}
-              description={translate('dict.noResultsHint')}
+              title={t('dict.noResults')}
+              description={t('dict.noResultsHint')}
             />
           ) : (
             <>
               <ul
-                aria-label={translate('dict.gridLabel')}
+                aria-label={t('dict.gridLabel')}
                 className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
               >
                 {items.map((w, i) => (

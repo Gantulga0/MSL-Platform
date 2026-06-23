@@ -1,27 +1,27 @@
 import type { Metadata } from 'next';
-import { Golos_Text, Pacifico, Unbounded } from 'next/font/google';
+import { Inter, Pacifico } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@msl/ui';
-import { DEFAULT_LOCALE, translate } from '@/i18n';
+import { getServerT, getLocale } from '@/i18n/server';
+import { LocaleProvider } from '@/i18n/client';
 import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 import { CursorGradient } from '@/components/CursorGradient';
 import { cn } from "@/lib/utils";
 
 /**
- * Golos Text — body family. Humanist sans with full Mongolian Cyrillic coverage
- * (incl. Өө/Үү via the `cyrillic` subset); self-hosted by next/font (no runtime
- * CDN, no FOUT). Exposed as `--font-sans` so existing `font-sans` usages re-point
- * to it with no class changes.
+ * Inter — body family. Covers Mongolian Cyrillic (incl. Өө/Үү via `cyrillic-ext`);
+ * self-hosted by next/font (no runtime CDN, no FOUT). Exposed as `--font-sans` so
+ * existing `font-sans` usages re-point to it with no class changes.
  */
-const golos = Golos_Text({ subsets: ['latin', 'cyrillic'], variable: '--font-sans' });
+const inter = Inter({ subsets: ['latin', 'cyrillic', 'cyrillic-ext'], variable: '--font-sans' });
 
 /**
- * Unbounded — display family for headings (700/800). Also covers Cyrillic, and
- * is wired to `--font-display` (Tailwind `font-display`).
+ * Inter (heavier weights) — display family for headings, wired to `--font-display`
+ * (Tailwind `font-display`). Everything non-Pacifico now reads as Inter.
  */
-const unbounded = Unbounded({
-  subsets: ['latin', 'cyrillic'],
-  weight: ['700', '800'],
+const interDisplay = Inter({
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
+  weight: ['600', '700', '800'],
   variable: '--font-display',
 });
 
@@ -39,34 +39,41 @@ const pacifico = Pacifico({ subsets: ['latin'], weight: '400', variable: '--font
  */
 const THEME_INIT = `(function(){try{var t=localStorage.getItem('msl-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'night':'light';}document.documentElement.dataset.theme=t;}catch(e){}})();`;
 
-export const metadata: Metadata = {
-  title: translate('app.title'),
-  description: translate('app.tagline'),
-  icons: {
-    icon: '/favicon.png',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerT();
+  return {
+    title: t('app.title'),
+    description: t('app.tagline'),
+    icons: {
+      icon: '/favicon.png',
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>): React.ReactElement {
+}: Readonly<{ children: React.ReactNode }>): Promise<React.ReactElement> {
+  const locale = await getLocale();
+  const t = await getServerT();
   return (
     <html
-      lang={DEFAULT_LOCALE}
-      className={cn('font-sans', golos.variable, unbounded.variable, pacifico.variable)}
+      lang={locale}
+      className={cn('font-sans', inter.variable, interDisplay.variable, pacifico.variable)}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body className="min-h-screen font-sans antialiased">
-        <CursorGradient />
-        <a href="#main" className="skip-link">
-          {translate('common.skipToContent')}
-        </a>
-        <ToastProvider closeLabel={translate('common.close')}>
-          <AuthModalProvider>{children}</AuthModalProvider>
-        </ToastProvider>
+        <LocaleProvider locale={locale}>
+          <CursorGradient />
+          <a href="#main" className="skip-link">
+            {t('common.skipToContent')}
+          </a>
+          <ToastProvider closeLabel={t('common.close')}>
+            <AuthModalProvider>{children}</AuthModalProvider>
+          </ToastProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

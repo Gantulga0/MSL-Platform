@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { verifyEmailAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from './FormAlert';
@@ -10,6 +10,7 @@ import { AuthTrigger } from './AuthTrigger';
 
 /** S-03/AUTH-02 — confirm an email-verification token. */
 export function VerifyEmailForm({ token }: { token: string }): React.ReactElement {
+  const t = useT();
   const [error, setError] = useState<string>();
   const [success, setSuccess] = useState<string>();
   const [pending, start] = useTransition();
@@ -22,7 +23,7 @@ export function VerifyEmailForm({ token }: { token: string }): React.ReactElemen
     data.set('token', token);
     start(async () => {
       const res = await verifyEmailAction(data);
-      if (res?.error) setError(localizeAuthError(res.error));
+      if (res?.error) setError(localizeAuthError(res.error, t));
       else if (res?.message) setSuccess(res.message);
     });
   }

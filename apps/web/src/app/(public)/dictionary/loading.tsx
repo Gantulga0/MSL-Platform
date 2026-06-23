@@ -1,12 +1,13 @@
 import { SignCardSkeleton } from '@/components/dictionary/SignCard';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 
 /** Route-level loading state for the dictionary (NFR-01: SR status + skeletons). */
-export default function DictionaryLoading(): React.ReactElement {
+export default async function DictionaryLoading(): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
       <p role="status" aria-live="polite" className="sr-only">
-        {translate('common.loading')}
+        {t('common.loading')}
       </p>
       <div className="mb-8 flex flex-col items-center gap-4">
         <div aria-hidden className="h-8 w-48 animate-pulse rounded-md bg-surface-muted" />

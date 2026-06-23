@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardBody, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { bulkImportWordsAction, type BulkImportResult } from '@/lib/admin/word-actions';
 import type { TopicNode } from '@/lib/dictionary/types';
@@ -37,6 +37,7 @@ function lemmaFromName(name: string): string {
  * single-word create form in the admin Word manager.
  */
 export function BulkWordImport({ topics }: { topics: TopicNode[] }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
   const [status, setStatus] = useState<'pending' | 'approved'>('approved');

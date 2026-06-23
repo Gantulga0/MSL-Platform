@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { Button, Field, Textarea } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { approveAction, editAction, rejectAction } from '@/lib/review/actions';
 import { ImagePicker, type PickerOption } from '@/components/admin/ImagePicker';
@@ -40,6 +40,7 @@ export function ReviewDecision({
   defaultAgeGroupId = '',
   defaultHandCount = null,
 }: Props): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string>();

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button, Card, CardBody, CardTitle, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import {
   createAgeGroupAction,
@@ -83,6 +83,7 @@ function ActionForm({
 }
 
 function TopicRows({ nodes, depth = 0 }: { nodes: TopicNode[]; depth?: number }): React.ReactElement {
+  const t = useT();
   const [, start] = useTransition();
   return (
     <ul className="space-y-1">
@@ -116,6 +117,7 @@ function TopicRows({ nodes, depth = 0 }: { nodes: TopicNode[]; depth?: number })
 }
 
 export function TaxonomyManager({ topics, levels, ageGroups }: Props): React.ReactElement {
+  const t = useT();
   const parentOptions = flatten(topics);
 
   return (

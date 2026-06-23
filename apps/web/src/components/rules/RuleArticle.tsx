@@ -1,4 +1,4 @@
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 
 export interface RuleArticleProps {
   /** i18n key for the page title. */
@@ -14,23 +14,24 @@ export interface RuleArticleProps {
  * (centered `max-w` container, semantic landmarks, i18n-only copy). Readable
  * measure for long-form text (NFR-01, WCAG 2.2 AA).
  */
-export function RuleArticle({
+export async function RuleArticle({
   titleKey,
   leadKey,
   paragraphKeys,
-}: RuleArticleProps): React.ReactElement {
+}: RuleArticleProps): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
       <article className="space-y-6">
         <header className="space-y-3">
           <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
-            {translate(titleKey)}
+            {t(titleKey)}
           </h1>
-          <p className="text-lg text-fg-muted">{translate(leadKey)}</p>
+          <p className="text-lg text-fg-muted">{t(leadKey)}</p>
         </header>
         <div className="space-y-4 text-base leading-relaxed text-fg">
           {paragraphKeys.map((key) => (
-            <p key={key}>{translate(key)}</p>
+            <p key={key}>{t(key)}</p>
           ))}
         </div>
       </article>

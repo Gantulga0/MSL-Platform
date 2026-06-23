@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import type { Paginated } from '@msl/types';
-import { translate as t } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
 import type { TopicNode, WordListItem } from '@/lib/dictionary/types';
 import { LiveSearch } from '@/components/LiveSearch';
@@ -35,6 +35,7 @@ const FEATURES = [
 const HOW_STEPS = ['s1', 's2', 's3'] as const;
 
 export default async function HomePage(): Promise<React.ReactElement> {
+  const t = await getServerT();
   // TODO: there is no dedicated "featured" endpoint; this shows the first N words.
   const [words, topics] = await Promise.all([
     apiGetSafe<Paginated<WordListItem>>('/words?page=1'),
@@ -71,11 +72,6 @@ export default async function HomePage(): Promise<React.ReactElement> {
               <div className="stat">
                 {totalWords > 0 ? <StatCounter value={totalWords} /> : <b>2 480</b>}
                 <span>{t('landing.hero.statWords')}</span>
-              </div>
-              <div className="stat">
-                {/* TODO: no variant-count source yet. */}
-                <b>340+</b>
-                <span>{t('landing.hero.statVariants')}</span>
               </div>
               <div className="stat">
                 {topicCount > 0 ? <StatCounter value={topicCount} /> : <b>17</b>}

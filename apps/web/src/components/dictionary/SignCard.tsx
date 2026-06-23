@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { Skeleton } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import type { WordListItem } from '@/lib/dictionary/types';
 import { SignCardVideo } from './SignCardVideo';
 
@@ -13,18 +13,19 @@ import { SignCardVideo } from './SignCardVideo';
  * ring is handled globally. The list payload carries no media, so the thumbnail
  * is a captioned placeholder until a thumbnail URL is added to /words.
  */
-export function SignCard({
+export async function SignCard({
   word,
   index,
 }: {
   word: WordListItem;
   /** 1-based running number across the paginated result set. */
   index: number;
-}): React.ReactElement {
+}): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <Link
       href={`/dictionary/${word.id}` as Route}
-      aria-label={t('dict.openWord', undefined, { lemma: word.lemma })}
+      aria-label={t('dict.openWord', { lemma: word.lemma })}
       className="glass group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
     >
       {/* Sign-video thumbnail — fixed aspect, plays on hover / when in view (touch). */}

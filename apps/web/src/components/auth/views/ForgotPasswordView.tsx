@@ -4,7 +4,7 @@ import React, { useState, useTransition } from 'react';
 import { X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { Button, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { forgotPasswordAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from '../FormAlert';
@@ -17,6 +17,7 @@ import type { AuthViewProps } from '../authModalTypes';
  * page reached from the emailed link. Honours reduced-motion (NFR-01).
  */
 export function ForgotPasswordView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
+  const t = useT();
   const reduce = useReducedMotion();
   const [error, setError] = useState<string>();
   const [success, setSuccess] = useState<string>();
@@ -29,7 +30,7 @@ export function ForgotPasswordView({ onSwitch, onClose }: AuthViewProps): React.
     const data = new FormData(e.currentTarget);
     start(async () => {
       const res = await forgotPasswordAction(data);
-      if (res?.error) setError(localizeAuthError(res.error));
+      if (res?.error) setError(localizeAuthError(res.error, t));
       else if (res?.message) setSuccess(res.message);
     });
   }

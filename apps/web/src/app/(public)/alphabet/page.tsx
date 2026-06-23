@@ -1,36 +1,40 @@
 import type { Metadata } from 'next';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { ALPHABET } from '@/lib/signs/alphabet';
 import { SignBoard } from '@/components/signs/SignBoard';
 import type { SignItem } from '@/components/signs/types';
 
-export const metadata: Metadata = { title: translate('alphabet.title') };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerT();
+  return { title: t('alphabet.title') };
+}
 
-export default function AlphabetPage(): React.ReactElement {
+export default async function AlphabetPage(): Promise<React.ReactElement> {
+  const t = await getServerT();
   const items: SignItem[] = ALPHABET.map((l) => ({
     key: l.letter,
     display: l.letter,
     src: l.src,
     kind: l.kind,
-    ariaLabel: translate('alphabet.signOf', undefined, { letter: l.letter }),
-    dialogLabel: translate('alphabet.signOf', undefined, { letter: l.letter }),
+    ariaLabel: t('alphabet.signOf', { letter: l.letter }),
+    dialogLabel: t('alphabet.signOf', { letter: l.letter }),
   }));
 
   return (
     <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
-          {translate('alphabet.title')}
+          {t('alphabet.title')}
         </h1>
         <p className="mx-auto mt-2 max-w-2xl text-base text-fg-muted">
-          {translate('alphabet.lead')}
+          {t('alphabet.lead')}
         </p>
       </header>
 
       <SignBoard
         items={items}
-        gridLabel={translate('alphabet.gridLabel')}
-        closeLabel={translate('common.close')}
+        gridLabel={t('alphabet.gridLabel')}
+        closeLabel={t('common.close')}
       />
     </main>
   );

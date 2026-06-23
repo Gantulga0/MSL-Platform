@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { DialogShell } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { LoginView } from './views/LoginView';
 import { RegisterView } from './views/RegisterView';
 import { ForgotPasswordView } from './views/ForgotPasswordView';
@@ -29,6 +29,7 @@ const LABEL_KEY: Record<AuthView, string> = {
  * reopening starts fresh.
  */
 export function AuthModal({ view, onClose }: AuthModalProps): React.ReactElement {
+  const t = useT();
   const [active, setActive] = useState<AuthView>(view ?? 'login');
 
   // When the parent opens the modal at a specific view, make it the active one.

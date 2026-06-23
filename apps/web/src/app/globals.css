@@ -249,8 +249,16 @@ body {
       color-mix(in srgb, var(--amber) 56%, transparent),
       transparent 56%
     ),
-    radial-gradient(52rem 48rem at 16% 118%, color-mix(in srgb, #b14bff 52%, transparent), transparent 55%),
-    radial-gradient(46rem 42rem at 90% 6%, color-mix(in srgb, var(--jade) 34%, transparent), transparent 55%),
+    radial-gradient(
+      52rem 48rem at 16% 118%,
+      color-mix(in srgb, #b14bff 52%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      46rem 42rem at 90% 6%,
+      color-mix(in srgb, var(--jade) 34%, transparent),
+      transparent 55%
+    ),
     linear-gradient(160deg, var(--paper), var(--paper-2));
   transition: background 0.12s linear;
 }
@@ -341,8 +349,16 @@ body {
    blur over media frames). */
 .sign-stage {
   background:
-    radial-gradient(120% 90% at 20% 10%, color-mix(in srgb, var(--sky) 26%, transparent), transparent 60%),
-    radial-gradient(120% 110% at 90% 100%, color-mix(in srgb, var(--amber) 30%, transparent), transparent 55%),
+    radial-gradient(
+      120% 90% at 20% 10%,
+      color-mix(in srgb, var(--sky) 26%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      120% 110% at 90% 100%,
+      color-mix(in srgb, var(--amber) 30%, transparent),
+      transparent 55%
+    ),
     linear-gradient(160deg, var(--ink), #23244f);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -608,10 +624,9 @@ body {
   color: var(--amber);
 }
 .landing .hero .lead {
-  font-size: 1.22rem;
+  font-size: 1.1rem;
   color: var(--ink-soft);
-  max-width: 32ch;
-  margin: 22px 0 28px;
+  margin: 28px 0 22px;
 }
 .landing .hero-cta {
   display: flex;
@@ -802,7 +817,11 @@ body {
   position: relative;
   aspect-ratio: 1/1;
   overflow: hidden;
-  background: linear-gradient(155deg, var(--paper-2), color-mix(in srgb, var(--sky) 10%, var(--cloud)));
+  background: linear-gradient(
+    155deg,
+    var(--paper-2),
+    color-mix(in srgb, var(--sky) 10%, var(--cloud))
+  );
 }
 .landing .card .frame svg {
   position: absolute;

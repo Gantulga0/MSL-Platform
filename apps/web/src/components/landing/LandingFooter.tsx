@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { translate as t } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 
 /**
  * Landing footer. Internal columns link to REAL routes (dictionary, games,
@@ -8,7 +8,8 @@ import { translate as t } from '@/i18n';
  * (about / partners / privacy / contact / help) have no page yet — they are
  * rendered as inert `#` placeholders and marked TODO until those pages exist.
  */
-export function LandingFooter(): React.ReactElement {
+export async function LandingFooter(): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <footer className="foot">
       <div className="wrap">

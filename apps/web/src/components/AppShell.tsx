@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
 import { Menu, X } from 'lucide-react';
 import { IconButton, cn } from '@msl/ui';
-import { translate } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { logoutAction } from '@/lib/auth/actions';
 import { useAuthModal } from '@/components/auth/AuthModalProvider';
 import type { AuthView } from '@/components/auth/authModalTypes';
 import { NavDropdown, type NavMenuItem } from '@/components/NavDropdown';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LocaleSwitch } from '@/components/LocaleSwitch';
 
 export interface NavItem {
   href: string;
@@ -47,6 +48,7 @@ export function AppShell({
   user,
   children,
 }: AppShellProps): React.ReactElement {
+  const t = useT();
   const [menuOpen, setMenuOpen] = useState(false);
   const { open: openAuth } = useAuthModal();
   const pathname = usePathname();
@@ -100,18 +102,18 @@ export function AppShell({
 
   // Guests see a single "Бүртгүүлэх" dropdown that reveals register + login.
   const authItems = [
-    { key: 'register', label: translate('nav.register'), onSelect: () => openAuth('register') },
-    { key: 'login', label: translate('nav.login'), onSelect: () => openAuth('login') },
+    { key: 'register', label: t('nav.register'), onSelect: () => openAuth('register') },
+    { key: 'login', label: t('nav.login'), onSelect: () => openAuth('login') },
   ];
 
   // Signed-in users get an account dropdown under their display name: profile,
   // password reset (the forgot-password modal), and logout.
   const accountItems: NavMenuItem[] = [
-    { key: 'profile', label: translate('nav.profile'), href: '/profile', active: matchesPath('/profile') },
-    { key: 'reset', label: translate('auth.forgotTitle'), onSelect: () => openAuth('forgot') },
+    { key: 'profile', label: t('nav.profile'), href: '/profile', active: matchesPath('/profile') },
+    { key: 'reset', label: t('auth.forgotTitle'), onSelect: () => openAuth('forgot') },
     {
       key: 'logout',
-      label: translate('nav.logout'),
+      label: t('nav.logout'),
       onSelect: () => {
         void logoutAction();
       },
@@ -126,13 +128,13 @@ export function AppShell({
             {/* <span aria-hidden className="text-2xl">
               🤟
             </span> */}
-            {/* <span>{translate('app.shortTitle')}</span> */}
+            {/* <span>{t('app.shortTitle')}</span> */}
             <span>MSL</span>
           </Link>
 
           <div className="hidden items-center gap-3 md:flex">
             {/* Desktop nav */}
-            <nav aria-label={translate(areaLabelKey)}>
+            <nav aria-label={t(areaLabelKey)}>
               <ul ref={listRef} className="relative flex items-center gap-1">
                 {/* Sliding glass pill behind the active tab. */}
                 <span
@@ -167,12 +169,12 @@ export function AppShell({
                     >
                       {item.children ? (
                         <NavDropdown
-                          label={translate(item.labelKey)}
+                          label={t(item.labelKey)}
                           active={active}
                           triggerClassName={active ? 'bg-transparent hover:bg-transparent font-semibold text-fg' : undefined}
                           items={item.children.map((c) => ({
                             key: c.href,
-                            label: translate(c.labelKey),
+                            label: t(c.labelKey),
                             href: c.href,
                           }))}
                         />
@@ -182,7 +184,7 @@ export function AppShell({
                           onClick={() => item.modal && openAuth(item.modal)}
                           className={className}
                         >
-                          {translate(item.labelKey)}
+                          {t(item.labelKey)}
                         </button>
                       ) : (
                         <Link
@@ -190,7 +192,7 @@ export function AppShell({
                           aria-current={active ? 'page' : undefined}
                           className={className}
                         >
-                          {translate(item.labelKey)}
+                          {t(item.labelKey)}
                         </Link>
                       )}
                     </li>
@@ -198,6 +200,7 @@ export function AppShell({
                 })}
               </ul>
             </nav>
+            <LocaleSwitch />
             <ThemeToggle />
             {user ? (
               <div className="flex items-center border-l border-border pl-3">
@@ -212,14 +215,14 @@ export function AppShell({
                   onClick={() => openAuth('login')}
                   className="inline-flex min-h-touch items-center rounded-full px-4 text-base font-medium text-fg-muted transition-colors hover:bg-surface-muted hover:text-fg"
                 >
-                  {translate('nav.login')}
+                  {t('nav.login')}
                 </button>
                 <button
                   type="button"
                   onClick={() => openAuth('register')}
                   className="inline-flex min-h-touch items-center rounded-full bg-[var(--amber)] px-5 text-base font-semibold text-[#3a2400] transition-colors hover:bg-[var(--amber-deep)]"
                 >
-                  {translate('nav.register')}
+                  {t('nav.register')}
                 </button>
               </div>
             )}
@@ -227,9 +230,10 @@ export function AppShell({
 
           {/* Mobile toggle */}
           <div className="flex items-center gap-2 md:hidden">
+            <LocaleSwitch />
             <ThemeToggle />
             <IconButton
-              label={menuOpen ? translate('common.close') : translate('common.openMenu')}
+              label={menuOpen ? t('common.close') : t('common.openMenu')}
               icon={menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
@@ -243,7 +247,7 @@ export function AppShell({
         {menuOpen && (
           <nav
             id="mobile-nav"
-            aria-label={translate(areaLabelKey)}
+            aria-label={t(areaLabelKey)}
             className="glass mx-auto mt-2 max-w-7xl md:hidden"
           >
             <ul className="flex flex-col px-3 py-2">
@@ -258,7 +262,7 @@ export function AppShell({
                   return (
                     <li key={item.href}>
                       <span className="block px-4 pb-1 pt-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
-                        {translate(item.labelKey)}
+                        {t(item.labelKey)}
                       </span>
                       <ul>
                         {item.children.map((child) => {
@@ -271,7 +275,7 @@ export function AppShell({
                                 onClick={() => setMenuOpen(false)}
                                 className={cn(className, 'pl-7')}
                               >
-                                {translate(child.labelKey)}
+                                {t(child.labelKey)}
                               </Link>
                             </li>
                           );
@@ -291,7 +295,7 @@ export function AppShell({
                         }}
                         className={cn(className, 'w-full text-left')}
                       >
-                        {translate(item.labelKey)}
+                        {t(item.labelKey)}
                       </button>
                     ) : (
                       <Link
@@ -300,7 +304,7 @@ export function AppShell({
                         onClick={() => setMenuOpen(false)}
                         className={className}
                       >
-                        {translate(item.labelKey)}
+                        {t(item.labelKey)}
                       </Link>
                     )}
                   </li>

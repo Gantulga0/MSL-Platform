@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Upload, Video as VideoIcon } from 'lucide-react';
 import { Button, cn } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 type Mode = 'record' | 'upload';
 
@@ -20,6 +20,7 @@ interface Props {
  * and the camera stream is always torn down on unmount / mode switch.
  */
 export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Props): React.ReactElement {
+  const t = useT();
   const [mode, setMode] = useState<Mode>('record');
   const [recording, setRecording] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

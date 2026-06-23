@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardBody, Field, Input, Textarea, type BadgeTone } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { createWordAction, deleteWordAction, updateWordAction } from '@/lib/admin/word-actions';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
@@ -47,6 +47,7 @@ export function WordManager({
   ageGroups: TaxoRef[];
   handednesses: TaxoRef[];
 }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [error, setError] = useState<string>();
   const [success, setSuccess] = useState(false);

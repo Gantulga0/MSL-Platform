@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { Badge, Button, EmptyState } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
@@ -32,6 +32,7 @@ function titleKey(type: NotificationItem['type']): string {
  * opens the matching submission detail (where it can be approved or edited).
  */
 export function NotificationList({ items }: { items: NotificationItem[] }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);

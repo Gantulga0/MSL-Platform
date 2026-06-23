@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Pause, Play } from 'lucide-react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { GestureScene } from '@/components/signs/GestureScene';
 
 /** Slow-first playback rates — learners study signs at half speed (0.5×). */
@@ -27,6 +27,7 @@ export function SignPlayer({
   /** Optional region/variant label shown as a badge (e.g. a variant's region). */
   region?: string | null;
 }): React.ReactElement {
+  const t = useT();
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0); // 0–100

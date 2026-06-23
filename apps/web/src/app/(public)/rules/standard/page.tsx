@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { RuleSection } from '@/components/rules/RuleSection';
 import { RulesNav } from '@/components/rules/RulesNav';
 
-export const metadata: Metadata = { title: translate('rules.standard.title') };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerT();
+  return { title: t('rules.standard.title') };
+}
 
 const SECTIONS = [
   {
@@ -28,14 +31,15 @@ const SECTIONS = [
   },
 ] as const;
 
-export default function RulesStandardPage(): React.ReactElement {
+export default async function RulesStandardPage(): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
       <header className="mx-auto max-w-3xl space-y-3 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
-          {translate('rules.standard.title')}
+          {t('rules.standard.title')}
         </h1>
-        <p className="text-lg text-fg-muted">{translate('rules.standard.lead')}</p>
+        <p className="text-lg text-fg-muted">{t('rules.standard.lead')}</p>
       </header>
 
       <div className="mt-8">

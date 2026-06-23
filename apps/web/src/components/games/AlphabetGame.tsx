@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HolisticLandmarker } from '@mediapipe/tasks-vision';
 import { Button } from '@msl/ui';
-import { getTranslator } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { getHolistic } from '@/lib/games/holistic';
 import { resultToVector, hasHands, type HolisticResult } from '@/lib/games/features';
 import type { FeatureVector } from '@/lib/games/features';
@@ -12,8 +12,6 @@ import {
   checkTarget,
   type TemplateBundle,
 } from '@/lib/games/recognizer';
-
-const t = getTranslator('mn');
 
 // Сегментчлэлийн тохиргоо (sign-test-тэй ижил).
 const MIN_FRAMES = 6;
@@ -45,6 +43,7 @@ function pickLetter(letters: string[], exclude?: string): string {
 }
 
 export function AlphabetGame(): React.ReactElement {
+  const t = useT();
   const [phase, setPhase] = useState<Phase>('loading');
   const [status, setStatus] = useState(t('game.alphabet.loading'));
   const [target, setTarget] = useState('');
@@ -110,7 +109,7 @@ export function AlphabetGame(): React.ReactElement {
     emptyCountRef.current = 0;
     setRecording(false);
     setStatus(t('game.alphabet.show', { letter }));
-  }, []);
+  }, [t]);
 
   // ---- Бичсэн дохиог зорилтот үсэгтэй шалгах ----
   const finalizeGesture = useCallback(
@@ -140,7 +139,7 @@ export function AlphabetGame(): React.ReactElement {
         }, FEEDBACK_MS);
       }
     },
-    [nextLetter],
+    [nextLetter, t],
   );
 
   // ---- Танилтын гол давталт ----
@@ -228,7 +227,7 @@ export function AlphabetGame(): React.ReactElement {
       setStatus(t('game.alphabet.cameraError'));
       console.error(e);
     }
-  }, [loop, nextLetter]);
+  }, [loop, nextLetter, t]);
 
   const stopCamera = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -245,7 +244,7 @@ export function AlphabetGame(): React.ReactElement {
     setPhase('ready');
     setStatus(t('game.alphabet.ready'));
     setFeedback(null);
-  }, [stopCamera]);
+  }, [stopCamera, t]);
 
   const skip = useCallback(() => {
     if (feedbackTimer.current) clearTimeout(feedbackTimer.current);

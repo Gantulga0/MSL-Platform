@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { VerifyEmailForm } from '@/components/auth/VerifyEmailForm';
 
@@ -10,9 +10,10 @@ export default async function VerifyEmailPage({
 }: {
   searchParams: Promise<{ token?: string }>;
 }): Promise<React.ReactElement> {
+  const t = await getServerT();
   const { token } = await searchParams;
   return (
-    <AuthCard title={translate('auth.verifyTitle')}>
+    <AuthCard title={t('auth.verifyTitle')}>
       <VerifyEmailForm token={token ?? ''} />
     </AuthCard>
   );

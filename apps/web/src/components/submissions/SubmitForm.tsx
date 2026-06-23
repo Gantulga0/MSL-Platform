@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Button, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import {
   checkDuplicateAction,
@@ -51,6 +51,7 @@ export function SubmitForm({
   ageGroups,
   handednesses,
 }: Props): React.ReactElement {
+  const t = useT();
   const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
   const [lemma, setLemma] = useState('');

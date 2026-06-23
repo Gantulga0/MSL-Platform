@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from 'react';
 import { cn } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import type { WordVariant } from '@/lib/dictionary/types';
 
 interface Attribute {
@@ -32,6 +32,7 @@ export function WordDetailTabs({
   variants,
   attributes,
 }: WordDetailTabsProps): React.ReactElement | null {
+  const t = useT();
   const baseId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 

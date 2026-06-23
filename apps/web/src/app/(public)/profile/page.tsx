@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import type { Paginated } from '@msl/types';
 import { Badge, Card, CardBody, EmptyState, type BadgeTone } from '@msl/ui';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { apiGetSafe } from '@/lib/api/server';
 import { AuthTrigger } from '@/components/auth/AuthTrigger';
 import { getSession } from '@/lib/auth/session';
@@ -29,13 +29,14 @@ const TONE: Record<string, BadgeTone> = {
 };
 
 export default async function ProfilePage(): Promise<React.ReactElement> {
+  const t = await getServerT();
   const session = await getSession();
   if (session.role === 'guest') {
     return (
       <main id="main" className="mx-auto max-w-lg px-4 py-12 text-center">
-        <p className="text-fg-muted">{translate('profile.loginRequired')}</p>
+        <p className="text-fg-muted">{t('profile.loginRequired')}</p>
         <AuthTrigger view="login" className="mt-4 inline-block text-primary underline">
-          {translate('nav.login')}
+          {t('nav.login')}
         </AuthTrigger>
       </main>
     );
@@ -47,14 +48,14 @@ export default async function ProfilePage(): Promise<React.ReactElement> {
   return (
     <main id="main" className="mx-auto max-w-3xl px-4 py-8">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-fg">{translate('nav.profile')}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-fg">{t('nav.profile')}</h1>
         <p className="mt-1 text-fg-muted">
           {session.displayName}
           {session.email ? ` · ${session.email}` : session.username ? ` · @${session.username}` : ''}
         </p>
         {session.role === 'admin' && (
           <Link href={'/admin' as Route} className="mt-2 inline-block text-sm text-primary underline">
-            {translate('nav.adminDashboard')}
+            {t('nav.adminDashboard')}
           </Link>
         )}
       </header>
@@ -62,15 +63,15 @@ export default async function ProfilePage(): Promise<React.ReactElement> {
       <section aria-labelledby="my-subs-heading">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 id="my-subs-heading" className="text-lg font-semibold text-fg">
-            {translate('mysub.title')}
+            {t('mysub.title')}
           </h2>
           <Link href={'/submit-word' as Route} className="text-sm text-primary underline">
-            {translate('nav.submitWord')}
+            {t('nav.submitWord')}
           </Link>
         </div>
 
         {items.length === 0 ? (
-          <EmptyState title={translate('mysub.empty')} />
+          <EmptyState title={t('mysub.empty')} />
         ) : (
           <ul className="space-y-3">
             {items.map((s) => {
@@ -86,12 +87,12 @@ export default async function ProfilePage(): Promise<React.ReactElement> {
                           {s.topic && <p className="mt-1 text-sm text-fg-subtle">{s.topic.name}</p>}
                         </div>
                         <Badge tone={TONE[s.status] ?? 'neutral'}>
-                          {translate(`mysub.status.${s.status}`)}
+                          {t(`mysub.status.${s.status}`)}
                         </Badge>
                       </div>
                       {comment && (
                         <p className="mt-3 rounded-md bg-surface-muted p-2 text-sm text-fg">
-                          <span className="font-medium">{translate('mysub.comment')}</span> {comment}
+                          <span className="font-medium">{t('mysub.comment')}</span> {comment}
                         </p>
                       )}
                     </CardBody>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { apiGetSafe } from '@/lib/api/server';
 import type { WordDetail } from '@/lib/dictionary/types';
 import { SignPlayer } from '@/components/dictionary/SignPlayer';
@@ -16,6 +16,7 @@ export default async function WordDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<React.ReactElement> {
+  const t = await getServerT();
   const { id } = await params;
   const word = await apiGetSafe<WordDetail>(`/words/${id}`);
   if (!word) notFound();
@@ -29,16 +30,16 @@ export default async function WordDetailPage({
 
   // Hand attributes shown as images (handedness only).
   const attributes = [
-    ...(word.handedness ? [{ ...word.handedness, group: translate('dict.hands') }] : []),
+    ...(word.handedness ? [{ ...word.handedness, group: t('dict.hands') }] : []),
   ].filter((a) => a.imageUrl);
 
   // The primary variant's region badges the player (if any).
   const primaryVariant = word.variants.find((v) => v.isPrimary) ?? word.variants[0];
   const handLabel =
     word.handCount === 1
-      ? translate('dict.handsOne')
+      ? t('dict.handsOne')
       : word.handCount === 2
-        ? translate('dict.handsTwo')
+        ? t('dict.handsTwo')
         : null;
 
   return (
@@ -48,7 +49,7 @@ export default async function WordDetailPage({
         className="mb-4 inline-flex min-h-touch items-center gap-1 rounded-full px-3 text-sm font-semibold text-accent-ink hover:bg-surface-muted"
       >
         <ArrowLeft aria-hidden className="h-4 w-4" />
-        {translate('dict.back')}
+        {t('dict.back')}
       </Link>
 
       {/* Split: player on the LEFT, info + tabs on the RIGHT (G-15: text always present). */}
@@ -57,7 +58,7 @@ export default async function WordDetailPage({
           <SignPlayer
             src={video?.publicUrl ?? null}
             poster={poster}
-            label={`${word.lemma} — ${translate('dict.video')}`}
+            label={`${word.lemma} — ${t('dict.video')}`}
             region={primaryVariant?.region ?? null}
           />
         </div>
@@ -74,7 +75,7 @@ export default async function WordDetailPage({
           </div>
 
           {!video?.publicUrl && !word.definition && !word.exampleSentence && (
-            <p className="mt-4 text-fg-muted">🎬 {translate('dict.noMedia')}</p>
+            <p className="mt-4 text-fg-muted">🎬 {t('dict.noMedia')}</p>
           )}
 
           <WordDetailTabs

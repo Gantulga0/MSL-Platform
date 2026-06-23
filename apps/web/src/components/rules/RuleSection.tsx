@@ -2,7 +2,7 @@
 
 import { PlayCircle } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 export interface RuleSectionProps {
   /** 1-based rule number, also used as the scroll anchor id. */
@@ -19,6 +19,7 @@ export interface RuleSectionProps {
 
 /** The video panel, or an accessible shimmering placeholder until a clip exists. */
 function RuleVideo({ src }: { src?: string | null }): React.ReactElement {
+  const t = useT();
   if (src) {
     return (
       <div className="relative aspect-video overflow-hidden rounded-2xl border border-border bg-black shadow-md">
@@ -52,6 +53,7 @@ export function RuleSection({
   paragraphKeys,
   videoSrc,
 }: RuleSectionProps): React.ReactElement {
+  const t = useT();
   const reduce = useReducedMotion();
   return (
     <motion.section

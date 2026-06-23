@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Hand } from 'lucide-react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import type { SignItem } from './types';
 
 export function SignTile({
@@ -14,6 +14,7 @@ export function SignTile({
   onOpen: () => void;
   size?: 'lg' | 'sm';
 }): React.ReactElement {
+  const t = useT();
   const ref = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const isImage = item.kind === 'image';

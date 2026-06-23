@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Hand } from 'lucide-react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 export function SignMedia({
   src,
@@ -13,6 +13,7 @@ export function SignMedia({
   label: string;
   kind?: 'image' | 'video';
 }): React.ReactElement {
+  const t = useT();
   const [failed, setFailed] = useState(false);
 
   if (failed) {

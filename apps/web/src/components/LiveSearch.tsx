@@ -6,10 +6,11 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { Search } from 'lucide-react';
 import { cn } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import type { SearchHit } from '@/app/api/search/route';
 
 export function LiveSearch({ initial = '' }: { initial?: string }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [q, setQ] = useState(initial);
   const [hits, setHits] = useState<SearchHit[]>([]);

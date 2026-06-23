@@ -13,8 +13,16 @@ const MESSAGE_KEYS: Record<string, string> = {
   'Account is suspended': 'auth.err.suspended',
 };
 
-export function localizeAuthError(message?: string): string {
-  if (!message) return translate('auth.err.generic');
+/**
+ * Pass the active-locale translator (`t` from `useT()`) so messages localize to
+ * the visitor's chosen language. Defaults to the mn-bound `translate` so the
+ * pure-function tests (and any non-component caller) keep working.
+ */
+export function localizeAuthError(
+  message?: string,
+  t: (key: string) => string = (key) => translate(key),
+): string {
+  if (!message) return t('auth.err.generic');
   const key = MESSAGE_KEYS[message];
-  return key ? translate(key) : message;
+  return key ? t(key) : message;
 }

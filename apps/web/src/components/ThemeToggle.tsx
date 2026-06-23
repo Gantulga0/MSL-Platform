@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { translate } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 type Theme = 'light' | 'night';
 
@@ -23,6 +23,7 @@ function currentTheme(): Theme {
  * Accessible: a real <button> with a state-aware label; the icon is decorative.
  */
 export function ThemeToggle(): React.ReactElement {
+  const t = useT();
   const [theme, setTheme] = useState<Theme | null>(null);
 
   // Sync from the DOM after mount to avoid a hydration mismatch (the server has
@@ -44,7 +45,7 @@ export function ThemeToggle(): React.ReactElement {
 
   const isNight = theme === 'night';
   // Until mounted, render a stable, theme-neutral label/icon.
-  const label = theme === null ? translate('theme.toggle') : translate(isNight ? 'theme.toLight' : 'theme.toDark');
+  const label = theme === null ? t('theme.toggle') : t(isNight ? 'theme.toLight' : 'theme.toDark');
 
   return (
     <button

@@ -5,10 +5,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@msl/ui';
-import { translate, DEFAULT_LOCALE } from '@/i18n';
+import { useT } from '@/i18n/client';
 import type { TopicNode } from '@/lib/dictionary/types';
-
-const t = translate;
 
 /**
  * Render-time numbering derived from a node's position in the tree:
@@ -34,6 +32,7 @@ export function TopicTree({
   /** Currently-filtered topic id — highlighted with aria-current. */
   activeId?: string;
 }): React.ReactElement {
+  const t = useT();
   return (
     <ul aria-label={t('dict.topicTreeLabel')} className="space-y-0.5">
       {topics.map((node, i) => (
@@ -52,6 +51,7 @@ function TopicItem({
   path: number[];
   activeId?: string;
 }): React.ReactElement {
+  const t = useT();
   // Top-level groups start open so the counts are visible at a glance; deeper
   // levels start collapsed to keep the tree compact.
   const [open, setOpen] = useState(path.length === 1);
@@ -68,7 +68,7 @@ function TopicItem({
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-controls={panelId}
-            aria-label={t(open ? 'dict.collapseTopic' : 'dict.expandTopic', DEFAULT_LOCALE, {
+            aria-label={t(open ? 'dict.collapseTopic' : 'dict.expandTopic', {
               name: node.name,
             })}
             className="flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-full text-fg-muted hover:bg-surface-muted"

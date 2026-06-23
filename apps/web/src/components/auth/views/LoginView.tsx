@@ -4,7 +4,7 @@ import React, { useState, useTransition } from 'react';
 import { Eye, EyeOff, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { Button, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { loginAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from '../FormAlert';
@@ -19,6 +19,7 @@ import type { AuthViewProps } from '../authModalTypes';
  * username + PIN). Honours reduced-motion (NFR-01).
  */
 export function LoginView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
+  const t = useT();
   const reduce = useReducedMotion();
   const [error, setError] = useState<string>();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -40,7 +41,7 @@ export function LoginView({ onSwitch, onClose }: AuthViewProps): React.ReactElem
     setErrors({});
     start(async () => {
       const res = await loginAction(data);
-      if (res?.error) setError(localizeAuthError(res.error));
+      if (res?.error) setError(localizeAuthError(res.error, t));
     });
   }
 

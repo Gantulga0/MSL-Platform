@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, CardBody, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { createUserAction } from '@/lib/admin/user-actions';
 
@@ -18,6 +18,7 @@ export interface UserRow {
 const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
 
 export function UserManager({ users }: { users: UserRow[] }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [role, setRole] = useState('user');
   const [isMinor, setIsMinor] = useState(false);

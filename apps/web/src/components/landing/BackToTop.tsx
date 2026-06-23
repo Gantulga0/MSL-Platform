@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 /**
  * Back-to-top button (landing chrome). Appears after scrolling past ~600px and
@@ -10,6 +10,7 @@ import { translate as t } from '@/i18n';
  * decorative. Smooth scroll respects the OS reduced-motion setting via CSS.
  */
 export function BackToTop(): React.ReactElement {
+  const t = useT();
   const [show, setShow] = useState(false);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Card, CardBody, CardTitle } from '@msl/ui';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
 import { ReviewDecision } from '@/components/review/ReviewDecision';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
@@ -31,6 +31,7 @@ export default async function AdminSubmissionDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<React.ReactElement> {
+  const t = await getServerT();
   const { id } = await params;
   const [submission, topics, levels, ageGroups, handednesses] = await Promise.all([
     apiGetSafe<SubmissionDetail>(`/admin/submissions/${id}`),
@@ -55,42 +56,42 @@ export default async function AdminSubmissionDetailPage({
         className="mb-4 inline-flex items-center gap-1 text-sm text-primary underline"
       >
         <ArrowLeft aria-hidden className="h-4 w-4" />
-        {translate('review.back')}
+        {t('review.back')}
       </Link>
-      <h1 className="mb-6 text-2xl font-bold tracking-tight text-fg">{translate('review.detailTitle')}</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight text-fg">{t('review.detailTitle')}</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardBody className="space-y-3">
-            <CardTitle>{translate('review.proposed')}</CardTitle>
+            <CardTitle>{t('review.proposed')}</CardTitle>
             <h2 className="text-xl font-semibold text-fg">{submission.proposedLemma}</h2>
             <div>
-              <p className="text-sm font-medium text-fg-muted">{translate('review.definition')}</p>
+              <p className="text-sm font-medium text-fg-muted">{t('review.definition')}</p>
               <p className="text-fg">{submission.proposedDefinition}</p>
             </div>
             {submission.exampleSentence && (
               <div>
-                <p className="text-sm font-medium text-fg-muted">{translate('review.example')}</p>
+                <p className="text-sm font-medium text-fg-muted">{t('review.example')}</p>
                 <p className="text-fg">{submission.exampleSentence}</p>
               </div>
             )}
             <p className="text-sm text-fg-subtle">
-              {translate('review.topic')}: {submission.topic?.name ?? '—'} ·{' '}
-              {translate('review.age')}: {submission.ageGroup?.label ?? '—'} ·{' '}
-              {translate('review.handCount')}:{' '}
+              {t('review.topic')}: {submission.topic?.name ?? '—'} ·{' '}
+              {t('review.age')}: {submission.ageGroup?.label ?? '—'} ·{' '}
+              {t('review.handCount')}:{' '}
               {submission.handCount
-                ? translate(submission.handCount === 1 ? 'dict.handsOne' : 'dict.handsTwo')
+                ? t(submission.handCount === 1 ? 'dict.handsOne' : 'dict.handsTwo')
                 : '—'}
             </p>
             <p className="text-sm text-fg-subtle">
-              {translate('review.submittedBy')}: {submission.submitter?.displayName}
+              {t('review.submittedBy')}: {submission.submitter?.displayName}
             </p>
           </CardBody>
         </Card>
 
         <Card>
           <CardBody className="space-y-3">
-            <CardTitle>{translate('review.video')}</CardTitle>
+            <CardTitle>{t('review.video')}</CardTitle>
             {video ? (
               <video
                 controls
@@ -99,10 +100,10 @@ export default async function AdminSubmissionDetailPage({
                 src={video.url}
                 className="aspect-video w-full rounded-md bg-black"
               >
-                {translate('review.noVideo')}
+                {t('review.noVideo')}
               </video>
             ) : (
-              <p className="text-fg-muted">{translate('review.noVideo')}</p>
+              <p className="text-fg-muted">{t('review.noVideo')}</p>
             )}
           </CardBody>
         </Card>
@@ -128,7 +129,7 @@ export default async function AdminSubmissionDetailPage({
 
       {submission.reviews.length > 0 && (
         <section className="mt-6">
-          <h2 className="mb-2 text-lg font-semibold text-fg">{translate('review.history')}</h2>
+          <h2 className="mb-2 text-lg font-semibold text-fg">{t('review.history')}</h2>
           <ul className="space-y-1 text-sm text-fg-muted">
             {submission.reviews.map((r, i) => (
               <li key={i}>

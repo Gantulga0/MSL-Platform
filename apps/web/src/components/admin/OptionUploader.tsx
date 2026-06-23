@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, CardBody, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { uploadOptionAction } from '@/lib/admin/option-actions';
 
@@ -13,6 +13,7 @@ const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg
 
 /** Admin form to add a new option (image + code/label) to any of the 4 kinds. */
 export function OptionUploader(): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [error, setError] = useState<string>();
   const [kind, setKind] = useState<string>('handedness');

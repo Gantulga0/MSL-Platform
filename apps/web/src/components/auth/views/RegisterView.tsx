@@ -4,7 +4,7 @@ import React, { useMemo, useState, useTransition } from 'react';
 import { Check, Eye, EyeOff, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { Button, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { registerAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from '../FormAlert';
@@ -29,6 +29,7 @@ function pwChecks(pw: string): { key: string; labelKey: string; ok: boolean }[] 
  * errors are text + icon, never colour alone (NFR-01). Honours reduced-motion.
  */
 export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
+  const t = useT();
   const reduce = useReducedMotion();
   const [error, setError] = useState<string>();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -57,7 +58,7 @@ export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactE
     setErrors({});
     start(async () => {
       const res = await registerAction(data);
-      if (res?.error) setError(localizeAuthError(res.error));
+      if (res?.error) setError(localizeAuthError(res.error, t));
       else if (res?.message) setSuccess(res.message);
     });
   }

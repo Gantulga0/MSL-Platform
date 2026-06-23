@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { Search } from 'lucide-react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { GestureScene } from '@/components/signs/GestureScene';
 
 export interface PreviewWord {
@@ -34,6 +34,7 @@ export function DictionaryPreview({
   words: PreviewWord[];
   allWordsHref?: string;
 }): React.ReactElement {
+  const t = useT();
   const [query, setQuery] = useState('');
   const [topic, setTopic] = useState(t('landing.dict.allTopics'));
 
@@ -41,7 +42,7 @@ export function DictionaryPreview({
     const all = t('landing.dict.allTopics');
     const uniq = Array.from(new Set(words.map((w) => w.topic).filter(Boolean)));
     return [all, ...uniq];
-  }, [words]);
+  }, [words, t]);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -49,7 +50,7 @@ export function DictionaryPreview({
     return words.filter(
       (w) => (topic === all || w.topic === topic) && (!q || w.lemma.toLowerCase().includes(q)),
     );
-  }, [words, topic, query]);
+  }, [words, topic, query, t]);
 
   if (words.length === 0) {
     return <p className="noresult">{t('landing.dict.empty')}</p>;

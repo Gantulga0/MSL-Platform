@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
-import { translate } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { RuleSection } from '@/components/rules/RuleSection';
 import { RulesNav } from '@/components/rules/RulesNav';
 
-export const metadata: Metadata = { title: translate('rules.mouthing.title') };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getServerT();
+  return { title: t('rules.mouthing.title') };
+}
 
 const SECTIONS = [
   {
@@ -29,14 +32,15 @@ const SECTIONS = [
   },
 ] as const;
 
-export default function RulesMouthingPage(): React.ReactElement {
+export default async function RulesMouthingPage(): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
       <header className="mx-auto max-w-3xl space-y-3 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
-          {translate('rules.mouthing.title')}
+          {t('rules.mouthing.title')}
         </h1>
-        <p className="text-lg text-fg-muted">{translate('rules.mouthing.lead')}</p>
+        <p className="text-lg text-fg-muted">{t('rules.mouthing.lead')}</p>
       </header>
 
       <div className="mt-8">

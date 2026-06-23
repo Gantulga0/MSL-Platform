@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion } from 'motion/react';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 const TABS = [
   { href: '/rules/standard', labelKey: 'nav.rulesStandard' },
@@ -20,6 +20,7 @@ const TABS = [
  * and move between topics without using the browser back button.
  */
 export function RulesNav(): React.ReactElement {
+  const t = useT();
   const pathname = usePathname();
   const reduce = useReducedMotion();
   return (

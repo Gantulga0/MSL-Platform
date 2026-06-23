@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams }
 import type { Route } from 'next';
 import { SlidersHorizontal } from 'lucide-react';
 import { Button, Dialog, cn } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { TopicSelect } from '@/components/dictionary/TopicSelect';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
@@ -24,6 +24,7 @@ const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'hands'] as const;
  * backed by the words API.
  */
 export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -118,6 +119,7 @@ function FilterSections({
   params: ReadonlyURLSearchParams;
   setParam: (key: string, value: string) => void;
 }): React.ReactElement {
+  const t = useT();
   const selectCls =
     'h-control-sm w-full rounded-md border border-border-strong bg-surface px-3 text-base text-fg';
   const levelLabel = t('dict.filterLevel').replace(/:$/, '');
@@ -202,6 +204,7 @@ function HandsToggle({
   value: string;
   setParam: (key: string, value: string) => void;
 }): React.ReactElement {
+  const t = useT();
   const opts: Array<[string, string]> = [
     ['', 'dict.handsAny'],
     ['1', 'dict.handsOne'],

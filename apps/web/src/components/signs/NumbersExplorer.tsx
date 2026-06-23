@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { cn } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { SignBoard } from './SignBoard';
 import type { SignItem } from './types';
 import {
@@ -21,6 +21,7 @@ export function NumbersExplorer({
   categories: NumberCategory[];
   signs: NumberSign[];
 }): React.ReactElement {
+  const t = useT();
   const [active, setActive] = useState<string>(categories[0]?.key ?? '');
   const activeCat = categories.find((c) => c.key === active) ?? categories[0];
 
@@ -32,10 +33,10 @@ export function NumbersExplorer({
           key: `${s.category}-${i}`,
           display: s.label,
           src: s.src,
-          ariaLabel: t('signs.signOfLabel', undefined, { label: s.label }),
-          dialogLabel: t('signs.signOfLabel', undefined, { label: s.label }),
+          ariaLabel: t('signs.signOfLabel', { label: s.label }),
+          dialogLabel: t('signs.signOfLabel', { label: s.label }),
         })),
-    [signs, active],
+    [signs, active, t],
   );
 
   const heading = activeCat ? `${GROUP_LABELS[activeCat.group]}: ${activeCat.label}` : '';

@@ -37,6 +37,7 @@
   "theme.toggle": "Toggle colour theme",
   "theme.toLight": "Switch to light theme",
   "theme.toDark": "Switch to dark theme",
+  "locale.switch": "Switch language",
 
   "dict.play": "Play",
   "dict.pause": "Pause",

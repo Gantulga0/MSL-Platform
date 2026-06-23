@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { Badge, Button, EmptyState } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 
 export interface QueueItem {
   id: string;
@@ -20,6 +20,7 @@ export interface QueueItem {
  * the detail page — so the list links there rather than offering quick-approve.
  */
 export function QueueTable({ items }: { items: QueueItem[] }): React.ReactElement {
+  const t = useT();
   if (items.length === 0) return <EmptyState title={t('review.empty')} />;
 
   return (

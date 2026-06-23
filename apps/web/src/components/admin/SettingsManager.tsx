@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, CardBody, Field, Input } from '@msl/ui';
-import { translate as t } from '@/i18n';
+import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
 import { updateSettingAction } from '@/lib/admin/user-actions';
 
@@ -13,6 +13,7 @@ export interface SettingRow {
 }
 
 function SettingForm({ row }: { row: SettingRow }): React.ReactElement {
+  const t = useT();
   const router = useRouter();
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();

@@ -44,8 +44,10 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = config.get<number>('API_PORT', 4000);
-  await app.listen(port);
+  // Render (and most PaaS) inject the port to bind via $PORT — prefer it, then
+  // fall back to API_PORT for local dev. Bind 0.0.0.0 so the platform can reach it.
+  const port = Number(process.env.PORT) || config.get<number>('API_PORT', 4000);
+  await app.listen(port, '0.0.0.0');
   // eslint-disable-next-line no-console
   console.log(`[api] listening on http://localhost:${port}/${globalPrefix}`);
   // eslint-disable-next-line no-console

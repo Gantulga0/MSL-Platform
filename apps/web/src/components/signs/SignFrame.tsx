@@ -1,4 +1,4 @@
-import { translate as t } from '@/i18n';
+import { getServerT } from '@/i18n/server';
 import { GestureScene } from './GestureScene';
 
 /**
@@ -7,7 +7,8 @@ import { GestureScene } from './GestureScene';
  * design thesis that a sign is motion. The caption is the brand tagline, not
  * word-specific content. Lives on the right of the hero's two-column split.
  */
-export function SignFrame(): React.ReactElement {
+export async function SignFrame(): Promise<React.ReactElement> {
+  const t = await getServerT();
   return (
     <div
       className="sign-stage is-anim relative aspect-[4/5] overflow-hidden rounded-[28px] border border-[var(--line)] shadow-[var(--shadow)]"
