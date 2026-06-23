@@ -1,24 +1,28 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { X } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { Button, Field, Input } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import { loginAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
-import { AuthFormWrapper } from '../authModalStyles';
 import { FormAlert } from '../FormAlert';
 import { loginSchema, fieldErrors } from '@/lib/auth/schemas';
 import type { AuthViewProps } from '../authModalTypes';
 
 /**
- * Login view (email/username + password). Same styled design as the original
- * standalone login; submit is wired to the real `loginAction` (which sets the
- * session cookie and redirects on success). The identifier field is named
- * `identifier` to match the action's contract (minors use username + PIN).
+ * Login view (email/username + password). Rebuilt on the shared Tailwind tokens +
+ * primitives to match the rest of the app. Submit is wired to the real
+ * `loginAction` (sets the session cookie, redirects on success). The identifier
+ * field is named `identifier` to match the action's contract (minors use
+ * username + PIN). Honours reduced-motion (NFR-01).
  */
 export function LoginView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
+  const reduce = useReducedMotion();
   const [error, setError] = useState<string>();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPw, setShowPw] = useState(false);
   const [pending, start] = useTransition();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>): void {
@@ -41,66 +45,76 @@ export function LoginView({ onSwitch, onClose }: AuthViewProps): React.ReactElem
   }
 
   return (
-    <AuthFormWrapper>
-      <div className="container">
-        <button type="button" className="modal-close" onClick={onClose} aria-label={t('common.close')}>
-          <X aria-hidden className="h-5 w-5" />
-        </button>
-        <div className="heading">{t('auth.loginTitle')}</div>
-        <form onSubmit={onSubmit} className="form" noValidate>
-          {error && (
-            <div className="alert">
-              <FormAlert tone="error">{error}</FormAlert>
-            </div>
-          )}
-          <input
-            className={`input${errors.identifier ? ' invalid' : ''}`}
-            type="text"
-            name="identifier"
-            id="login-identifier"
-            autoComplete="username"
-            placeholder={t('auth.identifier')}
-            aria-label={t('auth.identifier')}
-            aria-invalid={errors.identifier ? true : undefined}
-            aria-describedby={errors.identifier ? 'login-identifier-error' : undefined}
-          />
-          {errors.identifier && (
-            <span id="login-identifier-error" className="field-error">
-              {errors.identifier}
-            </span>
-          )}
-          <input
-            className={`input${errors.password ? ' invalid' : ''}`}
-            type="password"
-            name="password"
-            id="login-password"
-            autoComplete="current-password"
-            placeholder={t('auth.password')}
-            aria-label={t('auth.password')}
-            aria-invalid={errors.password ? true : undefined}
-            aria-describedby={errors.password ? 'login-password-error' : undefined}
-          />
-          {errors.password && (
-            <span id="login-password-error" className="field-error">
-              {errors.password}
-            </span>
-          )}
-          <span className="forgot-password">
-            <button type="button" className="switch-link" onClick={() => onSwitch('forgot')}>
-              {t('auth.forgotPassword')}
+    <motion.div
+      initial={reduce ? false : { opacity: 0, scale: 0.96, y: 12 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      className="glass glass-strong relative w-[min(26rem,92vw)] rounded-2xl p-6 sm:p-8"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t('common.close')}
+        className="absolute right-3 top-3 z-20 grid h-11 w-11 place-content-center rounded-full text-fg-muted transition-colors hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        <X aria-hidden className="h-5 w-5" />
+      </button>
+
+      <h1 className="text-2xl font-bold tracking-tight text-fg">{t('auth.loginTitle')}</h1>
+      <p className="mt-1 text-sm text-fg-muted">{t('auth.loginSubtitle')}</p>
+
+      <form onSubmit={onSubmit} className="mt-6 space-y-4" noValidate>
+        {error && <FormAlert tone="error">{error}</FormAlert>}
+
+        <Field label={t('auth.identifier')} required error={errors.identifier}>
+          <Input name="identifier" autoComplete="username" />
+        </Field>
+
+        <Field label={t('auth.password')} required error={errors.password}>
+          <div className="relative">
+            <Input
+              name="password"
+              type={showPw ? 'text' : 'password'}
+              autoComplete="current-password"
+              className="pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
+              aria-pressed={showPw}
+              className="absolute right-1 top-1/2 grid h-10 w-10 -translate-y-1/2 place-content-center rounded-lg text-fg-muted hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              {showPw ? <EyeOff aria-hidden className="h-5 w-5" /> : <Eye aria-hidden className="h-5 w-5" />}
             </button>
-          </span>
-          <button className="login-button" type="submit" disabled={pending}>
-            {t('auth.loginButton')}
+          </div>
+        </Field>
+
+        <div className="text-right">
+          <button
+            type="button"
+            onClick={() => onSwitch('forgot')}
+            className="text-sm font-medium text-primary underline underline-offset-2"
+          >
+            {t('auth.forgotPassword')}
           </button>
-          <span className="switch-line">
-            {t('auth.noAccount')}{' '}
-            <button type="button" className="switch-link" onClick={() => onSwitch('register')}>
-              {t('auth.registerLink')}
-            </button>
-          </span>
-        </form>
-      </div>
-    </AuthFormWrapper>
+        </div>
+
+        <Button type="submit" block size="lg" loading={pending}>
+          {t('auth.loginButton')}
+        </Button>
+
+        <p className="text-center text-sm text-fg-muted">
+          {t('auth.noAccount')}{' '}
+          <button
+            type="button"
+            onClick={() => onSwitch('register')}
+            className="font-semibold text-primary underline underline-offset-2"
+          >
+            {t('auth.registerLink')}
+          </button>
+        </p>
+      </form>
+    </motion.div>
   );
 }

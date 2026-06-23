@@ -16,7 +16,8 @@ export function SignTile({
 }): React.ReactElement {
   const ref = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
-  const showVideo = !failed;
+  const isImage = item.kind === 'image';
+  const showMedia = !failed;
 
   function play(): void {
     const v = ref.current;
@@ -34,8 +35,10 @@ export function SignTile({
   }
 
   useEffect(() => {
+    // Autoplay-in-view is a video-only behaviour; images are static.
+    if (isImage || !showMedia) return;
     const v = ref.current;
-    if (!showVideo || !v) return;
+    if (!v) return;
 
     const hasHover = window.matchMedia?.('(hover: hover)').matches;
     if (hasHover) return;
@@ -50,7 +53,7 @@ export function SignTile({
     );
     io.observe(v);
     return () => io.disconnect();
-  }, [showVideo]);
+  }, [isImage, showMedia]);
 
   return (
     <button
@@ -61,10 +64,25 @@ export function SignTile({
     >
       <div
         className="relative flex aspect-square items-center justify-center overflow-hidden bg-tint-sage"
-        onMouseEnter={() => showVideo && play()}
-        onMouseLeave={() => showVideo && stop()}
+        onMouseEnter={() => !isImage && showMedia && play()}
+        onMouseLeave={() => !isImage && showMedia && stop()}
       >
-        {showVideo ? (
+        {!showMedia ? (
+          <div className="flex flex-col items-center gap-1 px-2 text-center text-accent-ink">
+            <Hand aria-hidden className="h-8 w-8" />
+            <span className="text-[11px] font-medium leading-tight">{t('signs.comingSoon')}</span>
+          </div>
+        ) : isImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.src}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            onError={() => setFailed(true)}
+            className="h-full w-full object-cover"
+          />
+        ) : (
           <video
             ref={ref}
             src={item.src}
@@ -76,11 +94,6 @@ export function SignTile({
             onError={() => setFailed(true)}
             className="h-full w-full object-cover"
           />
-        ) : (
-          <div className="flex flex-col items-center gap-1 px-2 text-center text-accent-ink">
-            <Hand aria-hidden className="h-8 w-8" />
-            <span className="text-[11px] font-medium leading-tight">{t('signs.comingSoon')}</span>
-          </div>
         )}
       </div>
       <div className="px-3 py-3 text-center">
@@ -90,9 +103,7 @@ export function SignTile({
             <span className="mt-1 block text-xs font-medium text-fg-muted">{t('signs.sign')}</span>
           </>
         ) : (
-          <span className="block text-base font-semibold leading-tight text-fg">
-            {item.display}
-          </span>
+          <span className="block text-base font-semibold leading-tight text-fg">{item.display}</span>
         )}
       </div>
     </button>

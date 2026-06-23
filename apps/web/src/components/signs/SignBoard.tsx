@@ -47,7 +47,7 @@ export function SignBoard({
             <span aria-hidden className="text-6xl font-bold leading-none text-fg">
               {active.display}
             </span>
-            <SignMedia src={active.src} label={active.dialogLabel} />
+            <SignMedia src={active.src} label={active.dialogLabel} kind={active.kind} />
           </div>
         )}
       </Dialog>

@@ -11,6 +11,7 @@ export default function AlphabetPage(): React.ReactElement {
     key: l.letter,
     display: l.letter,
     src: l.src,
+    kind: l.kind,
     ariaLabel: translate('alphabet.signOf', undefined, { letter: l.letter }),
     dialogLabel: translate('alphabet.signOf', undefined, { letter: l.letter }),
   }));

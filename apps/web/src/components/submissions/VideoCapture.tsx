@@ -25,11 +25,20 @@ export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Prop
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasClip, setHasClip] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
   const liveRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function stopTimer(): void {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+  }
+
+  const elapsedLabel = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
 
   function stopStream(): void {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -41,6 +50,7 @@ export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Prop
   useEffect(() => {
     return () => {
       stopStream();
+      stopTimer();
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,6 +83,7 @@ export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Prop
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
+        stopTimer();
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
         const file = new File([blob], `signing-${Date.now()}.webm`, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
@@ -84,6 +95,10 @@ export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Prop
       recorderRef.current = recorder;
       recorder.start();
       setRecording(true);
+      setElapsed(0);
+      const startedAt = Date.now();
+      stopTimer();
+      timerRef.current = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 250);
     } catch {
       setError(t('submit.cameraError'));
       stopStream();
@@ -92,6 +107,7 @@ export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Prop
 
   function stopRecording(): void {
     recorderRef.current?.stop();
+    stopTimer();
     setRecording(false);
   }
 
@@ -166,6 +182,9 @@ export function VideoCapture({ onChange, accept = 'video/mp4,video/webm' }: Prop
             <Button type="button" variant="danger" block onClick={stopRecording}>
               <span aria-hidden className="mr-2 inline-block h-3 w-3 animate-pulse rounded-full bg-white" />
               {t('submit.stopRecord')}
+              <span className="ml-2 tabular-nums text-sm" aria-live="polite">
+                {elapsedLabel}
+              </span>
             </Button>
           ) : (
             <Button type="button" block onClick={() => void startRecording()}>

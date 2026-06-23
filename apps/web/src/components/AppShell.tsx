@@ -107,7 +107,7 @@ export function AppShell({
   // Signed-in users get an account dropdown under their display name: profile,
   // password reset (the forgot-password modal), and logout.
   const accountItems: NavMenuItem[] = [
-    { key: 'profile', label: translate('nav.profile'), href: '/profile' },
+    { key: 'profile', label: translate('nav.profile'), href: '/profile', active: matchesPath('/profile') },
     { key: 'reset', label: translate('auth.forgotTitle'), onSelect: () => openAuth('forgot') },
     {
       key: 'logout',
@@ -204,8 +204,23 @@ export function AppShell({
                 <NavDropdown label={user.displayName} align="end" items={accountItems} />
               </div>
             ) : (
-              <div className="flex items-center border-l border-border pl-3">
-                <NavDropdown label={translate('nav.register')} align="end" items={authItems} />
+              // Guests: two explicit CTAs (no mislabeled "Бүртгүүлэх" dropdown that
+              // hid the login action). Login = ghost, Register = primary pill.
+              <div className="flex items-center gap-2 border-l border-border pl-3">
+                <button
+                  type="button"
+                  onClick={() => openAuth('login')}
+                  className="inline-flex min-h-touch items-center rounded-full px-4 text-base font-medium text-fg-muted transition-colors hover:bg-surface-muted hover:text-fg"
+                >
+                  {translate('nav.login')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAuth('register')}
+                  className="inline-flex min-h-touch items-center rounded-full bg-[var(--amber)] px-5 text-base font-semibold text-[#3a2400] transition-colors hover:bg-[var(--amber-deep)]"
+                >
+                  {translate('nav.register')}
+                </button>
               </div>
             )}
           </div>
@@ -332,7 +347,10 @@ export function AppShell({
                         a.onSelect();
                       }}
                       className={cn(
-                        'flex min-h-touch w-full items-center rounded-full px-4 text-left text-base font-medium text-fg hover:bg-surface-muted',
+                        'flex min-h-touch w-full items-center rounded-full px-4 text-left text-base font-medium',
+                        a.key === 'register'
+                          ? 'justify-center bg-[var(--amber)] font-semibold text-[#3a2400] hover:bg-[var(--amber-deep)]'
+                          : 'text-fg hover:bg-surface-muted',
                       )}
                     >
                       {a.label}

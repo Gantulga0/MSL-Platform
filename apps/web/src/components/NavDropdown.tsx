@@ -3,7 +3,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { cn } from '@msl/ui';
 
 /** One entry in a {@link NavDropdown} menu — either a link or an action. */
@@ -14,6 +15,12 @@ export interface NavMenuItem {
   href?: string;
   /** Called when chosen (rendered as a button). Takes precedence over `href`. */
   onSelect?: () => void;
+  /** Optional leading icon. */
+  icon?: React.ReactNode;
+  /** Optional secondary description line under the label. */
+  description?: string;
+  /** Marks the item as the current route (renders a trailing checkmark). */
+  active?: boolean;
 }
 
 export interface NavDropdownProps {
@@ -32,8 +39,9 @@ export interface NavDropdownProps {
  * Accessible navigation dropdown (menu button pattern, WCAG 2.2 AA / FR-27).
  * Keyboard-operable: Enter/Space/ArrowDown open and focus the first item;
  * ArrowUp/ArrowDown + Home/End move focus; Esc closes and returns focus to the
- * trigger; Tab closes; an outside click closes. Built with plain React + ARIA so
- * it adds no new dependency and matches the existing nav styling.
+ * trigger; Tab closes; an outside click closes. This revision adds Framer Motion
+ * enter/exit (top-origin), an optional per-item icon + description, and a
+ * checkmark on the active route for orientation. Honours reduced-motion.
  */
 export function NavDropdown({
   label,
@@ -42,6 +50,7 @@ export function NavDropdown({
   align = 'start',
   triggerClassName,
 }: NavDropdownProps): React.ReactElement {
+  const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -117,6 +126,26 @@ export function NavDropdown({
     }
   }
 
+  const itemCls =
+    'relative z-[6] flex min-h-touch w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left text-base text-fg transition-colors hover:bg-surface-muted focus:bg-surface-muted focus-visible:outline-none';
+
+  function renderInner(item: NavMenuItem): React.ReactNode {
+    return (
+      <>
+        {item.icon && (
+          <span aria-hidden className="grid h-5 w-5 shrink-0 place-content-center text-fg-muted">
+            {item.icon}
+          </span>
+        )}
+        <span className="flex-1">
+          <span className="block font-medium">{item.label}</span>
+          {item.description && <span className="block text-xs text-fg-muted">{item.description}</span>}
+        </span>
+        {item.active && <Check aria-hidden className="h-4 w-4 shrink-0 text-primary" />}
+      </>
+    );
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -139,22 +168,25 @@ export function NavDropdown({
         <ChevronDown aria-hidden className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} />
       </button>
 
-      {open && (
-        <div
-          id={menuId}
-          role="menu"
-          aria-label={label}
-          onKeyDown={onMenuKeyDown}
-          className={cn(
-            'glass glass-sm glass-strong absolute top-full z-40 mt-2 min-w-60 p-1',
-            align === 'end' ? 'right-0' : 'left-0',
-          )}
-        >
-          {items.map((item, i) => {
-            const className =
-              'relative z-[6] flex min-h-touch w-full items-center rounded-lg px-3 text-left text-base text-fg transition-colors hover:bg-surface-muted focus:bg-surface-muted';
-            if (item.onSelect) {
-              return (
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            id={menuId}
+            role="menu"
+            aria-label={label}
+            onKeyDown={onMenuKeyDown}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: align === 'end' ? 'top right' : 'top left' }}
+            className={cn(
+              'glass glass-sm glass-strong absolute top-full z-40 mt-2 min-w-64 p-1.5',
+              align === 'end' ? 'right-0' : 'left-0',
+            )}
+          >
+            {items.map((item, i) =>
+              item.onSelect ? (
                 <button
                   key={item.key}
                   ref={(el) => {
@@ -167,30 +199,30 @@ export function NavDropdown({
                     item.onSelect?.();
                     close(false);
                   }}
-                  className={className}
+                  className={itemCls}
                 >
-                  {item.label}
+                  {renderInner(item)}
                 </button>
-              );
-            }
-            return (
-              <Link
-                key={item.key}
-                ref={(el) => {
-                  itemRefs.current[i] = el;
-                }}
-                href={(item.href ?? '#') as Route}
-                role="menuitem"
-                tabIndex={-1}
-                onClick={() => close(false)}
-                className={className}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
+              ) : (
+                <Link
+                  key={item.key}
+                  ref={(el) => {
+                    itemRefs.current[i] = el;
+                  }}
+                  href={(item.href ?? '#') as Route}
+                  role="menuitem"
+                  tabIndex={-1}
+                  aria-current={item.active ? 'page' : undefined}
+                  onClick={() => close(false)}
+                  className={itemCls}
+                >
+                  {renderInner(item)}
+                </Link>
+              ),
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

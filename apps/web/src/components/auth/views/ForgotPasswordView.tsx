@@ -2,20 +2,22 @@
 
 import React, { useState, useTransition } from 'react';
 import { X } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import { Button, Field, Input } from '@msl/ui';
 import { translate as t } from '@/i18n';
 import { forgotPasswordAction } from '@/lib/auth/actions';
 import { localizeAuthError } from '@/lib/auth/errors';
-import { AuthFormWrapper } from '../authModalStyles';
 import { FormAlert } from '../FormAlert';
 import type { AuthViewProps } from '../authModalTypes';
 
 /**
- * Forgot-password view (S-04). Same styled design as login; requests a reset
- * email via the real `forgotPasswordAction` (enumeration-safe — always succeeds).
- * The actual reset is completed on the standalone `/reset-password` page reached
- * from the emailed link, so that flow stays a page (not a modal).
+ * Forgot-password view (S-04). Rebuilt on the shared Tailwind tokens + primitives.
+ * Requests a reset email via `forgotPasswordAction` (enumeration-safe — always
+ * succeeds). The actual reset is completed on the standalone `/reset-password`
+ * page reached from the emailed link. Honours reduced-motion (NFR-01).
  */
 export function ForgotPasswordView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
+  const reduce = useReducedMotion();
   const [error, setError] = useState<string>();
   const [success, setSuccess] = useState<string>();
   const [pending, start] = useTransition();
@@ -33,43 +35,46 @@ export function ForgotPasswordView({ onSwitch, onClose }: AuthViewProps): React.
   }
 
   return (
-    <AuthFormWrapper>
-      <div className="container">
-        <button type="button" className="modal-close" onClick={onClose} aria-label={t('common.close')}>
-          <X aria-hidden className="h-5 w-5" />
-        </button>
-        <div className="heading">{t('auth.forgotTitle')}</div>
-        <form onSubmit={onSubmit} className="form" noValidate>
-          {error && (
-            <div className="alert">
-              <FormAlert tone="error">{error}</FormAlert>
-            </div>
-          )}
-          {success && (
-            <div className="alert">
-              <FormAlert tone="success">{success}</FormAlert>
-            </div>
-          )}
-          <input
-            required
-            className="input"
-            type="email"
-            name="email"
-            id="forgot-email"
-            autoComplete="email"
-            placeholder={t('auth.email')}
-            aria-label={t('auth.email')}
-          />
-          <button className="login-button" type="submit" disabled={pending}>
-            {t('auth.sendReset')}
+    <motion.div
+      initial={reduce ? false : { opacity: 0, scale: 0.96, y: 12 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      className="glass glass-strong relative w-[min(26rem,92vw)] rounded-2xl p-6 sm:p-8"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t('common.close')}
+        className="absolute right-3 top-3 z-20 grid h-11 w-11 place-content-center rounded-full text-fg-muted transition-colors hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        <X aria-hidden className="h-5 w-5" />
+      </button>
+
+      <h1 className="text-2xl font-bold tracking-tight text-fg">{t('auth.forgotTitle')}</h1>
+      <p className="mt-1 text-sm text-fg-muted">{t('auth.forgotSubtitle')}</p>
+
+      <form onSubmit={onSubmit} className="mt-6 space-y-4" noValidate>
+        {error && <FormAlert tone="error">{error}</FormAlert>}
+        {success && <FormAlert tone="success">{success}</FormAlert>}
+
+        <Field label={t('auth.email')} required>
+          <Input name="email" type="email" autoComplete="email" inputMode="email" required />
+        </Field>
+
+        <Button type="submit" block size="lg" loading={pending}>
+          {t('auth.sendReset')}
+        </Button>
+
+        <p className="text-center text-sm text-fg-muted">
+          <button
+            type="button"
+            onClick={() => onSwitch('login')}
+            className="font-semibold text-primary underline underline-offset-2"
+          >
+            {t('auth.backToLogin')}
           </button>
-          <span className="switch-line">
-            <button type="button" className="switch-link" onClick={() => onSwitch('login')}>
-              {t('auth.backToLogin')}
-            </button>
-          </span>
-        </form>
-      </div>
-    </AuthFormWrapper>
+        </p>
+      </form>
+    </motion.div>
   );
 }
