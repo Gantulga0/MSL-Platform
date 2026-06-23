@@ -32,12 +32,10 @@ const selectCls = 'h-control-sm w-full rounded-md border border-border-strong bg
 
 /**
  * Hierarchical topic picker backed by a native <select> (FormData-friendly,
- * keyboard-accessible by default — NFR-01). Each top-level topic that has
- * children renders as a native <optgroup>: the browser shows its label in
- * **bold** and indents the group, giving a clear parent → child hierarchy. The
- * parent itself stays selectable as the first option inside its group; childless
- * top-level topics render as plain selectable options. With `showCounts`, each
- * topic shows its approved-word count "(N)".
+ * keyboard-accessible by default — NFR-01). Every topic — parent or child —
+ * renders as a single selectable <option>, numbered ("1.", "1.1", "1.2"…) and
+ * indented by depth so the flat list still reads as a tree. With `showCounts`,
+ * each topic shows its approved-word count "(N)".
  *
  * Uncontrolled by default; pass `value` + `onChange` for controlled use.
  * Shared across the dictionary filters, submission form, and admin/review tools.
@@ -77,27 +75,11 @@ export function TopicSelect({
       <option value="" disabled={required}>
         {placeholder ?? '—'}
       </option>
-      {topics.map((parent, i) => {
-        const num = `${i + 1}.`;
-        const count = showCounts ? ` (${parent.wordCount})` : '';
-        if (!parent.children?.length) {
-          return (
-            <option key={parent.id} value={parent.id}>
-              {`${num} ${parent.name}${count}`}
-            </option>
-          );
-        }
-        return (
-          <optgroup key={parent.id} label={`${num} ${parent.name}`}>
-            <option value={parent.id}>{`${num} ${parent.name}${count}`}</option>
-            {flattenNumbered(parent.children, showCounts, [i + 1]).map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </optgroup>
-        );
-      })}
+      {flattenNumbered(topics, showCounts).map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.label}
+        </option>
+      ))}
     </select>
   );
 }

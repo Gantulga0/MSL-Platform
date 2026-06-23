@@ -5,6 +5,8 @@ import { Trash2 } from 'lucide-react';
 import { Button, Card, CardBody, CardTitle, Field, Input } from '@msl/ui';
 import { useT } from '@/i18n/client';
 import { FormAlert } from '@/components/auth/FormAlert';
+import { TopicSelect } from '@/components/dictionary/TopicSelect';
+import type { TopicNode } from '@/lib/dictionary/types';
 import {
   createAgeGroupAction,
   createLevelAction,
@@ -13,13 +15,7 @@ import {
   type ActionResult,
 } from '@/lib/admin/taxonomy-actions';
 
-export interface TopicNode {
-  id: string;
-  name: string;
-  slug: string;
-  parentId: string | null;
-  children: TopicNode[];
-}
+export type { TopicNode };
 export interface Level {
   id: string;
   code: string;
@@ -37,13 +33,6 @@ interface Props {
   topics: TopicNode[];
   levels: Level[];
   ageGroups: AgeGroup[];
-}
-
-function flatten(nodes: TopicNode[], depth = 0): { id: string; name: string; depth: number }[] {
-  return nodes.flatMap((n) => [
-    { id: n.id, name: n.name, depth },
-    ...flatten(n.children, depth + 1),
-  ]);
 }
 
 /** Generic form wrapper handling the server action + error state. */
@@ -82,43 +71,65 @@ function ActionForm({
   );
 }
 
-function TopicRows({ nodes, depth = 0 }: { nodes: TopicNode[]; depth?: number }): React.ReactElement {
+function TopicRows({
+  nodes,
+  depth = 0,
+  prefix = '',
+}: {
+  nodes: TopicNode[];
+  depth?: number;
+  prefix?: string;
+}): React.ReactElement {
   const t = useT();
   const [, start] = useTransition();
+
   return (
     <ul className="space-y-1">
-      {nodes.map((n) => (
-        <li key={n.id}>
-          <div
-            className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-surface-muted"
-            style={{ paddingInlineStart: `${depth * 1.25 + 0.5}rem` }}
-          >
-            <span className="text-fg">
-              {n.name} <span className="text-fg-subtle">· {n.slug}</span>
-            </span>
-            <form
-              action={(fd) => {
-                start(() => {
-                  void deleteTopicAction(fd);
-                });
-              }}
+      {nodes.map((n, index) => {
+        const number = prefix ? `${prefix}.${index + 1}` : `${index + 1}`;
+
+        return (
+          <li key={n.id}>
+            <div
+              className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-surface-muted"
+              style={{ paddingInlineStart: `${depth * 1.25 + 0.5}rem` }}
             >
-              <input type="hidden" name="id" value={n.id} />
-              <Button type="submit" size="sm" variant="ghost" aria-label={`${t('admin.tax.delete')}: ${n.name}`}>
-                <Trash2 aria-hidden className="h-4 w-4 text-danger" />
-              </Button>
-            </form>
-          </div>
-          {n.children.length > 0 && <TopicRows nodes={n.children} depth={depth + 1} />}
-        </li>
-      ))}
+              <span className="text-fg">
+                <span className="font-medium text-fg-subtle">{number}. </span>
+                {n.name} <span className="text-fg-subtle">· {n.slug}</span>
+              </span>
+
+              <form
+                action={(fd) => {
+                  start(() => {
+                    void deleteTopicAction(fd);
+                  });
+                }}
+              >
+                <input type="hidden" name="id" value={n.id} />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="ghost"
+                  aria-label={`${t('admin.tax.delete')}: ${n.name}`}
+                >
+                  <Trash2 aria-hidden className="h-4 w-4 text-danger" />
+                </Button>
+              </form>
+            </div>
+
+            {n.children.length > 0 && (
+              <TopicRows nodes={n.children} depth={depth + 1} prefix={number} />
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
 export function TaxonomyManager({ topics, levels, ageGroups }: Props): React.ReactElement {
   const t = useT();
-  const parentOptions = flatten(topics);
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -140,18 +151,13 @@ export function TaxonomyManager({ topics, levels, ageGroups }: Props): React.Rea
                 <Input name="slug" required pattern="[a-z0-9-]+" />
               </Field>
               <Field label={t('admin.tax.parent')}>
-                <select
+                <TopicSelect
                   name="parentId"
-                  className="h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg"
-                >
-                  <option value="">{t('admin.tax.rootLevel')}</option>
-                  {parentOptions.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {' '.repeat(o.depth * 2)}
-                      {o.name}
-                    </option>
-                  ))}
-                </select>
+                  topics={topics}
+                  ariaLabel={t('admin.tax.parent')}
+                  placeholder={t('admin.tax.rootLevel')}
+                  showCounts
+                />
               </Field>
             </div>
           </ActionForm>

@@ -14,7 +14,7 @@ import {
   type CheckResult,
   type SubmitResult,
 } from '@/lib/submissions/actions';
-import { TopicCombobox } from '@/components/dictionary/TopicCombobox';
+import { TopicSelect } from '@/components/dictionary/TopicSelect';
 import { ImagePicker, type PickerOption } from '@/components/admin/ImagePicker';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 import { VideoCapture } from './VideoCapture';
@@ -268,7 +268,7 @@ export function SubmitForm({
               )}
 
               <Field label={t('submit.topic')} required>
-                <TopicCombobox
+                <TopicSelect
                   name="topicId"
                   topics={topics}
                   value={topicId}
