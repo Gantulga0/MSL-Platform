@@ -7,10 +7,6 @@ export interface FormAlertProps {
   children: React.ReactNode;
 }
 
-/**
- * Inline auth feedback. Pairs an icon with text (never color-only, NFR-01) and
- * uses role="alert" so screen readers announce it. Errors are assertive.
- */
 export function FormAlert({ tone, children }: FormAlertProps): React.ReactElement {
   const isError = tone === 'error';
   const Icon = isError ? AlertCircle : CheckCircle2;

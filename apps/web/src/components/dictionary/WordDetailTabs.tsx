@@ -19,13 +19,6 @@ export interface WordDetailTabsProps {
   attributes: Attribute[];
 }
 
-/**
- * Pill-style tabs for the word-detail info panel (Variants / Definition / Usage).
- * Only tabs with content are shown. Accessible per the ARIA tabs pattern: a
- * labelled tablist, roving tabindex, ArrowLeft/Right + Home/End navigation, and
- * aria-selected/aria-controls wiring. Presentational only — all content comes
- * from the already-fetched word.
- */
 export function WordDetailTabs({
   definition,
   exampleSentence,
@@ -136,7 +129,11 @@ export function WordDetailTabs({
                   >
                     <span className="flex h-16 w-full items-center justify-center overflow-hidden rounded-md bg-surface-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={a.imageUrl ?? ''} alt={a.label ?? ''} className="h-full w-full object-contain" />
+                      <img
+                        src={a.imageUrl ?? ''}
+                        alt={a.label ?? ''}
+                        className="h-full w-full object-contain"
+                      />
                     </span>
                     <span className="text-[11px] leading-tight text-fg-subtle">{a.group}</span>
                     <span className="text-xs font-medium leading-tight text-fg">{a.label}</span>

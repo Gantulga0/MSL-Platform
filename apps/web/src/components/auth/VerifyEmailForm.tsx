@@ -8,7 +8,6 @@ import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from './FormAlert';
 import { AuthTrigger } from './AuthTrigger';
 
-/** S-03/AUTH-02 — confirm an email-verification token. */
 export function VerifyEmailForm({ token }: { token: string }): React.ReactElement {
   const t = useT();
   const [error, setError] = useState<string>();

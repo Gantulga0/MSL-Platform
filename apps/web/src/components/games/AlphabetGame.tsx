@@ -7,11 +7,7 @@ import { useT } from '@/i18n/client';
 import { getHolistic } from '@/lib/games/holistic';
 import { resultToVector, hasHands, type HolisticResult } from '@/lib/games/features';
 import type { FeatureVector } from '@/lib/games/features';
-import {
-  loadTemplates,
-  checkTarget,
-  type TemplateBundle,
-} from '@/lib/games/recognizer';
+import { loadTemplates, checkTarget, type TemplateBundle } from '@/lib/games/recognizer';
 
 // Сегментчлэлийн тохиргоо (sign-test-тэй ижил).
 const MIN_FRAMES = 6;
@@ -22,12 +18,37 @@ const EMPTY_TO_END = 8;
 const FEEDBACK_MS = 1400;
 
 const HAND_CONNECTIONS: [number, number][] = [
-  [0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8],
-  [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15],
-  [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17],
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [3, 4],
+  [0, 5],
+  [5, 6],
+  [6, 7],
+  [7, 8],
+  [5, 9],
+  [9, 10],
+  [10, 11],
+  [11, 12],
+  [9, 13],
+  [13, 14],
+  [14, 15],
+  [15, 16],
+  [13, 17],
+  [17, 18],
+  [18, 19],
+  [19, 20],
+  [0, 17],
 ];
 const POSE_CONNECTIONS: [number, number][] = [
-  [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24],
+  [11, 12],
+  [11, 13],
+  [13, 15],
+  [12, 14],
+  [14, 16],
+  [11, 23],
+  [12, 24],
+  [23, 24],
 ];
 
 type Phase = 'loading' | 'ready' | 'starting' | 'playing' | 'error';
@@ -65,7 +86,7 @@ export function AlphabetGame(): React.ReactElement {
   const bufferRef = useRef<FeatureVector[]>([]);
   const emptyCountRef = useRef(0);
   const lastTimeRef = useRef(-1);
-  const lockedRef = useRef(false); // хариу үзүүлж байх үед шинэ дохиог түр зогсооно
+  const lockedRef = useRef(false);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -150,10 +171,7 @@ export function AlphabetGame(): React.ReactElement {
 
       if (v.currentTime !== lastTimeRef.current && v.readyState >= 2) {
         lastTimeRef.current = v.currentTime;
-        const res = landmarker.detectForVideo(
-          v,
-          performance.now(),
-        ) as unknown as HolisticResult;
+        const res = landmarker.detectForVideo(v, performance.now()) as unknown as HolisticResult;
         drawOverlay(res);
 
         const vec = resultToVector(res);
@@ -349,10 +367,7 @@ export function AlphabetGame(): React.ReactElement {
       </div>
 
       {/* Статус (дэлгэцийн уншигчид зориулсан amьд муж) */}
-      <p
-        aria-live="polite"
-        className="mb-4 text-center text-base font-medium text-fg-muted"
-      >
+      <p aria-live="polite" className="mb-4 text-center text-base font-medium text-fg-muted">
         {status}
       </p>
 
@@ -454,9 +469,7 @@ export function AlphabetGame(): React.ReactElement {
       </div>
 
       {/* Нууцлалын тэмдэглэл */}
-      <p className="mt-6 text-center text-xs text-fg-subtle">
-        {t('game.alphabet.privacy')}
-      </p>
+      <p className="mt-6 text-center text-xs text-fg-subtle">{t('game.alphabet.privacy')}</p>
     </div>
   );
 }

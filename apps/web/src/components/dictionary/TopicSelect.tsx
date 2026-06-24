@@ -9,17 +9,11 @@ import type { TopicNode } from '@/lib/dictionary/types';
 interface FlatTopic {
   id: string;
   name: string;
-  /** Hierarchical number derived from tree position: "1.", "1.1", "1.2.3"… */
   number: string;
   depth: number;
   count: number;
 }
 
-/**
- * Flatten the tree into numbered ("1.", "1.1"…) rows, preserving depth so the
- * flat listbox still reads as a hierarchy. The numbers fall straight out of each
- * node's position — they are never stored.
- */
 function flattenNumbered(nodes: TopicNode[], prefix: number[] = [], depth = 0): FlatTopic[] {
   return nodes.flatMap((n, i) => {
     const path = [...prefix, i + 1];
@@ -34,19 +28,6 @@ function flattenNumbered(nodes: TopicNode[], prefix: number[] = [], depth = 0): 
 const triggerCls =
   'flex h-control-sm w-full items-center justify-between gap-2 rounded-md border border-border-strong bg-bg px-3 text-left text-base text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
 
-/**
- * Hierarchical topic picker. A custom, keyboard-accessible dropdown (combobox /
- * listbox pattern) that **always opens downward** — unlike a native <select>,
- * whose long option list the browser may pop near the top of the viewport. Every
- * topic — parent or child — is a single selectable row, numbered ("1.", "1.1"…),
- * indented by depth, and searchable by name. With `showCounts` each row shows its
- * approved-word count "(N)". Honours reduced-motion (no animation).
- *
- * Drop-in for a native <select>: a hidden input keeps it FormData-friendly when
- * `name` is set (and resets with its <form>); pass `value` + `onChange` for
- * controlled use. Shared across the dictionary filters, submission form, and
- * admin/review tools.
- */
 export function TopicSelect({
   name,
   topics,
@@ -92,7 +73,6 @@ export function TopicSelect({
     [all, query],
   );
 
-  // Close on outside click.
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent): void => {
@@ -102,17 +82,11 @@ export function TopicSelect({
     return () => document.removeEventListener('pointerdown', onDown);
   }, [open]);
 
-  // Keep the keyboard-highlighted option scrolled into view (it can fall below
-  // the max-height/scroll fold in the deep taxonomy).
   useEffect(() => {
     if (!open) return;
-    document
-      .getElementById(`${listId}-opt-${activeIndex}`)
-      ?.scrollIntoView({ block: 'nearest' });
+    document.getElementById(`${listId}-opt-${activeIndex}`)?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex, open, listId]);
 
-  // Mirror native <select> behaviour: clear when the surrounding <form> resets
-  // (only meaningful for the uncontrolled, name-backed usage).
   useEffect(() => {
     if (controlled || !name) return;
     const form = rootRef.current?.closest('form');
@@ -217,7 +191,9 @@ export function TopicSelect({
                   {o.name}
                 </span>
                 {showCounts && <span className="text-xs text-fg-subtle">{o.count}</span>}
-                {o.id === current && <Check aria-hidden className="h-4 w-4 shrink-0 text-primary" />}
+                {o.id === current && (
+                  <Check aria-hidden className="h-4 w-4 shrink-0 text-primary" />
+                )}
               </li>
             ))}
           </ul>

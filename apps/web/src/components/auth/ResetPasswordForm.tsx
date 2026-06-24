@@ -8,7 +8,6 @@ import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from './FormAlert';
 import { AuthTrigger } from './AuthTrigger';
 
-/** S-04 — complete a password reset using the emailed token. */
 export function ResetPasswordForm({ token }: { token: string }): React.ReactElement {
   const t = useT();
   const [error, setError] = useState<string>();

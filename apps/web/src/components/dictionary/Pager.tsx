@@ -5,8 +5,13 @@ import type { Route } from 'next';
 import { Pagination } from '@msl/ui';
 import { useT } from '@/i18n/client';
 
-/** URL-driven wrapper around the Pagination primitive (updates ?page=). */
-export function Pager({ page, totalPages }: { page: number; totalPages: number }): React.ReactElement {
+export function Pager({
+  page,
+  totalPages,
+}: {
+  page: number;
+  totalPages: number;
+}): React.ReactElement {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();

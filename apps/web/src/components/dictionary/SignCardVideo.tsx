@@ -4,21 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Play } from 'lucide-react';
 import { GestureScene } from '@/components/signs/GestureScene';
 
-/**
- * The card's sign-video thumbnail. Plays muted/looped/inline on hover (pointer
- * devices) and, on touch devices with no hover, when the card is the one mostly
- * in view (IntersectionObserver). Resets to the first frame when it stops, so
- * only the hovered/visible card ever plays — keeping many-card lists smooth.
- *
- * Overlays (all decorative / `aria-hidden`, the parent card link owns the name):
- * an amber play affordance (bottom-right). When there is no media, a dark "sign
- * stage" with the gesture-trail motif stands in.
- */
-export function SignCardVideo({
-  src,
-}: {
-  src?: string | null;
-}): React.ReactElement {
+export function SignCardVideo({ src }: { src?: string | null }): React.ReactElement {
   const ref = useRef<HTMLVideoElement>(null);
 
   const play = useCallback((): void => {
@@ -41,8 +27,6 @@ export function SignCardVideo({
     if (!src || !v) return;
     const hasHover = window.matchMedia?.('(hover: hover)').matches;
     if (hasHover) {
-      // Pointer devices: start playback as soon as the cursor reaches anywhere on
-      // the card (the enclosing link), not just the thumbnail.
       const card = v.closest('a') ?? v.parentElement;
       if (!card) return;
       card.addEventListener('mouseenter', play);
@@ -52,7 +36,6 @@ export function SignCardVideo({
         card.removeEventListener('mouseleave', stop);
       };
     }
-    // Touch (no hover): play the card that is mostly in view.
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -89,7 +72,6 @@ export function SignCardVideo({
         </div>
       )}
 
-      {/* Amber play affordance — the card is deaf-first (video, never audio). */}
       <span
         aria-hidden
         className="absolute bottom-3 right-3 z-[3] grid h-10 w-10 place-items-center rounded-full bg-[var(--amber)] text-[#3a2400] shadow-[0_8px_20px_-8px_var(--amber)] transition-transform group-hover:scale-110"

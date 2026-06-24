@@ -5,16 +5,8 @@ import { Pause, Play } from 'lucide-react';
 import { useT } from '@/i18n/client';
 import { GestureScene } from '@/components/signs/GestureScene';
 
-/** Slow-first playback rates — learners study signs at half speed (0.5×). */
 const RATES = [0.5, 1] as const;
 
-/**
- * Detail-page sign player: a dark "sign stage" frame with a custom, fully
- * functional control bar (play/pause, a seek slider, a speed toggle) and an
- * optional region badge. Deaf-first — the media is visual and never relies on
- * audio (the video is muted). When there is no video, the gesture-trail motif
- * stands in. The controls are real, keyboard-operable elements (button + range).
- */
 export function SignPlayer({
   src,
   poster,
@@ -24,14 +16,13 @@ export function SignPlayer({
   src?: string | null;
   poster?: string;
   label: string;
-  /** Optional region/variant label shown as a badge (e.g. a variant's region). */
   region?: string | null;
 }): React.ReactElement {
   const t = useT();
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0); // 0–100
-  const [rateIdx, setRateIdx] = useState(0); // index into RATES
+  const [progress, setProgress] = useState(0);
+  const [rateIdx, setRateIdx] = useState(0);
 
   function toggle(): void {
     const v = ref.current;

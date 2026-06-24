@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams } from 'next/navigation';
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+  type ReadonlyURLSearchParams,
+} from 'next/navigation';
 import type { Route } from 'next';
 import { SlidersHorizontal } from 'lucide-react';
 import { Button, Dialog, cn } from '@msl/ui';
@@ -17,12 +22,6 @@ interface Props {
 
 const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'hands'] as const;
 
-/**
- * Dictionary filters (FR-08, S-06). Sticky white card on desktop; an accessible
- * bottom-sheet drawer (Radix Dialog: focus-trap, Esc, scroll-lock) on mobile.
- * Search/topic/level/age plus the one/two-hand picker are all live URL filters
- * backed by the words API.
- */
 export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactElement {
   const t = useT();
   const router = useRouter();
@@ -87,9 +86,6 @@ export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactEl
         </Dialog>
       </div>
 
-      {/* Desktop: sticky glass sidebar. The glass shell holds its rim/sheen while
-          an inner element owns the scroll, so the panel never sinks past the
-          viewport — it scrolls within itself (top offset clears the sticky nav). */}
       <aside aria-label={t('dict.filters')} className="hidden lg:block">
         <div className="glass sticky top-24 flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden">
           <div className="relative z-[6] flex items-center justify-between gap-2 px-5 pt-5">
@@ -198,7 +194,6 @@ function Section({
   );
 }
 
-/** One-/two-hand filter — a live segmented URL filter (`hands`=1|2). */
 function HandsToggle({
   value,
   setParam,
@@ -214,7 +209,11 @@ function HandsToggle({
   ];
   return (
     <Section title={t('dict.hands')}>
-      <div role="group" aria-label={t('dict.hands')} className="inline-flex rounded-full bg-surface-muted p-1">
+      <div
+        role="group"
+        aria-label={t('dict.hands')}
+        className="inline-flex rounded-full bg-surface-muted p-1"
+      >
         {opts.map(([v, k]) => {
           const active = value === v;
           return (
