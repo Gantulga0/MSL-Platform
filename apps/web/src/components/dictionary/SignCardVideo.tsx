@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Play } from 'lucide-react';
 import { GestureScene } from '@/components/signs/GestureScene';
 
@@ -21,28 +21,38 @@ export function SignCardVideo({
 }): React.ReactElement {
   const ref = useRef<HTMLVideoElement>(null);
 
-  function play(): void {
+  const play = useCallback((): void => {
     const v = ref.current;
     if (v) {
       v.currentTime = 0;
       void v.play().catch(() => {});
     }
-  }
-  function stop(): void {
+  }, []);
+  const stop = useCallback((): void => {
     const v = ref.current;
     if (v) {
       v.pause();
       v.currentTime = 0;
     }
-  }
+  }, []);
 
   useEffect(() => {
     const v = ref.current;
     if (!src || !v) return;
-    // Pointer devices use the hover handlers; only set up the in-view fallback
-    // where hover doesn't exist (touch/mobile).
     const hasHover = window.matchMedia?.('(hover: hover)').matches;
-    if (hasHover) return;
+    if (hasHover) {
+      // Pointer devices: start playback as soon as the cursor reaches anywhere on
+      // the card (the enclosing link), not just the thumbnail.
+      const card = v.closest('a') ?? v.parentElement;
+      if (!card) return;
+      card.addEventListener('mouseenter', play);
+      card.addEventListener('mouseleave', stop);
+      return () => {
+        card.removeEventListener('mouseenter', play);
+        card.removeEventListener('mouseleave', stop);
+      };
+    }
+    // Touch (no hover): play the card that is mostly in view.
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -54,7 +64,7 @@ export function SignCardVideo({
     );
     io.observe(v);
     return () => io.disconnect();
-  }, [src]);
+  }, [src, play, stop]);
 
   return (
     <div

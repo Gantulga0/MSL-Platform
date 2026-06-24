@@ -21,13 +21,6 @@ const LABEL_KEY: Record<AuthView, string> = {
   forgot: 'auth.forgotTitle',
 };
 
-/**
- * Orchestrates the three auth views inside a single shared modal shell. The
- * parent controls open/close via `view`; switching between login/register/forgot
- * happens internally (no navigation). Form state resets automatically: switching
- * remounts the active view via `key`, and Radix unmounts the content on close so
- * reopening starts fresh.
- */
 export function AuthModal({ view, onClose }: AuthModalProps): React.ReactElement {
   const t = useT();
   const [active, setActive] = useState<AuthView>(view ?? 'login');

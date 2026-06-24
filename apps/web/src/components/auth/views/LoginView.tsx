@@ -11,13 +11,6 @@ import { FormAlert } from '../FormAlert';
 import { loginSchema, fieldErrors } from '@/lib/auth/schemas';
 import type { AuthViewProps } from '../authModalTypes';
 
-/**
- * Login view (email/username + password). Rebuilt on the shared Tailwind tokens +
- * primitives to match the rest of the app. Submit is wired to the real
- * `loginAction` (sets the session cookie, redirects on success). The identifier
- * field is named `identifier` to match the action's contract (minors use
- * username + PIN). Honours reduced-motion (NFR-01).
- */
 export function LoginView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
   const t = useT();
   const reduce = useReducedMotion();
@@ -86,7 +79,11 @@ export function LoginView({ onSwitch, onClose }: AuthViewProps): React.ReactElem
               aria-pressed={showPw}
               className="absolute right-1 top-1/2 grid h-10 w-10 -translate-y-1/2 place-content-center rounded-lg text-fg-muted hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
             >
-              {showPw ? <EyeOff aria-hidden className="h-5 w-5" /> : <Eye aria-hidden className="h-5 w-5" />}
+              {showPw ? (
+                <EyeOff aria-hidden className="h-5 w-5" />
+              ) : (
+                <Eye aria-hidden className="h-5 w-5" />
+              )}
             </button>
           </div>
         </Field>

@@ -11,7 +11,6 @@ import { FormAlert } from '../FormAlert';
 import { registerSchema, fieldErrors } from '@/lib/auth/schemas';
 import type { AuthViewProps } from '../authModalTypes';
 
-/** Live password requirement checks — mirror the registerSchema rules exactly. */
 function pwChecks(pw: string): { key: string; labelKey: string; ok: boolean }[] {
   return [
     { key: 'len', labelKey: 'auth.pwLen', ok: pw.length >= 8 },
@@ -20,14 +19,6 @@ function pwChecks(pw: string): { key: string; labelKey: string; ok: boolean }[] 
   ];
 }
 
-/**
- * Register view (email account, S-03). Rebuilt on the shared Tailwind tokens +
- * primitives (Field/Input/Button) so it matches the rest of the app (no more
- * styled-components / Liquid Glass island). Adds persistent labels, a password
- * show/hide toggle, a live requirement checklist, a prominent consent card
- * (AUTH-02) and a desktop value panel. Submit stays wired to `registerAction`;
- * errors are text + icon, never colour alone (NFR-01). Honours reduced-motion.
- */
 export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
   const t = useT();
   const reduce = useReducedMotion();
@@ -117,7 +108,12 @@ export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactE
               <Input name="email" type="email" autoComplete="email" inputMode="email" />
             </Field>
 
-            <Field label={t('auth.password')} required description={t('auth.passwordHint')} error={errors.password}>
+            <Field
+              label={t('auth.password')}
+              required
+              description={t('auth.passwordHint')}
+              error={errors.password}
+            >
               <div className="relative">
                 <Input
                   name="password"
@@ -135,7 +131,11 @@ export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactE
                   aria-pressed={showPw}
                   className="absolute right-1 top-1/2 grid h-10 w-10 -translate-y-1/2 place-content-center rounded-lg text-fg-muted hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                 >
-                  {showPw ? <EyeOff aria-hidden className="h-5 w-5" /> : <Eye aria-hidden className="h-5 w-5" />}
+                  {showPw ? (
+                    <EyeOff aria-hidden className="h-5 w-5" />
+                  ) : (
+                    <Eye aria-hidden className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </Field>
@@ -157,7 +157,9 @@ export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactE
                         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-current" />
                       )}
                     </motion.span>
-                    <span className={c.ok ? 'font-medium text-fg' : 'text-fg-muted'}>{t(c.labelKey)}</span>
+                    <span className={c.ok ? 'font-medium text-fg' : 'text-fg-muted'}>
+                      {t(c.labelKey)}
+                    </span>
                     <span className="sr-only">{t(c.ok ? 'auth.pwMet' : 'auth.pwUnmet')}</span>
                   </li>
                 ))}
@@ -167,7 +169,11 @@ export function RegisterView({ onSwitch, onClose }: AuthViewProps): React.ReactE
             {/* Consent — prominent, legally important (AUTH-02). */}
             <label className="flex items-start gap-3 rounded-xl border border-border bg-surface-muted p-3.5 text-sm text-fg has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-primary">
               <ShieldCheck aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-accent-ink" />
-              <input name="consent" type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-primary" />
+              <input
+                name="consent"
+                type="checkbox"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+              />
               <span>{t('auth.consentLabel')}</span>
             </label>
             {errors.consent && (

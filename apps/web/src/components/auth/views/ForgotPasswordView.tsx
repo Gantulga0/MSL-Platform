@@ -10,12 +10,6 @@ import { localizeAuthError } from '@/lib/auth/errors';
 import { FormAlert } from '../FormAlert';
 import type { AuthViewProps } from '../authModalTypes';
 
-/**
- * Forgot-password view (S-04). Rebuilt on the shared Tailwind tokens + primitives.
- * Requests a reset email via `forgotPasswordAction` (enumeration-safe — always
- * succeeds). The actual reset is completed on the standalone `/reset-password`
- * page reached from the emailed link. Honours reduced-motion (NFR-01).
- */
 export function ForgotPasswordView({ onSwitch, onClose }: AuthViewProps): React.ReactElement {
   const t = useT();
   const reduce = useReducedMotion();
