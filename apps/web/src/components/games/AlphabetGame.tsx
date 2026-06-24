@@ -388,14 +388,20 @@ export function AlphabetGame(): React.ReactElement {
             )}
           </p>
 
-          <dl className="mt-4 flex gap-8 text-center">
-            <div>
+          <dl className="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-xl bg-surface-muted px-3 py-2">
               <dt className="text-xs text-fg-subtle">{t('game.alphabet.score')}</dt>
               <dd className="text-2xl font-bold text-fg">{score}</dd>
             </div>
-            <div>
+            <div className="rounded-xl bg-surface-muted px-3 py-2">
               <dt className="text-xs text-fg-subtle">{t('game.alphabet.attempts')}</dt>
               <dd className="text-2xl font-bold text-fg">{attempts}</dd>
+            </div>
+            <div className="rounded-xl bg-surface-muted px-3 py-2">
+              <dt className="text-xs text-fg-subtle">{t('game.alphabet.accuracy')}</dt>
+              <dd className="text-2xl font-bold text-fg">
+                {attempts > 0 ? `${Math.round((score / attempts) * 100)}%` : '—'}
+              </dd>
             </div>
           </dl>
 

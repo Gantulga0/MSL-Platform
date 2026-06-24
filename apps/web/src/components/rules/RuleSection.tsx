@@ -62,17 +62,27 @@ export function RuleSection({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="scroll-mt-28 rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8"
+      className="scroll-mt-28 rounded-2xl border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
-        <div className="lg:flex-1">
-          {eyebrowKey && (
-            <span className="inline-flex items-center rounded-full bg-accent-subtle px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-ink">
-              {t(eyebrowKey)}
+        <div className="min-w-0 lg:flex-1">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden
+              className="grid h-9 w-9 shrink-0 place-content-center rounded-xl bg-primary text-base font-bold text-fg-on-primary"
+            >
+              {index}
             </span>
-          )}
-          <h2 className="mt-3 text-xl font-bold tracking-tight text-fg sm:text-2xl">{t(titleKey)}</h2>
-          <div className="mt-4 max-w-prose space-y-4 text-base leading-relaxed text-fg">
+            {eyebrowKey && (
+              <span className="inline-flex items-center rounded-full bg-accent-subtle px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-ink">
+                {t(eyebrowKey)}
+              </span>
+            )}
+          </div>
+          <h2 className="mt-4 text-balance text-xl font-bold tracking-tight text-fg sm:text-2xl">
+            {t(titleKey)}
+          </h2>
+          <div className="mt-4 max-w-prose space-y-4 text-[1.0625rem] leading-relaxed text-fg [hyphens:auto] [overflow-wrap:anywhere]">
             {paragraphKeys.map((key) => (
               <p key={key}>{t(key)}</p>
             ))}

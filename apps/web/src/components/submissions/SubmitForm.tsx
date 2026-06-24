@@ -23,7 +23,7 @@ import { VideoCapture } from './VideoCapture';
 const CYRILLIC_PATTERN = /^[А-Яа-яЁёӨөҮү\s,-]+$/u;
 
 const selectCls =
-  'h-control-sm w-full rounded-md border border-border-strong bg-bg px-3 text-base text-fg';
+  'h-control-sm w-full rounded-lg border border-border-strong bg-bg px-3 text-base text-fg transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
 const STEPS = ['submit.step1', 'submit.step2', 'submit.step3'] as const;
 

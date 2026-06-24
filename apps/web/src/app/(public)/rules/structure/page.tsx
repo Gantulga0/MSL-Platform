@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { Hand } from 'lucide-react';
 import { getServerT } from '@/i18n/server';
 import { RuleSection } from '@/components/rules/RuleSection';
 import { RulesNav } from '@/components/rules/RulesNav';
+import { RuleIndex } from '@/components/rules/RuleIndex';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getServerT();
@@ -46,15 +48,25 @@ export default async function RulesStructurePage(): Promise<React.ReactElement> 
   const t = await getServerT();
   return (
     <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
-      <header className="mx-auto max-w-3xl space-y-3 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
+      <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-subtle text-accent-ink">
+          <Hand aria-hidden className="h-7 w-7" />
+        </span>
+        <span className="text-xs font-bold uppercase tracking-[0.18em] text-accent-ink">
+          {t('rules.eyebrow')}
+        </span>
+        <h1 className="text-balance text-2xl font-bold tracking-tight text-fg sm:text-3xl">
           {t('rules.structure.title')}
         </h1>
-        <p className="text-lg text-fg-muted">{t('rules.structure.lead')}</p>
+        <p className="text-pretty text-lg leading-relaxed text-fg-muted">{t('rules.structure.lead')}</p>
       </header>
 
       <div className="mt-8">
         <RulesNav />
+      </div>
+
+      <div className="mx-auto mt-6 max-w-3xl">
+        <RuleIndex titleKeys={SECTIONS.map((s) => s.titleKey)} />
       </div>
 
       <div className="mt-10 space-y-8 sm:space-y-10">
