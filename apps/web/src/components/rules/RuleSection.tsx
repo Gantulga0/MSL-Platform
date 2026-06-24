@@ -17,24 +17,42 @@ export interface RuleSectionProps {
   videoSrc?: string | null;
 }
 
-/** The video panel, or an accessible shimmering placeholder until a clip exists. */
-function RuleVideo({ src }: { src?: string | null }): React.ReactElement {
+/**
+ * The dominant video for a rule, or an accessible placeholder until a clip
+ * exists. Rendered large and full-width — the video is the lead element of each
+ * rule, since a sign is shown, not told. `label` gives the frame a text
+ * alternative (NFR-01); the shimmer is gated behind `motion-safe`.
+ */
+function RuleVideo({ src, label }: { src?: string | null; label: string }): React.ReactElement {
   const t = useT();
   if (src) {
     return (
-      <div className="relative aspect-video overflow-hidden rounded-2xl border border-border bg-black shadow-md">
-        <video src={src} controls playsInline preload="metadata" className="h-full w-full object-cover" />
+      <div className="sign-stage relative aspect-video overflow-hidden rounded-2xl border border-border shadow-md">
+        <video
+          src={src}
+          controls
+          playsInline
+          preload="metadata"
+          aria-label={label}
+          className="h-full w-full object-contain"
+        />
       </div>
     );
   }
   return (
-    <div className="relative flex aspect-video flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border bg-accent-subtle text-accent-ink">
+    <div
+      role="img"
+      aria-label={`${label} — ${t('rules.videoPlaceholder')}`}
+      className="sign-stage relative flex aspect-video flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border text-white"
+    >
       <span
         aria-hidden
-        className="absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 animate-pulse bg-gradient-to-r from-transparent via-white/50 to-transparent"
+        className="absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent motion-safe:animate-pulse"
       />
-      <PlayCircle aria-hidden className="relative h-14 w-14" />
-      <span className="relative px-6 text-center text-sm font-medium">{t('rules.videoPlaceholder')}</span>
+      <PlayCircle aria-hidden className="relative h-16 w-16 text-white/80" />
+      <span className="relative px-6 text-center text-sm font-medium text-white/80">
+        {t('rules.videoPlaceholder')}
+      </span>
     </div>
   );
 }
@@ -62,35 +80,34 @@ export function RuleSection({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="scroll-mt-28 rounded-2xl border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
+      className="scroll-mt-28"
     >
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
-        <div className="min-w-0 lg:flex-1">
-          <div className="flex items-center gap-3">
-            <span
-              aria-hidden
-              className="grid h-9 w-9 shrink-0 place-content-center rounded-xl bg-primary text-base font-bold text-fg-on-primary"
-            >
-              {index}
-            </span>
-            {eyebrowKey && (
-              <span className="inline-flex items-center rounded-full bg-accent-subtle px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-ink">
-                {t(eyebrowKey)}
-              </span>
-            )}
-          </div>
-          <h2 className="mt-4 text-balance text-xl font-bold tracking-tight text-fg sm:text-2xl">
-            {t(titleKey)}
-          </h2>
-          <div className="mt-4 max-w-prose space-y-4 text-[1.0625rem] leading-relaxed text-fg [hyphens:auto] [overflow-wrap:anywhere]">
-            {paragraphKeys.map((key) => (
-              <p key={key}>{t(key)}</p>
-            ))}
-          </div>
-        </div>
-        <div className="lg:sticky lg:top-28 lg:w-[42%] lg:flex-shrink-0">
-          <RuleVideo src={videoSrc} />
-        </div>
+      {/* Video — the dominant element of each rule. */}
+      <RuleVideo src={videoSrc} label={t(titleKey)} />
+
+      {/* Number + kicker lockup. The script numeral (Pacifico) is a decorative
+          tie-in to the reading-rail spine; the chip carries the labelled text. */}
+      <div className="mt-6 flex items-center gap-3">
+        <span
+          aria-hidden
+          className="font-[family-name:var(--font-pacifico)] text-4xl leading-none text-[var(--amber-deep)]"
+        >
+          {index}
+        </span>
+        {eyebrowKey && (
+          <span className="inline-flex items-center rounded-full bg-accent-subtle px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-ink">
+            {t(eyebrowKey)}
+          </span>
+        )}
+      </div>
+
+      <h2 className="mt-4 text-balance font-display text-2xl font-bold tracking-tight text-fg sm:text-[1.75rem]">
+        {t(titleKey)}
+      </h2>
+      <div className="mt-4 max-w-2xl space-y-4 text-[1.0625rem] leading-relaxed text-fg [hyphens:auto] [overflow-wrap:anywhere]">
+        {paragraphKeys.map((key) => (
+          <p key={key}>{t(key)}</p>
+        ))}
       </div>
     </motion.section>
   );

@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { Hand } from 'lucide-react';
 import { getServerT } from '@/i18n/server';
 import { RuleSection } from '@/components/rules/RuleSection';
-import { RulesNav } from '@/components/rules/RulesNav';
+import { RuleHero } from '@/components/rules/RuleHero';
 import { RuleIndex } from '@/components/rules/RuleIndex';
+import { ReadingRail } from '@/components/rules/ReadingRail';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getServerT();
@@ -45,41 +46,35 @@ const SECTIONS = [
 ] as const;
 
 export default async function RulesStructurePage(): Promise<React.ReactElement> {
-  const t = await getServerT();
+  const titleKeys = SECTIONS.map((s) => s.titleKey);
   return (
-    <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
-      <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
-        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-subtle text-accent-ink">
-          <Hand aria-hidden className="h-7 w-7" />
-        </span>
-        <span className="text-xs font-bold uppercase tracking-[0.18em] text-accent-ink">
-          {t('rules.eyebrow')}
-        </span>
-        <h1 className="text-balance text-2xl font-bold tracking-tight text-fg sm:text-3xl">
-          {t('rules.structure.title')}
-        </h1>
-        <p className="text-pretty text-lg leading-relaxed text-fg-muted">{t('rules.structure.lead')}</p>
-      </header>
+    <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <RuleHero
+        icon={<Hand aria-hidden className="h-7 w-7" />}
+        eyebrowKey="rules.eyebrow"
+        titleKey="rules.structure.title"
+        leadKey="rules.structure.lead"
+      />
 
-      <div className="mt-8">
-        <RulesNav />
+      {/* Mobile section index (desktop uses the sticky reading-rail instead). */}
+      <div className="mt-6 lg:hidden">
+        <RuleIndex titleKeys={titleKeys} />
       </div>
 
-      <div className="mx-auto mt-6 max-w-3xl">
-        <RuleIndex titleKeys={SECTIONS.map((s) => s.titleKey)} />
-      </div>
-
-      <div className="mt-10 space-y-8 sm:space-y-10">
-        {SECTIONS.map((s, i) => (
-          <RuleSection
-            key={s.titleKey}
-            index={i + 1}
-            eyebrowKey={s.eyebrowKey}
-            titleKey={s.titleKey}
-            paragraphKeys={[...s.paragraphKeys]}
-            videoSrc={s.videoSrc}
-          />
-        ))}
+      <div className="mt-8 grid gap-x-10 lg:mt-10 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <ReadingRail titleKeys={titleKeys} />
+        <div data-rules-content className="min-w-0 space-y-16 sm:space-y-20">
+          {SECTIONS.map((s, i) => (
+            <RuleSection
+              key={s.titleKey}
+              index={i + 1}
+              eyebrowKey={s.eyebrowKey}
+              titleKey={s.titleKey}
+              paragraphKeys={[...s.paragraphKeys]}
+              videoSrc={s.videoSrc}
+            />
+          ))}
+        </div>
       </div>
     </main>
   );
