@@ -46,7 +46,7 @@ export async function SignCard({
 export function SignCardSkeleton(): React.ReactElement {
   return (
     <div className="glass flex h-full flex-col overflow-hidden">
-      <Skeleton className="aspect-video w-full rounded-none" />
+      <Skeleton className="aspect-[4/5] w-full rounded-none" />
       <div className="relative z-[6] flex-1 space-y-2 px-4 pb-4 pt-3.5">
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />

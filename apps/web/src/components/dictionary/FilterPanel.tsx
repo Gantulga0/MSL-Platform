@@ -87,22 +87,24 @@ export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactEl
         </Dialog>
       </div>
 
-      {/* Desktop: sticky sidebar */}
+      {/* Desktop: sticky glass sidebar. The glass shell holds its rim/sheen while
+          an inner element owns the scroll, so the panel never sinks past the
+          viewport — it scrolls within itself (top offset clears the sticky nav). */}
       <aside aria-label={t('dict.filters')} className="hidden lg:block">
-        <div className="sticky top-6 max-h-[calc(100dvh-3rem)] space-y-6 overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-fg">{t('dict.filters')}</h2>
+        <div className="glass sticky top-24 flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden">
+          <div className="relative z-[6] flex items-center justify-between gap-2 px-5 pt-5">
+            <h2 className="font-display text-lg font-bold text-fg">{t('dict.filters')}</h2>
             {activeCount > 0 && (
               <button
                 type="button"
                 onClick={clearAll}
-                className="rounded-full px-3 py-1 text-sm font-semibold text-accent-ink hover:bg-surface-muted"
+                className="rounded-full px-3 py-1 text-sm font-semibold text-accent-ink hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 {t('dict.clearFilters')}
               </button>
             )}
           </div>
-          {sections}
+          <div className="relative z-[6] overflow-y-auto px-5 pb-5 pt-5">{sections}</div>
         </div>
       </aside>
     </>

@@ -58,7 +58,7 @@ export function SignCardVideo({
 
   return (
     <div
-      className="relative z-[6] aspect-video overflow-hidden rounded-t-[var(--r)]"
+      className="relative z-[6] aspect-[4/5] overflow-hidden rounded-t-[var(--r)]"
       onMouseEnter={play}
       onMouseLeave={stop}
     >

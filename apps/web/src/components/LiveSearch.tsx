@@ -9,7 +9,15 @@ import { cn } from '@msl/ui';
 import { useT } from '@/i18n/client';
 import type { SearchHit } from '@/app/api/search/route';
 
-export function LiveSearch({ initial = '' }: { initial?: string }): React.ReactElement {
+export function LiveSearch({
+  initial = '',
+  className,
+}: {
+  initial?: string;
+  /** Root width/placement. Defaults to the centered hero width (home); the
+   *  dictionary passes a full-width class so the field fills its toolbar. */
+  className?: string;
+}): React.ReactElement {
   const t = useT();
   const router = useRouter();
   const [q, setQ] = useState(initial);
@@ -100,7 +108,7 @@ export function LiveSearch({ initial = '' }: { initial?: string }): React.ReactE
   const showDropdown = open && q.trim().length >= 2;
 
   return (
-    <div ref={rootRef} className="relative mx-auto w-full max-w-2xl">
+    <div ref={rootRef} className={cn('relative w-full', className ?? 'mx-auto max-w-2xl')}>
       <form
         role="search"
         onSubmit={(e) => {
