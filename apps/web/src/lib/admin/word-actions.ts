@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { API_BASE_URL } from '@/lib/api';
-import { apiSend, ApiClientError, TAXONOMY_TAG } from '@/lib/api/server';
+import { apiSend, ApiClientError, TAXONOMY_TAG, WORDS_TAG } from '@/lib/api/server';
 import { getAccessToken } from '@/lib/auth/session';
 
 export interface AdminActionResult {
@@ -68,6 +68,7 @@ export async function createWordAction(formData: FormData): Promise<AdminActionR
     });
     revalidatePath('/admin/words');
     revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
+    revalidateTag(WORDS_TAG); // and the public dictionary list/detail
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -111,6 +112,7 @@ export async function bulkImportWordsAction(formData: FormData): Promise<BulkImp
     const data = (await res.json()) as Omit<BulkImportResult, 'error'>;
     revalidatePath('/admin/words');
     revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
+    revalidateTag(WORDS_TAG); // and the public dictionary list/detail
     return data;
   } catch (e) {
     return fail(e);
@@ -131,6 +133,7 @@ export async function updateWordAction(formData: FormData): Promise<AdminActionR
     });
     revalidatePath('/admin/words');
     revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
+    revalidateTag(WORDS_TAG); // and the public dictionary list/detail
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -142,6 +145,7 @@ export async function deleteWordAction(id: string): Promise<AdminActionResult> {
     await apiSend('DELETE', `/admin/words/${id}`);
     revalidatePath('/admin/words');
     revalidateTag(TAXONOMY_TAG); // word counts feed the cached taxonomy
+    revalidateTag(WORDS_TAG); // and the public dictionary list/detail
     return { ok: true };
   } catch (e) {
     return fail(e);

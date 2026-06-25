@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { apiSend, ApiClientError, TAXONOMY_TAG } from '@/lib/api/server';
+import { apiSend, ApiClientError, TAXONOMY_TAG, WORDS_TAG } from '@/lib/api/server';
 
 export interface ReviewActionResult {
   error?: string;
@@ -31,6 +31,7 @@ export async function approveAction(formData: FormData): Promise<ReviewActionRes
     });
     revalidatePath(REVIEW_PATH);
     revalidateTag(TAXONOMY_TAG); // a new approved word changes topic counts
+    revalidateTag(WORDS_TAG); // and shows up in the public dictionary
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -75,6 +76,8 @@ export async function batchApproveAction(ids: string[]): Promise<ReviewActionRes
   try {
     await apiSend('POST', '/admin/submissions/batch-approve', { ids });
     revalidatePath(REVIEW_PATH);
+    revalidateTag(TAXONOMY_TAG); // newly approved words change topic counts
+    revalidateTag(WORDS_TAG); // and show up in the public dictionary
     return { ok: true };
   } catch (e) {
     return fail(e);

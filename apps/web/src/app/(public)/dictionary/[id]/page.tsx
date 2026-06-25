@@ -4,7 +4,7 @@ import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getServerT } from '@/i18n/server';
-import { apiGet, ApiClientError } from '@/lib/api/server';
+import { apiGet, ApiClientError, WORDS_READ } from '@/lib/api/server';
 import type { WordDetail } from '@/lib/dictionary/types';
 import { SignPlayer } from '@/components/dictionary/SignPlayer';
 import { WordDetailTabs } from '@/components/dictionary/WordDetailTabs';
@@ -20,7 +20,7 @@ export default async function WordDetailPage({
   const { id } = await params;
   // 404 → not-found page; any other failure → rethrow so error.tsx handles it
   // (rather than masking an outage as "word doesn't exist").
-  const word = await apiGet<WordDetail>(`/words/${id}`).catch((e: unknown) => {
+  const word = await apiGet<WordDetail>(`/words/${id}`, WORDS_READ).catch((e: unknown) => {
     if (e instanceof ApiClientError && e.status === 404) return null;
     throw e;
   });

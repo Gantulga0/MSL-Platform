@@ -8,6 +8,13 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@msl/types', '@msl/ui'],
   typedRoutes: true,
+  experimental: {
+    // Re-enable the client Router Cache for dynamically-rendered pages. Next 15
+    // defaults staleTimes.dynamic to 0, so every visited page re-renders on the
+    // server on revisit/back-forward. Reusing them for a short window makes
+    // navigation between dictionary/games/rules feel instant.
+    staleTimes: { dynamic: 30, static: 180 },
+  },
   async rewrites() {
     const base = API_BASE_URL.replace(/\/$/, '');
     return [

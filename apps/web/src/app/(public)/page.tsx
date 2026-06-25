@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import type { Paginated } from '@msl/types';
 import { getServerT } from '@/i18n/server';
-import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
+import { apiGetSafe, TAXONOMY_READ, WORDS_READ } from '@/lib/api/server';
 import type { TopicNode, WordListItem } from '@/lib/dictionary/types';
 import { LiveSearch } from '@/components/LiveSearch';
 import { SignFrame } from '@/components/signs/SignFrame';
@@ -38,7 +38,7 @@ export default async function HomePage(): Promise<React.ReactElement> {
   const t = await getServerT();
   // TODO: there is no dedicated "featured" endpoint; this shows the first N words.
   const [words, topics] = await Promise.all([
-    apiGetSafe<Paginated<WordListItem>>('/words?page=1'),
+    apiGetSafe<Paginated<WordListItem>>('/words?page=1', WORDS_READ),
     apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
   ]);
 

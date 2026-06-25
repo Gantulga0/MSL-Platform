@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -5,10 +6,10 @@ import { Search, Plus } from 'lucide-react';
 import type { Paginated } from '@msl/types';
 import { EmptyState } from '@msl/ui';
 import { getServerT } from '@/i18n/server';
-import { apiGetSafe, TAXONOMY_READ } from '@/lib/api/server';
+import { apiGetSafe, TAXONOMY_READ, WORDS_READ } from '@/lib/api/server';
 import { LiveSearch } from '@/components/LiveSearch';
 import { FilterPanel } from '@/components/dictionary/FilterPanel';
-import { SignCard } from '@/components/dictionary/SignCard';
+import { SignCard, SignCardSkeleton } from '@/components/dictionary/SignCard';
 import { Pager } from '@/components/dictionary/Pager';
 import { GestureScene } from '@/components/signs/GestureScene';
 import type { TaxoRef, TopicNode, WordListItem } from '@/lib/dictionary/types';
@@ -76,13 +77,32 @@ function ContributeCta({
   );
 }
 
-export default async function DictionaryPage({
-  searchParams,
-}: {
-  searchParams: Promise<SP>;
-}): Promise<React.ReactElement> {
-  const t = await getServerT();
-  const sp = await searchParams;
+/** Grid skeleton shown while the (cached) word list streams in below the shell. */
+function ResultsSkeleton(): React.ReactElement {
+  return (
+    <ul
+      aria-hidden
+      className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      {Array.from({ length: DISPLAY_LIMIT }).map((_, i) => (
+        <li key={i}>
+          <SignCardSkeleton />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type T = Awaited<ReturnType<typeof getServerT>>;
+
+/**
+ * The data-dependent half of the dictionary: it fetches the (cached) word list
+ * and renders the count, grid, contribute CTA and pager. Split out so the page
+ * shell (header, search, filters) can paint immediately while this streams in
+ * via Suspense — keyed on the query so only the grid re-suspends on search/
+ * filter/paging instead of the whole page flashing.
+ */
+async function DictionaryResults({ sp, t }: { sp: SP; t: T }): Promise<React.ReactElement> {
   const page = Math.max(1, Number(sp.page ?? '1') || 1);
 
   const qs = new URLSearchParams();
@@ -93,12 +113,7 @@ export default async function DictionaryPage({
   if (sp.hands) qs.set('hands', sp.hands);
   qs.set('page', String(page));
 
-  const [topics, levels, ageGroups, words] = await Promise.all([
-    apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
-    apiGetSafe<TaxoRef[]>('/levels', TAXONOMY_READ),
-    apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),
-    apiGetSafe<Paginated<WordListItem>>(`/words?${qs.toString()}`),
-  ]);
+  const words = await apiGetSafe<Paginated<WordListItem>>(`/words?${qs.toString()}`, WORDS_READ);
 
   const meta = words?.meta;
   const total = meta?.total ?? 0;
@@ -117,6 +132,93 @@ export default async function DictionaryPage({
       ? t('dict.countRange', { total, from, to: shownTo })
       : t('dict.countTotal', { total });
 
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={<Search className="h-12 w-12" />}
+        title={sp.q ? t('dict.noResultsFor', { q: sp.q }) : t('dict.noResults')}
+        description={t('dict.noResultsHint')}
+        action={
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {hasQuery && (
+              <Link
+                href={'/dictionary' as Route}
+                className="inline-flex min-h-touch items-center rounded-full border border-border-strong px-5 font-semibold text-fg hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                {t('dict.clearFilters')}
+              </Link>
+            )}
+            <Link href={'/submit-word' as Route} className={amberCta()}>
+              <Plus aria-hidden className="h-5 w-5" />
+              {t('nav.submitWord')}
+            </Link>
+          </div>
+        }
+      />
+    );
+  }
+
+  return (
+    <>
+      {total > 0 && (
+        <div className="mb-5 flex justify-end">
+          <span className="glass-field inline-flex h-control-lg shrink-0 items-center justify-center rounded-full px-5 text-sm font-semibold text-fg">
+            {countLabel}
+          </span>
+        </div>
+      )}
+
+      <ul
+        aria-label={t('dict.gridLabel')}
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {items.map((w, i) => (
+          <li key={w.id}>
+            <SignCard word={w} index={from + i} />
+          </li>
+        ))}
+        {Array.from({ length: padCount }).map((_, i) => (
+          <PlaceholderTile key={`pad-${i}`} label={t('dict.comingSoon')} />
+        ))}
+      </ul>
+
+      {showCta && (
+        <ContributeCta
+          title={t('dict.contributeTitle')}
+          body={t('dict.contributeBody')}
+          cta={t('nav.submitWord')}
+        />
+      )}
+
+      {meta && meta.totalPages > 1 && (
+        <div className="mt-8">
+          <Pager page={meta.page} totalPages={meta.totalPages} />
+        </div>
+      )}
+    </>
+  );
+}
+
+export default async function DictionaryPage({
+  searchParams,
+}: {
+  searchParams: Promise<SP>;
+}): Promise<React.ReactElement> {
+  const t = await getServerT();
+  const sp = await searchParams;
+
+  // Taxonomy drives the filter shell — cached + fast, so the header, search box
+  // and filters render immediately while the (heavier) word list streams in.
+  const [topics, levels, ageGroups] = await Promise.all([
+    apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/levels', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),
+  ]);
+
+  // Re-suspend the results whenever the query changes so only the grid shows a
+  // skeleton on search/filter/paging — the shell stays put.
+  const resultsKey = JSON.stringify(sp);
+
   return (
     <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <header className="mb-6 sm:mb-8">
@@ -132,71 +234,14 @@ export default async function DictionaryPage({
 
         {/* Results column. */}
         <div className="min-w-0">
-          {/* Toolbar: search fills the row; the count sits at its right. */}
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="min-w-0 sm:flex-1">
-              <LiveSearch initial={sp.q ?? ''} className="w-full" />
-            </div>
-            {total > 0 && (
-              <span className="glass-field inline-flex h-control-lg shrink-0 items-center justify-center rounded-full px-5 text-sm font-semibold text-fg">
-                {countLabel}
-              </span>
-            )}
+          {/* Toolbar: search fills the row. */}
+          <div className="mb-5">
+            <LiveSearch initial={sp.q ?? ''} className="w-full" />
           </div>
 
-          {items.length === 0 ? (
-            <EmptyState
-              icon={<Search className="h-12 w-12" />}
-              title={sp.q ? t('dict.noResultsFor', { q: sp.q }) : t('dict.noResults')}
-              description={t('dict.noResultsHint')}
-              action={
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {hasQuery && (
-                    <Link
-                      href={'/dictionary' as Route}
-                      className="inline-flex min-h-touch items-center rounded-full border border-border-strong px-5 font-semibold text-fg hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                    >
-                      {t('dict.clearFilters')}
-                    </Link>
-                  )}
-                  <Link href={'/submit-word' as Route} className={amberCta()}>
-                    <Plus aria-hidden className="h-5 w-5" />
-                    {t('nav.submitWord')}
-                  </Link>
-                </div>
-              }
-            />
-          ) : (
-            <>
-              <ul
-                aria-label={t('dict.gridLabel')}
-                className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-              >
-                {items.map((w, i) => (
-                  <li key={w.id}>
-                    <SignCard word={w} index={from + i} />
-                  </li>
-                ))}
-                {Array.from({ length: padCount }).map((_, i) => (
-                  <PlaceholderTile key={`pad-${i}`} label={t('dict.comingSoon')} />
-                ))}
-              </ul>
-
-              {showCta && (
-                <ContributeCta
-                  title={t('dict.contributeTitle')}
-                  body={t('dict.contributeBody')}
-                  cta={t('nav.submitWord')}
-                />
-              )}
-
-              {meta && meta.totalPages > 1 && (
-                <div className="mt-8">
-                  <Pager page={meta.page} totalPages={meta.totalPages} />
-                </div>
-              )}
-            </>
-          )}
+          <Suspense key={resultsKey} fallback={<ResultsSkeleton />}>
+            <DictionaryResults sp={sp} t={t} />
+          </Suspense>
         </div>
       </div>
     </main>

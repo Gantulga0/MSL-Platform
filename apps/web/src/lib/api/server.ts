@@ -38,6 +38,17 @@ export const TAXONOMY_TAG = 'taxonomy';
  */
 export const TAXONOMY_READ: ApiGetOptions = { revalidate: 300, tags: [TAXONOMY_TAG] };
 
+/** Cache tag for the public word list + detail — invalidated by word mutations. */
+export const WORDS_TAG = 'words';
+
+/**
+ * Read options for the public dictionary word list/detail. Served from Next's
+ * Data Cache (60s ISR) + tagged, so navigating the dictionary/home doesn't hit
+ * the API+DB on every render (the main navigation-latency win). Invalidated
+ * immediately when a word is created/edited/deleted/approved (revalidateTag).
+ */
+export const WORDS_READ: ApiGetOptions = { revalidate: 60, tags: [WORDS_TAG] };
+
 /** Options for read requests. */
 export interface ApiGetOptions {
   /**

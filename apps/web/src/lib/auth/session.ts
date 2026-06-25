@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { ROLE_RANK, type Role } from '@msl/types';
 import { API_BASE_URL } from '@/lib/api';
@@ -22,7 +23,10 @@ export interface Session {
 
 const GUEST: Session = { role: 'guest', isMinor: false };
 
-export async function getSession(): Promise<Session> {
+// Wrapped in React `cache()` so multiple callers in a single server render
+// (e.g. the layout shell + a page) share one `/auth/me` round-trip instead of
+// repeating it.
+export const getSession = cache(async function getSession(): Promise<Session> {
   const store = await cookies();
   const token = store.get(ACCESS_COOKIE)?.value;
   if (!token) return GUEST;
@@ -53,7 +57,7 @@ export async function getSession(): Promise<Session> {
     // API unreachable → treat as guest rather than crash the render.
     return GUEST;
   }
-}
+});
 
 /** Raw access token for server components that call the API directly. */
 export async function getAccessToken(): Promise<string | undefined> {
