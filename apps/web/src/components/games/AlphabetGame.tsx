@@ -162,7 +162,7 @@ function spawnFruit(
   const centerY = stage.height / 2;
 
   // Side spawn-ууд арай доороос эхэлнэ. Ингэснээр дээшээ шидэгдэж байгаа мэт харагдана.
-  const sideY = stage.height * (0.62 + Math.random() * 0.22);
+  const sideY = stage.height * (0.6 + Math.random() * 0.22);
 
   // Bottom spawn random x
   const bottomX = stage.width * (0.2 + Math.random() * 0.6);
@@ -179,20 +179,20 @@ function spawnFruit(
       vy: -780 * speed,
     },
 
-    // Зүүн талаас орж ирээд дээш arc үүсгэнэ
+    // Зүүн талаас орж ирээд дээш явах
     {
       x: -FRUIT_SIZE,
       y: sideY,
-      vx: 260 * speed,
-      vy: -730 * speed,
+      vx: 300 * speed,
+      vy: -450 * speed,
     },
 
-    // Баруун талаас орж ирээд дээш arc үүсгэнэ
+    // Баруун талаас орж ирээд дээш явах
     {
       x: stage.width + FRUIT_SIZE,
       y: sideY,
-      vx: -260 * speed,
-      vy: -600 * speed,
+      vx: -300 * speed,
+      vy: -450 * speed,
     },
 
     // Зүүн доороос диагональ дээш
@@ -200,7 +200,7 @@ function spawnFruit(
       x: -FRUIT_SIZE,
       y: stage.height + FRUIT_SIZE * 0.7,
       vx: 240 * speed,
-      vy: -680 * speed,
+      vy: -660 * speed,
     },
 
     // Баруун доороос диагональ дээш

@@ -196,7 +196,7 @@
   "game.alphabet.recording": "Бичиж байна",
   "game.alphabet.cameraIdle": "Эхлэхэд камер энд гарч ирнэ. Дүрс серверт илгээгдэхгүй.",
   "game.alphabet.privacy": "Бүх боловсруулалт зөвхөн таны төхөөрөмж дээр хийгдэнэ. Камерын дүрс хадгалагдахгүй, серверт илгээгдэхгүй.",
-  "game.alphabet.accuracy": "Нарийвчлал",
+  "game.alphabet.accuracy": "Хэдэн хувьтай зөв хийсэн бэ",
   "game.alphabet.howToTitle": "Хэрхэн тоглох вэ",
   "game.alphabet.how1": "Эхлэх дээр дарж камераа асаана уу.",
   "game.alphabet.how2": "Жимсийг унахаас өмнө тухайн үгийг дохионы хэлээр үзүүлнэ үү.",
@@ -640,5 +640,9 @@
   "game.alphabet.gameOverTitle": "Тоглоом дууслаа",
   "game.alphabet.readyTitle": "SIGN NINJA",
   "game.alphabet.gameOver": "Тоглоом дууслаа. Эцсийн оноо: {score}.",
-  "game.alphabet.restart": "Дахин тоглох"
+  "game.alphabet.restart": "Дахин тоглох",
+  "game.alphabet.finalScore": "Нийт оноо",
+  "game.alphabet.totalSlices": "Хэрчсэн жимснүүд",
+  "game.alphabet.totalMisses": "Алдсан жимснүүд",
+  "game.alphabet.wrongAttempts": "Буруу оролдлого"
 }
