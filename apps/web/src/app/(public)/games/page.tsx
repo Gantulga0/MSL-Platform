@@ -29,7 +29,7 @@ export default async function GamesPage(): Promise<React.ReactElement> {
   return (
     <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       {/* Hero header */}
-      <header className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
+      {/* <header className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
         <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-subtle text-accent-ink">
           <Gamepad2 aria-hidden className="h-7 w-7" />
         </span>
@@ -40,20 +40,20 @@ export default async function GamesPage(): Promise<React.ReactElement> {
           {t('game.hub.title')}
         </h1>
         <p className="text-pretty text-lg leading-relaxed text-fg-muted">{t('game.hub.lead')}</p>
-      </header>
+      </header> */}
 
       {/* Available now — the playable alphabet game */}
       <section aria-labelledby="available-title" className="mt-10">
-        <div className="mb-4 flex items-center gap-2">
+        {/* <div className="mb-4 flex items-center gap-2">
           <CheckCircle2 aria-hidden className="h-5 w-5 text-success" />
           <h2 id="available-title" className="text-lg font-bold tracking-tight text-fg">
             {t('game.hub.available')}
           </h2>
-        </div>
+        </div> */}
 
         <div className="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
           {/* Game intro / meta strip */}
-          <div className="flex flex-col gap-4 border-b border-border bg-surface-muted p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          {/* <div className="flex flex-col gap-4 border-b border-border bg-surface-muted p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
             <div className="flex items-start gap-4">
               <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fg-on-primary">
                 <Hand aria-hidden className="h-6 w-6" />
@@ -81,7 +81,7 @@ export default async function GamesPage(): Promise<React.ReactElement> {
                 {t('game.hub.tagOffline')}
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* How to play */}
           <div className="grid gap-3 border-b border-border p-6 sm:grid-cols-3 sm:p-7">
@@ -131,7 +131,9 @@ export default async function GamesPage(): Promise<React.ReactElement> {
                     {t('game.hub.locked')}
                   </span>
                 </div>
-                <p className="mt-1 text-pretty text-sm leading-relaxed text-fg-muted">{t(descKey)}</p>
+                <p className="mt-1 text-pretty text-sm leading-relaxed text-fg-muted">
+                  {t(descKey)}
+                </p>
               </div>
             </li>
           ))}
