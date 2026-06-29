@@ -7,6 +7,7 @@ import type { Route } from 'next';
 import { Search } from 'lucide-react';
 import { cn } from '@msl/ui';
 import { useT } from '@/i18n/client';
+import { wordDisplayName } from '@/lib/dictionary/display';
 import type { SearchHit } from '@/app/api/search/route';
 
 export function LiveSearch({
@@ -183,7 +184,9 @@ export function LiveSearch({
                         i === active ? 'bg-surface-muted' : 'hover:bg-surface-muted',
                       )}
                     >
-                      <span className="font-medium text-fg">{h.lemma}</span>
+                      <span className="font-medium text-fg">
+                        {wordDisplayName(h.lemma, h.variants)}
+                      </span>
                       {h.topic && <span className="truncate text-sm text-fg-muted">{h.topic}</span>}
                     </Link>
                   </li>

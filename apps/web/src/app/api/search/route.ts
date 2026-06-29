@@ -7,6 +7,8 @@ import type { WordListItem } from '@/lib/dictionary/types';
 export interface SearchHit {
   id: string;
   lemma: string;
+  /** Synonym labels, so the dropdown can show the combined display name. */
+  variants: { label: string }[];
   topic: string | null;
 }
 
@@ -25,6 +27,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const items: SearchHit[] = (data?.data ?? []).slice(0, 8).map((w) => ({
     id: w.id,
     lemma: w.lemma,
+    variants: w.variants ?? [],
     topic: w.topic?.name ?? null,
   }));
 

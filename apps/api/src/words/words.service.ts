@@ -16,6 +16,12 @@ const LIST_SELECT = {
   topic: { select: { id: true, name: true, slug: true } },
   level: { select: { id: true, code: true, label: true } },
   ageGroup: { select: { id: true, code: true, label: true } },
+  // Synonym labels so cards can render the combined display name
+  // (e.g. "дуудах, нааш ир, хүрээд ир"). Detail overrides this with richer fields.
+  variants: {
+    select: { label: true },
+    orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+  },
 } satisfies Prisma.WordSelect;
 
 @Injectable()
@@ -41,6 +47,8 @@ export class WordsService {
         { lemma: { contains: q.trim(), mode: 'insensitive' } },
         { definition: { contains: q.trim(), mode: 'insensitive' } },
         { normalizedLemma: { contains: norm } },
+        // Match synonyms too: searching "нааш ир" finds "дуудах".
+        { variants: { some: { label: { contains: q.trim(), mode: 'insensitive' } } } },
       ];
     }
 

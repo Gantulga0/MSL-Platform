@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getServerT } from '@/i18n/server';
 import { apiGet, ApiClientError, WORDS_READ } from '@/lib/api/server';
 import type { WordDetail } from '@/lib/dictionary/types';
+import { wordDisplayName } from '@/lib/dictionary/display';
 import { SignPlayer } from '@/components/dictionary/SignPlayer';
 import { WordDetailTabs } from '@/components/dictionary/WordDetailTabs';
 
@@ -27,19 +28,16 @@ export default async function WordDetailPage({
   if (!word) notFound();
 
   const video = word.media.find((m) => m.type === 'video' && m.publicUrl);
+  const exampleVideo = word.media.find((m) => m.type === 'example_video' && m.publicUrl);
   const poster = word.media.find((m) => m.type === 'thumbnail' && m.publicUrl)?.publicUrl ?? undefined;
 
   // CATEGORY = parent topic; TAG = the child topic (only when it has a parent).
   const category = word.topic?.parent?.name ?? word.topic?.name ?? null;
   const tag = word.topic?.parent ? word.topic.name : null;
 
-  // Hand attributes shown as images (handedness only).
-  const attributes = [
-    ...(word.handedness ? [{ ...word.handedness, group: t('dict.hands') }] : []),
-  ].filter((a) => a.imageUrl);
-
   // The primary variant's region badges the player (if any).
   const primaryVariant = word.variants.find((v) => v.isPrimary) ?? word.variants[0];
+  // Fallback hand label when the handedness image is unavailable.
   const handLabel =
     word.handCount === 1
       ? t('dict.handsOne')
@@ -69,12 +67,28 @@ export default async function WordDetailPage({
         </div>
 
         <div className="relative z-[6] flex flex-col px-1 pb-2 pt-1">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-fg">{word.lemma}</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-fg">
+            {wordDisplayName(word.lemma, word.variants)}
+          </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {category && <span className="tagm tagm-topic">{category}</span>}
             {tag && <span className="tagm">#{tag}</span>}
-            {handLabel && <span className="tagm">{handLabel}</span>}
+            {word.handedness?.imageUrl ? (
+              <span className="tagm inline-flex items-center gap-1.5 pl-1.5">
+                {/* Hand-count sign image from R2; the label carries the meaning (a11y). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={word.handedness.imageUrl}
+                  alt=""
+                  aria-hidden
+                  className="h-5 w-5 object-contain"
+                />
+                {word.handedness.label}
+              </span>
+            ) : (
+              handLabel && <span className="tagm">{handLabel}</span>
+            )}
             {word.level && <span className="tagm tagm-level">{word.level.label}</span>}
             {word.ageGroup && <span className="tagm">{word.ageGroup.label}</span>}
           </div>
@@ -86,8 +100,8 @@ export default async function WordDetailPage({
           <WordDetailTabs
             definition={word.definition}
             exampleSentence={word.exampleSentence}
+            exampleVideoUrl={exampleVideo?.publicUrl ?? null}
             variants={word.variants}
-            attributes={attributes}
           />
         </div>
       </div>

@@ -4,26 +4,20 @@ import { useId, useRef, useState } from 'react';
 import { cn } from '@msl/ui';
 import { useT } from '@/i18n/client';
 import type { WordVariant } from '@/lib/dictionary/types';
-
-interface Attribute {
-  id: string;
-  label?: string | null;
-  group: string;
-  imageUrl?: string | null;
-}
+import { SignPlayer } from './SignPlayer';
 
 export interface WordDetailTabsProps {
   definition?: string | null;
   exampleSentence?: string | null;
+  exampleVideoUrl?: string | null;
   variants: WordVariant[];
-  attributes: Attribute[];
 }
 
 export function WordDetailTabs({
   definition,
   exampleSentence,
+  exampleVideoUrl,
   variants,
-  attributes,
 }: WordDetailTabsProps): React.ReactElement | null {
   const t = useT();
   const baseId = useId();
@@ -32,7 +26,7 @@ export function WordDetailTabs({
   const tabs = [
     variants.length > 0 && { key: 'var', label: t('dict.variants') },
     definition && { key: 'def', label: t('dict.definition') },
-    exampleSentence && { key: 'use', label: t('dict.example') },
+    (exampleSentence || exampleVideoUrl) && { key: 'use', label: t('dict.example') },
   ].filter(Boolean) as Array<{ key: string; label: string }>;
 
   const [active, setActive] = useState(0);
@@ -117,36 +111,22 @@ export function WordDetailTabs({
           </ul>
         )}
 
-        {activeKey === 'def' && (
+        {activeKey === 'def' && definition && (
           <div className="space-y-4">
-            {definition && <p className="text-fg">{definition}</p>}
-            {attributes.length > 0 && (
-              <ul className="flex flex-wrap gap-3">
-                {attributes.map((a, i) => (
-                  <li
-                    key={`${a.id}-${i}`}
-                    className="flex w-24 flex-col items-center gap-1 rounded-lg border border-border bg-surface p-2 text-center"
-                  >
-                    <span className="flex h-16 w-full items-center justify-center overflow-hidden rounded-md bg-surface-muted">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={a.imageUrl ?? ''}
-                        alt={a.label ?? ''}
-                        className="h-full w-full object-contain"
-                      />
-                    </span>
-                    <span className="text-[11px] leading-tight text-fg-subtle">{a.group}</span>
-                    <span className="text-xs font-medium leading-tight text-fg">{a.label}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="text-fg">{definition}</p>
           </div>
         )}
 
-        {activeKey === 'use' && exampleSentence && (
-          <div className="rounded-[0_14px_14px_0] border border-l-4 border-border border-l-[var(--amber)] bg-[var(--paper)] px-4 py-3.5 text-fg">
-            {exampleSentence}
+        {activeKey === 'use' && (
+          <div className="space-y-4">
+            {exampleSentence && (
+              <div className="rounded-[0_14px_14px_0] border border-l-4 border-border border-l-[var(--amber)] bg-[var(--paper)] px-4 py-3.5 text-fg">
+                {exampleSentence}
+              </div>
+            )}
+            {exampleVideoUrl && (
+              <SignPlayer src={exampleVideoUrl} label={t('dict.exampleVideo')} />
+            )}
           </div>
         )}
       </div>

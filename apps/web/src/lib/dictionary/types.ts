@@ -31,6 +31,8 @@ export interface WordListItem {
   level: { id: string; code: string; label: string } | null;
   ageGroup: { id: string; code: string; label: string } | null;
   handCount?: number | null;
+  /** Synonym labels (same sign, alternate wording) for the combined display name. */
+  variants?: { label: string }[];
   /** The word's sign video, for hover-to-play on the card. */
   video?: { url: string } | null;
 }
@@ -39,7 +41,7 @@ export interface WordMedia {
   id: string;
   ownerType: 'word' | 'word_variant' | 'submission';
   ownerId: string;
-  type: 'video' | 'image' | 'thumbnail';
+  type: 'video' | 'image' | 'thumbnail' | 'example_video';
   publicUrl: string | null;
   mime: string;
   width: number | null;

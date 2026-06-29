@@ -18,11 +18,12 @@ interface Props {
   topics: TopicNode[];
   levels: TaxoRef[];
   ageGroups: TaxoRef[];
+  handedness: TaxoRef[];
 }
 
 const FILTER_KEYS = ['q', 'topic', 'level', 'age', 'hands'] as const;
 
-export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactElement {
+export function FilterPanel({ topics, levels, ageGroups, handedness }: Props): React.ReactElement {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,6 +49,7 @@ export function FilterPanel({ topics, levels, ageGroups }: Props): React.ReactEl
       topics={topics}
       levels={levels}
       ageGroups={ageGroups}
+      handedness={handedness}
       params={params}
       setParam={setParam}
     />
@@ -111,6 +113,7 @@ function FilterSections({
   topics,
   levels,
   ageGroups,
+  handedness,
   params,
   setParam,
 }: Props & {
@@ -169,7 +172,7 @@ function FilterSections({
         </select>
       </Section>
 
-      <HandsToggle value={params.get('hands') ?? ''} setParam={setParam} />
+      <HandsToggle value={params.get('hands') ?? ''} setParam={setParam} handedness={handedness} />
     </div>
   );
 }
@@ -197,15 +200,19 @@ function Section({
 function HandsToggle({
   value,
   setParam,
+  handedness,
 }: {
   value: string;
   setParam: (key: string, value: string) => void;
+  handedness: TaxoRef[];
 }): React.ReactElement {
   const t = useT();
-  const opts: Array<[string, string]> = [
-    ['', 'dict.handsAny'],
-    ['1', 'dict.handsOne'],
-    ['2', 'dict.handsTwo'],
+  const imgFor = (hc: number): string | null =>
+    handedness.find((h) => h.handCount === hc)?.imageUrl ?? null;
+  const opts: Array<{ v: string; label: string; img: string | null }> = [
+    { v: '', label: t('dict.handsAny'), img: null },
+    { v: '1', label: t('dict.handsOne'), img: imgFor(1) },
+    { v: '2', label: t('dict.handsTwo'), img: imgFor(2) },
   ];
   return (
     <Section title={t('dict.hands')}>
@@ -214,20 +221,25 @@ function HandsToggle({
         aria-label={t('dict.hands')}
         className="inline-flex rounded-full bg-surface-muted p-1"
       >
-        {opts.map(([v, k]) => {
-          const active = value === v;
+        {opts.map((o) => {
+          const active = value === o.v;
           return (
             <button
-              key={v || 'any'}
+              key={o.v || 'any'}
               type="button"
               aria-pressed={active}
-              onClick={() => setParam('hands', v)}
+              onClick={() => setParam('hands', o.v)}
               className={cn(
-                'inline-flex min-h-touch items-center rounded-full px-4 text-sm font-medium',
+                'inline-flex min-h-touch items-center gap-1.5 rounded-full px-3 text-sm font-medium',
                 active ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg',
               )}
             >
-              {t(k)}
+              {o.img && (
+                /* Hand-count sign image from R2; label carries the meaning (a11y). */
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={o.img} alt="" aria-hidden className="h-5 w-5 object-contain" />
+              )}
+              {o.label}
             </button>
           );
         })}

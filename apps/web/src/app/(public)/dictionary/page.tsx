@@ -112,6 +112,9 @@ async function DictionaryResults({ sp, t }: { sp: SP; t: T }): Promise<React.Rea
   if (sp.age) qs.set('age', sp.age);
   if (sp.hands) qs.set('hands', sp.hands);
   qs.set('page', String(page));
+  // Ask the API for exactly one board's worth so meta.totalPages matches what we
+  // render — otherwise the pager skips items (API defaults to a larger limit).
+  qs.set('limit', String(DISPLAY_LIMIT));
 
   const words = await apiGetSafe<Paginated<WordListItem>>(`/words?${qs.toString()}`, WORDS_READ);
 
@@ -122,9 +125,11 @@ async function DictionaryResults({ sp, t }: { sp: SP; t: T }): Promise<React.Rea
   const shownTo = from > 0 ? from + items.length - 1 : 0;
 
   const hasQuery = Boolean(sp.q || sp.topic || sp.level || sp.age || sp.hands);
-  // Only pad while browsing (no active query); padding search results with
-  // "coming soon" would misrepresent the matches.
-  const padCount = hasQuery ? 0 : Math.max(0, DISPLAY_LIMIT - items.length);
+  // Pad the board only on a single-page browse (no query, no further pages) so a
+  // tiny catalog never reads as broken. On multi-page results the last page just
+  // shows its real cards — no misleading "coming soon" filler.
+  const padCount =
+    !hasQuery && (meta?.totalPages ?? 1) <= 1 ? Math.max(0, DISPLAY_LIMIT - items.length) : 0;
   const showCta = total < DISPLAY_LIMIT;
 
   const countLabel =
@@ -209,10 +214,11 @@ export default async function DictionaryPage({
 
   // Taxonomy drives the filter shell — cached + fast, so the header, search box
   // and filters render immediately while the (heavier) word list streams in.
-  const [topics, levels, ageGroups] = await Promise.all([
+  const [topics, levels, ageGroups, handedness] = await Promise.all([
     apiGetSafe<TopicNode[]>('/topics', TAXONOMY_READ),
     apiGetSafe<TaxoRef[]>('/levels', TAXONOMY_READ),
     apiGetSafe<TaxoRef[]>('/age-groups', TAXONOMY_READ),
+    apiGetSafe<TaxoRef[]>('/handedness', TAXONOMY_READ),
   ]);
 
   // Re-suspend the results whenever the query changes so only the grid shows a
@@ -230,7 +236,12 @@ export default async function DictionaryPage({
 
       <div className="grid gap-6 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-8">
         {/* Filters — left sticky sidebar (desktop) / bottom-sheet drawer (mobile). */}
-        <FilterPanel topics={topics ?? []} levels={levels ?? []} ageGroups={ageGroups ?? []} />
+        <FilterPanel
+          topics={topics ?? []}
+          levels={levels ?? []}
+          ageGroups={ageGroups ?? []}
+          handedness={handedness ?? []}
+        />
 
         {/* Results column. */}
         <div className="min-w-0">
