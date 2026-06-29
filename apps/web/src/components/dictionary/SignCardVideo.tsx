@@ -22,11 +22,27 @@ export function SignCardVideo({ src }: { src?: string | null }): React.ReactElem
     }
   }, []);
 
+  // Paint the first frame so an idle card shows the sign as a poster instead of
+  // a grey box — without downloading/playing the whole clip (stays lazy). Some
+  // browsers need a tiny seek to actually render that frame.
+  const showFirstFrame = useCallback((): void => {
+    const v = ref.current;
+    if (v && v.paused && v.currentTime === 0) {
+      try {
+        v.currentTime = 0.05;
+      } catch {
+        /* seek not ready yet — ignore */
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const v = ref.current;
     if (!src || !v) return;
     const hasHover = window.matchMedia?.('(hover: hover)').matches;
     if (hasHover) {
+      // Desktop: play only while the cursor is over the card (lazy — the full
+      // clip loads on first hover).
       const card = v.closest('a') ?? v.parentElement;
       if (!card) return;
       card.addEventListener('mouseenter', play);
@@ -36,6 +52,7 @@ export function SignCardVideo({ src }: { src?: string | null }): React.ReactElem
         card.removeEventListener('mouseleave', stop);
       };
     }
+    // Touch: play while the card is on screen (no hover available).
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -62,8 +79,9 @@ export function SignCardVideo({ src }: { src?: string | null }): React.ReactElem
           muted
           loop
           playsInline
-          preload="none"
+          preload="metadata"
           aria-hidden
+          onLoadedMetadata={showFirstFrame}
           className="h-full w-full object-cover"
         />
       ) : (
