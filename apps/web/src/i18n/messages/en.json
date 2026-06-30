@@ -64,6 +64,7 @@
   "common.openMenu": "Open menu",
   "pagination.nav": "Pagination",
   "pagination.page": "Page {page} of {total}",
+  "pagination.goTo": "Go to page {page}",
   "home.searchPlaceholder": "Search a word...",
   "home.featuredTopics": "Featured topics",
   "search.resultsLabel": "Search results",

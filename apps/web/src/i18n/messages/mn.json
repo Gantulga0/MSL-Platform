@@ -64,6 +64,7 @@
   "common.openMenu": "Цэс нээх",
   "pagination.nav": "Хуудаслалт",
   "pagination.page": "{page} / {total} хуудас",
+  "pagination.goTo": "{page}-р хуудас руу очих",
   "home.searchPlaceholder": "Үг хайх...",
   "home.featuredTopics": "Онцлох сэдвүүд",
   "search.resultsLabel": "Хайлтын илэрц",

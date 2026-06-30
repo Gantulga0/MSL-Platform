@@ -44,13 +44,16 @@ export function NumbersExplorer({
   return (
     <div className="lg:flex lg:items-start lg:gap-8">
       <aside className="mb-6 lg:mb-0 lg:w-64 lg:shrink-0">
-        <nav aria-label={t('numbers.filterNav')} className="space-y-5">
+        <nav
+          aria-label={t('numbers.filterNav')}
+          className="glass space-y-5 p-4 lg:sticky lg:top-24"
+        >
           {GROUP_ORDER.map((group) => {
             const cats = categories.filter((c) => c.group === group);
             if (cats.length === 0) return null;
             return (
-              <div key={group}>
-                <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-fg-muted">
+              <div key={group} className="relative z-[6]">
+                <h2 className="mb-2.5 text-xs font-bold uppercase tracking-[0.12em] text-fg-muted">
                   {GROUP_LABELS[group]}
                 </h2>
                 <ul className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
@@ -63,10 +66,10 @@ export function NumbersExplorer({
                           onClick={() => setActive(cat.key)}
                           aria-pressed={isActive}
                           className={cn(
-                            'inline-flex min-h-touch shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-sm transition-colors lg:w-full lg:justify-start lg:rounded-lg',
+                            'inline-flex min-h-touch shrink-0 items-center whitespace-nowrap rounded-full px-4 text-sm font-medium transition-colors lg:w-full lg:justify-start lg:rounded-xl',
                             isActive
-                              ? 'border-primary bg-primary font-semibold text-fg-on-primary'
-                              : 'border-border bg-surface text-fg-muted hover:bg-surface-muted hover:text-fg',
+                              ? 'bg-primary font-semibold text-fg-on-primary shadow-[0_8px_20px_-10px_var(--sky)]'
+                              : 'text-fg-muted hover:bg-surface-muted hover:text-fg',
                           )}
                         >
                           {cat.label}
@@ -82,12 +85,12 @@ export function NumbersExplorer({
       </aside>
 
       <div className="min-w-0 flex-1">
-        <h1
+        <h2
           aria-live="polite"
-          className="mb-6 text-2xl font-bold tracking-tight text-fg sm:text-3xl"
+          className="mb-6 font-display text-2xl font-extrabold tracking-tight text-fg sm:text-3xl"
         >
           {heading}
-        </h1>
+        </h2>
         {items.length > 0 ? (
           <SignBoard
             items={items}
@@ -97,8 +100,8 @@ export function NumbersExplorer({
             tileSize="sm"
           />
         ) : (
-          <p className="rounded-lg border border-dashed border-border bg-surface p-8 text-center text-fg-muted">
-            {t('signs.emptyCategory')}
+          <p className="glass p-8 text-center text-fg-muted">
+            <span className="relative z-[6]">{t('signs.emptyCategory')}</span>
           </p>
         )}
       </div>

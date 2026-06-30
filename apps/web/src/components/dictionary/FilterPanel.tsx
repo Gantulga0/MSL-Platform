@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   usePathname,
   useRouter,
@@ -8,10 +8,10 @@ import {
   type ReadonlyURLSearchParams,
 } from 'next/navigation';
 import type { Route } from 'next';
-import { SlidersHorizontal } from 'lucide-react';
-import { Button, Dialog, cn } from '@msl/ui';
+import { SignalHigh, SlidersHorizontal, Tags, Users, X } from 'lucide-react';
+import { Button, Dialog, Select, cn, type SelectOption } from '@msl/ui';
 import { useT } from '@/i18n/client';
-import { TopicSelect } from '@/components/dictionary/TopicSelect';
+import { flattenNumbered, optionLabel } from '@/components/dictionary/TopicSelect';
 import type { TaxoRef, TopicNode } from '@/lib/dictionary/types';
 
 interface Props {
@@ -90,19 +90,28 @@ export function FilterPanel({ topics, levels, ageGroups, handedness }: Props): R
 
       <aside aria-label={t('dict.filters')} className="hidden lg:block">
         <div className="glass sticky top-24 flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden">
-          <div className="relative z-[6] flex items-center justify-between gap-2 px-5 pt-5">
-            <h2 className="font-display text-lg font-bold text-fg">{t('dict.filters')}</h2>
+          <div className="relative z-[6] flex items-center justify-between gap-2 px-5 pb-4 pt-5">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal aria-hidden className="h-4 w-4 text-accent-ink" />
+              <h2 className="font-display text-lg font-bold text-fg">{t('dict.filters')}</h2>
+              {activeCount > 0 && (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--amber)] px-1.5 text-xs font-bold tabular-nums text-[#3a2400]">
+                  {activeCount}
+                </span>
+              )}
+            </div>
             {activeCount > 0 && (
               <button
                 type="button"
                 onClick={clearAll}
-                className="rounded-full px-3 py-1 text-sm font-semibold text-accent-ink hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold text-accent-ink transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
+                <X aria-hidden className="h-3.5 w-3.5" />
                 {t('dict.clearFilters')}
               </button>
             )}
           </div>
-          <div className="relative z-[6] overflow-y-auto px-5 pb-5 pt-5">{sections}</div>
+          <div className="relative z-[6] overflow-y-auto px-5 pb-5">{sections}</div>
         </div>
       </aside>
     </>
@@ -121,55 +130,53 @@ function FilterSections({
   setParam: (key: string, value: string) => void;
 }): React.ReactElement {
   const t = useT();
-  const selectCls =
-    'h-control-md w-full rounded-md border border-border-strong bg-surface px-3 text-base text-fg';
   const levelLabel = t('dict.filterLevel').replace(/:$/, '');
   const ageLabel = t('dict.filterAge').replace(/:$/, '');
 
+  const topicVal = params.get('topic') ?? '';
+  const levelVal = params.get('level') ?? '';
+  const ageVal = params.get('age') ?? '';
+
+  // Flatten the topic tree into options once, encoding depth + counts in the label
+  // (the styled dropdown shows them as plain text, like the level/age selects).
+  const topicOptions = useMemo<SelectOption[]>(
+    () => flattenNumbered(topics).map((o) => ({ value: o.id, label: optionLabel(o, true) })),
+    [topics],
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="divide-y divide-border">
       <Section title={t('dict.topics')}>
-        <TopicSelect
-          topics={topics}
-          value={params.get('topic') ?? ''}
-          onChange={(id) => setParam('topic', id)}
+        <FilterSelect
           ariaLabel={t('dict.topics')}
-          placeholder={t('dict.allTopics')}
-          className={selectCls}
-          showCounts
+          value={topicVal}
+          onChange={(v) => setParam('topic', v)}
+          allLabel={t('dict.allTopics')}
+          options={topicOptions}
+          icon={<Tags aria-hidden />}
         />
       </Section>
 
       <Section title={levelLabel}>
-        <select
-          className={selectCls}
-          aria-label={levelLabel}
-          value={params.get('level') ?? ''}
-          onChange={(e) => setParam('level', e.target.value)}
-        >
-          <option value="">{t('dict.allLevels')}</option>
-          {levels.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <FilterSelect
+          ariaLabel={levelLabel}
+          value={levelVal}
+          onChange={(v) => setParam('level', v)}
+          allLabel={t('dict.allLevels')}
+          options={levels.map((l) => ({ value: l.id, label: l.label ?? l.name ?? l.code ?? l.id }))}
+          icon={<SignalHigh aria-hidden />}
+        />
       </Section>
 
       <Section title={ageLabel}>
-        <select
-          className={selectCls}
-          aria-label={ageLabel}
-          value={params.get('age') ?? ''}
-          onChange={(e) => setParam('age', e.target.value)}
-        >
-          <option value="">{t('dict.allAges')}</option>
-          {ageGroups.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.label}
-            </option>
-          ))}
-        </select>
+        <FilterSelect
+          ariaLabel={ageLabel}
+          value={ageVal}
+          onChange={(v) => setParam('age', v)}
+          allLabel={t('dict.allAges')}
+          options={ageGroups.map((a) => ({ value: a.id, label: a.label ?? a.name ?? a.code ?? a.id }))}
+          icon={<Users aria-hidden />}
+        />
       </Section>
 
       <HandsToggle value={params.get('hands') ?? ''} setParam={setParam} handedness={handedness} />
@@ -177,21 +184,60 @@ function FilterSections({
   );
 }
 
+/** Shared control surface: a solid, legible field (not translucent) inside the glass panel. */
+const FIELD_CLS =
+  'h-control-md rounded-xl border-border-strong bg-surface font-medium transition-colors hover:border-fg-subtle';
+
+/**
+ * One filter dropdown: the brand-styled Radix Select with a leading icon and an
+ * always-present "all" row that clears the filter. The control always shows a
+ * concrete choice (the picked value, or "all …"), so there is no empty state to
+ * style — and the active border signals when a real filter is applied.
+ */
+function FilterSelect({
+  ariaLabel,
+  value,
+  onChange,
+  allLabel,
+  options,
+  icon,
+}: {
+  ariaLabel: string;
+  value: string;
+  onChange: (value: string) => void;
+  allLabel: string;
+  options: SelectOption[];
+  icon: ReactNode;
+}): React.ReactElement {
+  // Radix forbids an empty-string item value, so "all" uses a sentinel that maps
+  // back to "" (cleared) on the way out.
+  const ALL = '__all__';
+  const allOptions = useMemo<SelectOption[]>(
+    () => [{ value: ALL, label: allLabel }, ...options],
+    [allLabel, options],
+  );
+  return (
+    <Select
+      ariaLabel={ariaLabel}
+      value={value || ALL}
+      onValueChange={(v) => onChange(v === ALL ? '' : v)}
+      options={allOptions}
+      leadingIcon={icon}
+      className={cn(FIELD_CLS, value && 'border-primary')}
+    />
+  );
+}
+
 function Section({
   title,
-  badge,
   children,
 }: {
   title: string;
-  badge?: ReactNode;
   children: ReactNode;
 }): React.ReactElement {
   return (
-    <section className="space-y-3">
-      <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">{title}</h3>
-        {badge}
-      </div>
+    <section className="space-y-2.5 py-4 first:pt-0 last:pb-0">
+      <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-fg-muted">{title}</h3>
       {children}
     </section>
   );
@@ -219,7 +265,7 @@ function HandsToggle({
       <div
         role="group"
         aria-label={t('dict.hands')}
-        className="inline-flex rounded-full bg-surface-muted p-1"
+        className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface-muted p-1"
       >
         {opts.map((o) => {
           const active = value === o.v;
@@ -230,7 +276,7 @@ function HandsToggle({
               aria-pressed={active}
               onClick={() => setParam('hands', o.v)}
               className={cn(
-                'inline-flex min-h-touch items-center gap-1.5 rounded-full px-3 text-sm font-medium',
+                'inline-flex min-h-touch items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
                 active ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg',
               )}
             >

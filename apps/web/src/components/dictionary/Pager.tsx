@@ -33,6 +33,7 @@ export function Pager({
         previous: t('common.previous'),
         next: t('common.next'),
         page: (p, total) => t('pagination.page', { page: p, total }),
+        goTo: (p) => t('pagination.goTo', { page: p }),
       }}
     />
   );

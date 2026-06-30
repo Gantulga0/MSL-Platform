@@ -37,3 +37,16 @@
     transform: translate(-50%, -48%) scale(0.97);
   }
 }
+
+/* Popover / dropdown (Radix Select, menus): a small grounded entrance that
+   reads as "opened from the trigger". Disabled under reduced-motion above. */
+.msl-popover[data-state='open'] {
+  animation: msl-popover-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: var(--radix-select-content-transform-origin);
+}
+@keyframes msl-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}

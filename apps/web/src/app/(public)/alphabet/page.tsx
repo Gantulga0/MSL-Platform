@@ -23,12 +23,11 @@ export default async function AlphabetPage(): Promise<React.ReactElement> {
   return (
     <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
       <header className="mb-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">
+        <span className="eyebrow justify-center">{t('nav.learn')}</span>
+        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
           {t('alphabet.title')}
         </h1>
-        <p className="mx-auto mt-2 max-w-2xl text-base text-fg-muted">
-          {t('alphabet.lead')}
-        </p>
+        <p className="mx-auto mt-3 max-w-2xl text-base text-fg-muted">{t('alphabet.lead')}</p>
       </header>
 
       <SignBoard

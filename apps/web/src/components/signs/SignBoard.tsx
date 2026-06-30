@@ -6,7 +6,7 @@ import { SignTile } from './SignTile';
 import { SignMedia } from './SignMedia';
 import type { SignItem } from './types';
 
-const DEFAULT_GRID = 'grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5';
+const DEFAULT_GRID = 'grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5';
 
 export function SignBoard({
   items,
@@ -43,8 +43,11 @@ export function SignBoard({
         className="max-w-2xl"
       >
         {active && (
-          <div className="flex flex-col items-center gap-4">
-            <span aria-hidden className="text-6xl font-bold leading-none text-fg">
+          <div className="flex flex-col items-center gap-5">
+            <span
+              aria-hidden
+              className="grid h-20 min-w-20 place-items-center rounded-2xl bg-gradient-to-br from-tint-sage to-tint-lav px-5 font-display text-5xl font-extrabold leading-none text-fg"
+            >
               {active.display}
             </span>
             <SignMedia src={active.src} label={active.dialogLabel} kind={active.kind} />
