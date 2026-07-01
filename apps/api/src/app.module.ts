@@ -16,6 +16,7 @@ import { MediaModule } from './media/media.module';
 import { SubmissionsModule } from './submissions/submissions.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AdminModule } from './admin/admin.module';
+import { RaceModule } from './race/race.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AdminModule } from './admin/admin.module';
     SubmissionsModule,
     NotificationsModule,
     AdminModule,
+    RaceModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

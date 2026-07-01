@@ -139,9 +139,11 @@ html {
 
 body {
   color: theme('colors.fg');
-  /* Transparent so the fixed .bg-gradient (z-index:-1) shows through. */
+  /* Transparent so the fixed .bg-gradient layer shows through. */
   background: transparent;
   font-family: theme('fontFamily.sans');
+  position: relative;
+  isolation: isolate;
 }
 
 /* ── Liquid Glass material ────────────────────────────────────────────────
@@ -235,7 +237,7 @@ body {
 .bg-gradient {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   filter: saturate(1.12);
   background:
@@ -261,6 +263,11 @@ body {
     ),
     linear-gradient(160deg, var(--paper), var(--paper-2));
   transition: background 0.12s linear;
+}
+
+body > :not(.bg-gradient):not(.skip-link) {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Threads-style sliding glass nav pill ─────────────────────────────────── */
@@ -1490,4 +1497,77 @@ body {
     opacity: 0;
     transform: rotate(-22deg) scaleX(1.1);
   }
+}
+
+/* ── Sign TypeRacer feedback (Racer: solo + multiplayer) ─────────────────────
+   Juicy, but every cue is visual (deaf-first) and gated behind reduced-motion,
+   matching the alphabet fruit game's motion policy. */
+.race-slot-active {
+  animation: race-pulse 1.4s ease-in-out infinite;
+}
+.race-slot-hit {
+  animation: race-hit 0.5s ease-out;
+}
+.race-countdown {
+  display: inline-block;
+  animation: race-count 0.62s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes race-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 22px -8px var(--amber);
+  }
+  50% {
+    box-shadow: 0 0 34px -2px var(--amber);
+  }
+}
+@keyframes race-hit {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes race-count {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .race-slot-active,
+  .race-slot-hit,
+  .race-countdown {
+    animation: none !important;
+  }
+}
+
+/* Racer stage background. Drops in `/games/racer/background.png` when present;
+   until then the layered gradient renders a finished-looking dark race stage. */
+.racer-game-stage {
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(10, 14, 40, 0.3), rgba(6, 10, 30, 0.62)),
+    url('/games/racer/background.png') center / cover no-repeat,
+    linear-gradient(160deg, #14204a 0%, #0a1024 100%);
+}
+
+/* Per-player progress marker ("car"). Uses `/games/racer/car.png` when added;
+   the fallback background colour keeps a tidy marker until then. */
+.racer-car {
+  background-image: url('/games/racer/car.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
