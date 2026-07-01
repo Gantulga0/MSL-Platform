@@ -211,6 +211,7 @@
   "game.race.multiTitle": "Multiplayer Race",
   "game.race.multiLead": "Join a room with friends and race head-to-head on the same word — fastest signer wins.",
   "game.race.multiCardDesc": "Create a room, share the code, and race others live over the network.",
+  "game.race.modeIntro": "In solo mode you can do a time attack on your own. In multiplayer mode you create a room and race a friend.",
   "game.race.enableCamera": "Enable camera",
   "game.race.loadingTemplates": "Loading references…",
   "game.race.cameraHelp": "Playing needs camera access. All processing happens on your device only.",

@@ -116,7 +116,7 @@ function EmptyRaceState({
         </h3>
 
         <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-          Solo mode дээр ганцаараа time attack хийж болно. Multiplayer mode дээр room үүсгээд найзтайгаа уралдана.
+          {t('game.race.modeIntro')}
         </p>
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
